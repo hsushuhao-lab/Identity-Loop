@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
-const base=process.argv[2]||'https://hsushuhao-lab.github.io/DutyNight/';
+const base=process.argv[2]||'https://hsushuhao-lab.github.io/Identy-Loop/';
 const expected=process.env.GITHUB_SHA;
 assert(expected,'GITHUB_SHA is required; do not verify against an unspecified release');
 await mkdir('qa-results',{recursive:true});

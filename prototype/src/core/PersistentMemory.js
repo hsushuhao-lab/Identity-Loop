@@ -1,5 +1,5 @@
 export const TRUE_NAME_CANON='張守恆';
-const STORAGE_KEY='DutyNight_PersistentData';
+const STORAGE_KEY='IdentyLoop_RuntimeData';
 
 const defaults=()=>({
   version:5,

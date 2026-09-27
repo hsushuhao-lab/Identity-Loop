@@ -3,10 +3,10 @@ import {ART_PASS2,preloadArtPass2Image} from '../art/ArtPass2Assets.js';
 // Watches existing story flags; does not own story progression or modify M1–M9 state.
 
 const KEYS=Object.freeze({
-  opening:'DutyNight_OpeningPresentationSeen',
-  act2:'DutyNight_Act2CardSeen',
-  act3:'DutyNight_Act3CardSeen',
-  outro:'DutyNight_SuccessOutroSeen'
+  opening:'IdentyLoop_OpeningPresentationSeen',
+  act2:'IdentyLoop_Act2CardSeen',
+  act3:'IdentyLoop_Act3CardSeen',
+  outro:'IdentyLoop_SuccessOutroSeen'
 });
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const seen=key=>{try{return window.sessionStorage?.getItem(key)==='1';}catch{return false;}};

@@ -1,7 +1,7 @@
 name: Fast Deploy GitHub Pages
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,13 +23,13 @@ jobs:
       - name: Refuse stale queued push
         id: freshness
         run: |
-          git fetch origin master --depth=1
-          if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/master)" ]; then
+          git fetch origin main --depth=1
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]; then
             echo "current=true" >> "$GITHUB_OUTPUT"
-            echo "Deploying current master $(git rev-parse HEAD)"
+            echo "Deploying current main $(git rev-parse HEAD)"
           else
             echo "current=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping stale queued SHA $(git rev-parse HEAD); master is $(git rev-parse origin/master)"
+            echo "Skipping stale queued SHA $(git rev-parse HEAD); main is $(git rev-parse origin/main)"
           fi
       - name: Setup Node.js
         if: steps.freshness.outputs.current == 'true'
@@ -75,7 +75,7 @@ jobs:
         if: steps.freshness.outputs.current == 'true'
         working-directory: prototype
         run: node scripts/check-asset-budget.mjs
-      - name: Build exact master SHA
+      - name: Build exact main SHA
         if: steps.freshness.outputs.current == 'true'
         working-directory: prototype
         run: |

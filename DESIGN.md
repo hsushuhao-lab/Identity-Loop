@@ -40,3 +40,7 @@ Use bounded local lights and stable exposure. Keep material detail visible in hi
 Keep the existing HUD and HIS implementation tokens unless a concrete V2 readability issue requires a targeted change: HUD background `rgba(24,31,28,.65)`, text `#f3f1e9`, sage `#b4c7b8`, border `#658b76`; 12px body/14px location, 8px/12px padding, 16px screen margin, 288px task width. HIS title `#355342`, header `#e1e8e3`, table heading `#cfdbd3`, 13px operational type, 2px corners. Small-screen HIS scrolls while keeping its footer accessible.
 
 Production labels contain no debug/milestone metadata. Screenshot timeouts, missing files, browser errors, and off-frame QA anchors are hard failures. Follow `docs/20260925_v2_upgrade/QA_V2.md` for the exact local/public screenshot and release contract; state-machine tests alone cannot establish visual acceptance.
+
+## Identy Loop V2 extension
+
+The V2 identity surface is a restrained clinical evidence console layered over the existing world. It uses the existing HUD tokens plus `identity-loop-panel` tokens: translucent hospital surface `rgba(18,24,21,.88)`, sage text `#b4c7b8`, ivory text `#f3f1e9`, archive accent `#f2d6a3`, 12px operational type, 15px serif section heading, 6px radius, and 10px blur. The reusable primitives are the milestone header, evidence list, B2 archive detail, M9 choice button, and ending card; states are hidden seed, archive-open, M9-open, and ending-open. The panel is real DOM, responsive at desktop and narrow widths, and its buttons remain keyboard-focusable.

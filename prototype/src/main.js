@@ -63,6 +63,10 @@ import { ActPresentationDirector } from './story/ActPresentationDirector.js';
 import { FinalPatientizationDirector } from './story/FinalPatientizationDirector.js';
 import { FinalSuccessDirector } from './story/FinalSuccessDirector.js';
 import { B2FireRecapDirector } from './story/B2FireRecapDirector.js';
+import { IdentityManager, IDENTITY_PROFILES } from './core/IdentityManager.js';
+import { IdentityLoopPanel } from './ui/IdentityLoopPanel.js';
+
+const identityLoopMode=new URLSearchParams(location.search).get('mode')!=='linear';
 
 // Setup Three.js Scene & Renderer
 const container = document.getElementById('canvas-container');
@@ -145,6 +149,22 @@ uiManager = new UIManager(
     renderer.domElement.requestPointerLock();
   }
 );
+
+const identityManager=new IdentityManager();
+const identityLoopPanel=new IdentityLoopPanel(identityManager,{debug:new URLSearchParams(location.search).get('qa')==='story'||new URLSearchParams(location.search).get('debug')==='1'});
+const forcedIdentity=new URLSearchParams(location.search).get('identity');
+if(identityLoopMode&&forcedIdentity&&new URLSearchParams(location.search).get('qa')==='story')identityManager.startNewRun({forceIdentity:forcedIdentity,restart:true});
+if(identityLoopMode)identityLoopPanel.start();
+gameState.addListener((event,data)=>{
+  if(!identityLoopMode||event!=='flag_changed'||data.val!==true)return;
+  const milestones={
+    M4_CHEST_RESOLVED:'M4',M5_BRIDGE_COMMITTED:'M5',M6_FLOOR6_RESOLVED:'M6',M7_B2_OPEN:'M7',
+    B2_TERMINAL_CONTACTED:'B2',B2_EXITED_PERMANENTLY:'M8',M8_IDENTITY_BATTLE_ACTIVE:'M8',LAST_CALL_SEEN:'M9'
+  };
+  if(milestones[data.flag])identityLoopPanel.syncMilestone(milestones[data.flag]);
+  const evidence={M4_CHEST_RESOLVED:'M4_PREFILLED_TRANSFER',M5_BRIDGE_COMMITTED:'M5_SKYBRIDGE',M6_FLOOR6_RESOLVED:'M6_MEMORY_ANCHOR',B2_TERMINAL_CONTACTED:'B2_CURRENT_SELF_CORRUPTED'};
+  if(evidence[data.flag])identityLoopPanel.recordEvidence(evidence[data.flag]);
+});
 
 const actPresentationDirector=new ActPresentationDirector({
   gameState,
@@ -387,10 +407,10 @@ function restartFreshExperience(){
   persistentMemory.reset();
   try{
     for(const key of [
-      'DutyNight_OpeningPresentationSeen',
-      'DutyNight_Act2CardSeen',
-      'DutyNight_Act3CardSeen',
-      'DutyNight_SuccessOutroSeen'
+      'IdentyLoop_OpeningPresentationSeen',
+      'IdentyLoop_Act2CardSeen',
+      'IdentyLoop_Act3CardSeen',
+      'IdentyLoop_SuccessOutroSeen'
     ])sessionStorage.removeItem(key);
   }catch{}
   location.reload();
@@ -489,6 +509,17 @@ function triggerFinalPatientizationFailure(onEscape){
 function revealFinal316Handoff({deferred=false}={}) {
   const openForm=()=>{
     controller.enabled=false;
+    if(identityLoopMode){
+      identityLoopPanel.openM9({onCommit:result=>{
+        if(result.type==='GOOD_END'){
+          const profile=IDENTITY_PROFILES[result.identity];
+          uiManager.showFinalSuccess(profile.name);
+          return;
+        }
+        triggerFinalPatientizationFailure(()=>{identityLoopPanel.newRun();controller.enabled=true;});
+      }});
+      return;
+    }
     uiManager.openFinalHandoff(({name,employeeId})=>{
       if(completeFinalIdentityAt316(name,employeeId,{deferred}))return;
       const hasInput=employeeId;
@@ -556,7 +587,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
     });
   };
   window.__storyQA={
-    gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,
+    gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,
     prefetch:prefetchDestinationAssets,
     load:(zone,spawn)=>{worldRouter.loadZone(zone,spawn);worldRouter.activeZoneInstance?.syncStoryState?.();},
     enter:(zone,spawn)=>{
@@ -1194,6 +1225,12 @@ controller.onInteract = async (interactable) => {
       return;
     }
 
+    if(identityLoopMode){
+      identityManager.enterB2();
+      identityLoopPanel.openB2Archive();
+      return;
+    }
+
     // After the fire recap, the player is already allowed to leave B2 and
     // return to 316. Keep the old one-shot identity matrix as an OPTIONAL
     // second interaction for players who still want to compare the candidates.
@@ -1258,8 +1295,9 @@ controller.onInteract = async (interactable) => {
       return;
     }
 
-    const resolved=gameState.getFlag('M7_B2_RESOLVED')===true;
+    const resolved=identityLoopMode||gameState.getFlag('M7_B2_RESOLVED')===true;
     const leaveB2=()=>{
+      if(identityLoopMode)identityManager.advanceMilestone('M8');
       gameState.setFlag('B2_EXITED_PERMANENTLY',true);
       gameState.setFlag('M7_B2_OPEN',false);
       gameState.setFlag('HIDDEN_SERVICE_DOOR_DISCOVERED',false);
