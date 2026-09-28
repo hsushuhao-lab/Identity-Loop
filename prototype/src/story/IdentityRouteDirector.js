@@ -378,6 +378,22 @@ export class IdentityRouteDirector {
       return;
     }
 
+    if(
+      currentBinding?.dutyRoomEntry &&
+      !this.busy &&
+      !this.manager.runSave.runEnded &&
+      this.worldRouter.activeZoneId==='first_campus_4f'
+    ){
+      const bounds=this.worldRouter.activeZoneInstance?.dutyRoom?.bounds;
+      if(bounds){
+        const [x1,z1,x2,z2]=bounds,p=this.controller.position;
+        if(p.x>=Math.min(x1,x2)&&p.x<=Math.max(x1,x2)&&p.z>=Math.min(z1,z2)&&p.z<=Math.max(z1,z2)){
+          this.inspect();
+          return;
+        }
+      }
+    }
+
     if(this.step==='M1'&&!this.awaitingZone){
       const gateState=!this.gameState.getFlag('FOUND_316_SPARE_KEY')
         ? 'GET_KEY'
@@ -452,7 +468,7 @@ export class IdentityRouteDirector {
     }
 
     if(step==='LI_DUTY_CALL_2000'){
-      if(index===0)return {auto:true};
+      if(index===0)return {dutyRoomEntry:true,prompt:'回到 4F 值班室休息'};
       return {id:'4F_DUTY_PHONE',prompt:'接聽值班室電話'};
     }
     if(step==='LI_ER_2005'){
@@ -460,12 +476,12 @@ export class IdentityRouteDirector {
       return {id:'ER_DOCTOR_CHARTING',prompt:'到急診醫師電腦書寫紀錄'};
     }
     if(step==='LI_RETURN_DUTY_2117'){
-      if(index===0)return {auto:true};
+      if(index===0)return {dutyRoomEntry:true,prompt:'回 4F 值班室整理今晚的數字'};
       return {id:'4F_DUTY_PHONE',prompt:'接聽值班室電話，前往三樓查哨'};
     }
     if(step==='LI_2117_PATROL') return { id:'GUARD_SIGN_2117', prompt:'查看 21:17 三樓查哨板' };
     if(step==='LI_RETURN_DUTY_0033'){
-      if(index===0)return {auto:true};
+      if(index===0)return {dutyRoomEntry:true,prompt:'回 4F 值班室'};
       return {id:'4F_DUTY_PHONE',prompt:'接聽 00:30 急診來電'};
     }
     if(step==='LI_ER_0033') return { id:'ER_GHOST_REGISTRATION', prompt:'查看 00:33 有紀錄但沒有人的掛號' };
@@ -733,7 +749,7 @@ export class IdentityRouteDirector {
     }
 
     const binding = this.bindingFor();
-    if (binding.officeEntry || binding.proximityBridge || binding.evidenceSweep) {
+    if (binding.officeEntry || binding.proximityBridge || binding.evidenceSweep || binding.dutyRoomEntry) {
       this.renderObjective();
       return;
     }
@@ -1399,6 +1415,10 @@ export class IdentityRouteDirector {
     if(binding.evidenceSweep){
       this.gameState.setFlag('ADMIN_OFFICE_ENTERED',true);
       this.gameState.setFlag('ARCHIVE_ROOM_ENTERED',true);
+      this.inspect();
+      return true;
+    }
+    if(binding.dutyRoomEntry){
       this.inspect();
       return true;
     }
