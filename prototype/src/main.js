@@ -181,7 +181,8 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
     M4_409A_ORDER_PATIENTIZATION:'你簽下了來源未核對、目的地卻已預填 409-A 的醫囑。',
     BRIDGE_LOOKBACK_PATIENTIZATION:'你在天橋上回頭確認了不該被確認的人影。',
     BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION:'你已選擇不回頭，卻在離開天橋前再次轉身。',
-    M7_HISTORICAL_PROCEDURE_PATIENTIZATION:'你照著熟悉的舊程序重演了 1 → 3 → 4。'
+    M7_HISTORICAL_PROCEDURE_PATIENTIZATION:'你照著熟悉的舊程序重演了 1 → 3 → 4。',
+    ARCHIVE_PURGE_PATIENTIZATION:'04:09 資料總核銷完成；未被你及時取回的姓名與值班身分遭到永久格式化。'
   }[result.reason]||'你重演了會把值班醫師重新分類成 409-A 病人的錯誤。';
   persistentMemory.recordOverride(result.reason||'IDENTITY_ROUTE');
   uiManager.playLegendOverride({legend:'409 PATIENTIZATION',reason:reasonText},()=>{
