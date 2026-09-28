@@ -177,6 +177,16 @@ export class IdentityRouteDirector {
   }
 
   update() {
+    if(this.gameState.getFlag('BRIDGE_OVERRIDE_PENDING')&&!this.manager.runSave.runEnded){
+      this.gameState.setFlag('BRIDGE_OVERRIDE_PENDING',false);
+      this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',false);
+      this.gameState.setFlag('BRIDGE_MANUAL_LOOKBACK_AFTER_SAFE_CHOICE',false);
+      this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
+      this.controller.enabled=false;
+      this.onEnding({type:'BAD_END',reason:'BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION'});
+      return;
+    }
+
     if (
       this.awaitingZone &&
       !this.busy &&
