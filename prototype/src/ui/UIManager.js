@@ -49,6 +49,9 @@ export class UIManager {
     this.identityMatrixHandler = null;
     this.handoffDecisionHandler = null;
     this.storyChoiceHandlers = null;
+    this.storyChoiceGuardedSide = null;
+    this.storyChoiceArmedSide = null;
+    this.storyChoiceBaseLabels = null;
     this.finalHandoffHandler = null;
     this.bed33Handlers = null;
     this.loopCutsceneTimers = [];
@@ -215,12 +218,8 @@ export class UIManager {
       this.bed33Handlers?.onConfirm?.();
     });
     document.getElementById('btn-loop-skip')?.addEventListener('click',()=>this.finishLoopCutscene());
-    document.getElementById('btn-story-primary')?.addEventListener('click',()=>{
-      const fn=this.storyChoiceHandlers?.primary;this.closeStoryChoice(false);fn?.();
-    });
-    document.getElementById('btn-story-secondary')?.addEventListener('click',()=>{
-      const fn=this.storyChoiceHandlers?.secondary;this.closeStoryChoice(false);fn?.();
-    });
+    document.getElementById('btn-story-primary')?.addEventListener('click',()=>this.commitStoryChoice('primary'));
+    document.getElementById('btn-story-secondary')?.addEventListener('click',()=>this.commitStoryChoice('secondary'));
     document.getElementById('btn-close-final-handoff')?.addEventListener('click',()=>this.closeFinalHandoff());
     document.getElementById('btn-submit-final-handoff')?.addEventListener('click',()=>{
       const employeeId=document.getElementById('final-employee-id')?.value.trim()||'';
@@ -686,19 +685,60 @@ export class UIManager {
     this.loopCutscene.classList.remove('active');
   }
 
-  openStoryChoice({title,body,primaryText='確認',secondaryText='暫緩',onPrimary,onSecondary}){
+  openStoryChoice({title,body,primaryText='確認',secondaryText='暫緩',onPrimary,onSecondary,systemTrap=null}){
     document.exitPointerLock();
+    const primary=document.getElementById('btn-story-primary');
+    const secondary=document.getElementById('btn-story-secondary');
     document.getElementById('story-choice-title').textContent=title;
     document.getElementById('story-choice-body').textContent=body;
-    document.getElementById('btn-story-primary').textContent=primaryText;
-    document.getElementById('btn-story-secondary').textContent=secondaryText;
+    if(primary)primary.textContent=primaryText;
+    if(secondary)secondary.textContent=secondaryText;
     this.storyChoiceHandlers={primary:onPrimary,secondary:onSecondary};
+    this.storyChoiceGuardedSide=systemTrap;
+    this.storyChoiceArmedSide=null;
+    this.storyChoiceBaseLabels={primary:primaryText,secondary:secondaryText};
+    this.storyChoiceModal?.classList.toggle('story-system-choice',!!systemTrap);
+    for(const [side,button] of [['primary',primary],['secondary',secondary]]){
+      if(!button)continue;
+      button.classList.toggle('his-standard-action',side===systemTrap);
+      button.classList.toggle('his-manual-review',!!systemTrap&&side!==systemTrap);
+      button.classList.remove('his-confirm-armed');
+      button.dataset.workflow=side===systemTrap?'SYSTEM DEFAULT':'MANUAL REVIEW';
+    }
     this.storyChoiceModal?.classList.add('active');
+    if(systemTrap)requestAnimationFrame(()=>document.getElementById(`btn-story-${systemTrap}`)?.focus());
+  }
+
+  commitStoryChoice(side){
+    const fn=this.storyChoiceHandlers?.[side];
+    if(!fn)return;
+    const guarded=this.storyChoiceGuardedSide===side;
+    if(guarded&&this.storyChoiceArmedSide!==side){
+      this.storyChoiceArmedSide=side;
+      const button=document.getElementById(`btn-story-${side}`);
+      if(button){
+        button.classList.add('his-confirm-armed');
+        button.textContent=`再次確認｜${this.storyChoiceBaseLabels?.[side]||button.textContent}`;
+      }
+      soundManager.playComputerBeep();
+      return;
+    }
+    this.closeStoryChoice(false);
+    fn();
   }
 
   closeStoryChoice(resume=true){
-    this.storyChoiceModal?.classList.remove('active');
+    this.storyChoiceModal?.classList.remove('active','story-system-choice');
+    for(const side of ['primary','secondary']){
+      const button=document.getElementById(`btn-story-${side}`);
+      if(!button)continue;
+      button.classList.remove('his-standard-action','his-manual-review','his-confirm-armed');
+      delete button.dataset.workflow;
+    }
     this.storyChoiceHandlers=null;
+    this.storyChoiceGuardedSide=null;
+    this.storyChoiceArmedSide=null;
+    this.storyChoiceBaseLabels=null;
     if(resume)this.onTerminalClose?.();
   }
 
