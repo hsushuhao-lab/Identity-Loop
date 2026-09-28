@@ -59,6 +59,9 @@ export function getIdentityRouteScene(step, identity) {
         ZHANG:[
           {speaker:'林婉真',text:'「你真的要先查房？」'},
           {speaker:'值班醫師',text:'「先看一圈。交班我等等補。」'},
+          {speaker:'林婉真',text:'「可是病房門都是傳統喇叭鎖。你還沒去 316，身上沒有正式值班鑰匙吧？」'},
+          {speaker:'值班醫師',text:'「還沒有。」'},
+          {speaker:'林婉真',text:'「那先拿護理站這串備用鑰匙。只能拿去查房，查完、把臨時住院單那些資料都核對完，就回來還我。」'},
           {speaker:'林婉真',text:'「403 還醒著，408C 從剛才就在說隔壁有聲音。」'}
         ],
         LI:[
@@ -77,7 +80,9 @@ export function getIdentityRouteScene(step, identity) {
           {speaker:'值班醫師',text:'「好。」'},
           {speaker:'內心',text:'504B 那張寫著 409-A 的轉院單還在腦中。'}
         ]
-      }), '依病房順序查房'),
+      }), identity==='ZHANG'?'向護理站借查房備用鑰匙':'依病房順序查房', {
+        flag: identity==='ZHANG'?'ZHANG_4F_SPARE_KEY_BORROWED':null
+      }),
       event('403 床邊紀錄', [
         {speaker:'403 病人',text:'「醫師，你終於來了。今晚還會再換醫師嗎？」'},
         {speaker:'值班醫師',text:'「今晚先由我看。哪裡不舒服？」'},
@@ -96,13 +101,34 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'聲音',text:'……'},
         {speaker:'聲音',text:'咚。咚。咚。咚。咚。咚。咚。咚。咚。'},
         {speaker:'內心',text:'四下，停一下，九下。聲音真的從 409 後面來。'}
-      ], '記住 4—停—9 並查看 409'),
-      event('409-A / Bed 33', ['409 門前的標記多出「409-A / Bed 33」，HIS 卻没有對應床位。', reaction({ ZHANG: '我：「先確認他是誰。」不能因為文件多了一欄，就把不存在的床位當成已核實的病人。', LI: '流程要求往下填，眼前的床位卻不在系統裡。依序核對也不能消除這個矛盾。', ZHOU: '我一直追著影像確認證據。現在門裡可能真的有人；這一次不能只站在外面看。', CHEN: '我：「……所以這就是那個目的地。」先前轉院單上的 409-A，現在就在眼前。' })], '拒絕未核實的床位指派'),
-      ...(identity === 'ZHANG' ? [event('回報護理站', [
-        {speaker:'林婉真',text:'「好啦，病人你也看完了。現在可以去三樓接班了吧？」'},
-        {speaker:'值班醫師',text:'「嗯。」'},
-        {speaker:'林婉真',text:'「不然等等人家真的會以為你是自己跑來值班的。」'}
-      ], '回三樓正式接班')] : [])
+      ], '記住 4—停—9，確認 409 仍是封閉空間'),
+      event('核對 4F 晚間床位板', [
+        {speaker:'內心',text:'現行床位只到 32：408D。舊卡片卻另外寫著「33／409A」。'},
+        {speaker:'值班醫師',text:'「正式床位三十二床，為什麼會多出第三十三床？」'}
+      ], '核對床位板上的 32 床與 409-A／Bed 33'),
+      event('核對 409 HIS 列印', [
+        {speaker:'內心',text:'HIS 列印裡沒有一張正常、完整的 409-A 住院床位紀錄。床位板和系統對不上。'},
+        {speaker:'值班醫師',text:'「先不要把這當成已成立的床位。」'}
+      ], '比對 HIS 列印與床位板'),
+      event('核對 409-A 臨時住院單', [
+        {speaker:'內心',text:'臨時床位分配單確實寫著「409-A／Bed 33」，但病室仍封閉、HIS 也沒有正常床位。'},
+        {speaker:'值班醫師',text:reaction({
+          ZHANG:'「先確認人、床位和系統都對得上，再談收治。」',
+          LI:'「文件完整不等於流程正確。這張單不能直接往下簽。」',
+          ZHOU:'「照片、門、床位單，三樣東西的時間根本對不起來。」',
+          CHEN:'「……所以這就是轉院單上早就寫好的目的地。」'
+        })}
+      ], '確認臨時住院單與現場／HIS 矛盾'),
+      ...(identity === 'ZHANG' ? [event('歸還護理站備用鑰匙', [
+        {speaker:'林婉真',text:'「都看完了？」'},
+        {speaker:'值班醫師',text:'「403、408C、409，還有床位板、HIS 列印跟臨時住院單，都核對過了。」'},
+        {speaker:'林婉真',text:'「好，那備用鑰匙先還我。這串是護理站的，不能帶去別樓。」'},
+        {speaker:'值班醫師',text:'「好。」'},
+        {speaker:'林婉真',text:'「現在真的可以去三樓 316 接班了吧？」'},
+        {speaker:'值班醫師',text:'「嗯。這次去把正式交班做完。」'}
+      ], '把備用鑰匙還給護理站，再去 316 正式接班', {
+        clearFlag:'ZHANG_4F_SPARE_KEY_BORROWED'
+      })] : [])
     ],
     M3: [
       event('急診無名掛號', [
@@ -211,7 +237,16 @@ export function getIdentityRouteScene(step, identity) {
   };
   if (!scenes[step]) throw new Error(`Unknown route scene: ${step}`);
   const locations = {
-    M2: [{}, { room: '403', bed: '403A' }, { room: '408', bed: '408C' }, { spawn: 'm2_4f_409' }, { spawn: 'm2_4f_409' }, { spawn: 'm3_4f_nursing_station' }],
+    M2: [
+      {},
+      { room: '403', bed: '403A' },
+      { room: '408', bed: '408C' },
+      { spawn: 'm2_4f_409' },
+      { spawn: 'm3_4f_nursing_station' },
+      { spawn: 'm3_4f_nursing_station' },
+      { spawn: 'm3_4f_nursing_station' },
+      { spawn: 'm3_4f_nursing_station' }
+    ],
     M3: [{ spawn: 'm4_2f_er_triage' }, { spawn: 'm4_2f_er_bays' }, { zoneId: 'first_campus_3f', spawn: 'm0_316_office' }],
     M4: [{ room: '504', bed: '504B' }, { room: '504', bed: '504B' }],
     M5: [{ zoneId: 'second_campus_2f', spawn: 'm9_second_campus_2f', room: '202', yaw: 0 }, { zoneId: 'skybridge', spawn: 'bridge_from_second' }]
