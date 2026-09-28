@@ -54,9 +54,13 @@ assert(main.includes('void preloadZoneOptional(zoneId)'),'decorative assets must
 assert(!main.includes('preloadAssets()')&&!main.includes('preloadCampusBackdropAssets()'),'travel must not block on full hospital or campus vegetation');
 for(const zone of ['first_campus_3f','first_campus_4f','first_campus_2f','first_campus_1f','first_campus_8f','skybridge','second_campus_2f','second_campus_5f','phantom_6f','b2_archive'])assert(zoneAssets.includes(`${zone}:`),'zone manifest missing '+zone);
 
-// B2: terminal + one-way door, no staircase, exit lands behind 1F guard post and cannot be re-entered.
+// B2: terminal + one-way door, no staircase; each identity exits toward its actual next route step.
 assert(b2.includes("type:'b2_exit_door'")&&!b2.includes('B2_EscapeStairwell'),'B2 must have a door exit and no stairwell');
-assert(main.includes("worldRouter.loadZone('first_campus_3f','first_3f_316')"),'B2 must return directly to 3F');
+assert(main.includes("identity==='CHEN'")&&main.includes("zone:'b1_dispatch_hub',spawn:'chen_b1_dispatch'"),'Chen must leave B2 for the B1 dispatch route');
+assert(main.includes("identity==='ZHANG'")&&main.includes("zone:'first_campus_3f',spawn:'m0_3f_corridor'"),'Zhang must leave B2 for the 3F archive route');
+assert(main.includes("identity==='LI'")&&main.includes("返回 3F：打開行政辦公室與文史室確認後，回 316。"),'Li must leave B2 for the 3F evidence sweep');
+assert(main.includes("identity==='ZHOU'")&&main.includes("zone:'first_campus_4f',spawn:'m3_4f_nursing_station'"),'Zhou must leave B2 for M8 identity rejection on 4F');
+assert(main.includes("worldRouter.loadZone(destination.zone,destination.spawn)"),'B2 exit must load the route-specific destination rather than a stale hard-coded floor');
 assert(main.includes("B2_EXITED_PERMANENTLY"),'B2 one-way exit lockout missing');
 assert(main.includes("M7_IDENTITY_RESOLVED_AT_316"),'final 316 path may still mark deferred identity resolution');
 assert(main.includes("B2_FIRE_RECAP_SEEN"),'B2 terminal fire recap gate missing');
