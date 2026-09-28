@@ -4,16 +4,10 @@ export function getIdentityRouteScene(step, identity) {
   const reaction = choices => choices[identity];
   const scenes = {
     ZHANG_OPEN_4F: [
-      event('護理站報到', [
-        {speaker:'林婉真',text:'「醫師？你現在就來喔？」'},
-        {speaker:'值班醫師',text:'「怎麼了？」'},
-        {speaker:'林婉真',text:'「現在才 16:50。交班都還沒開始，你跑來護理站幹嘛？」'},
-        {speaker:'值班醫師',text:'「先看病人。」'},
-        {speaker:'林婉真',text:'「你連交班都還沒接耶。」'},
-        {speaker:'值班醫師',text:'「交班等一下可以看。病人現在就在裡面。」'},
-        {speaker:'林婉真',text:'「……你每天都這麼急喔？」'},
-        {speaker:'內心',text:'她像是在開玩笑，可是我真的覺得先看到病人才算開始這一班。'}
-      ], '先往病房確認病人')
+      event('抵達四樓護理站', [
+        {speaker:'內心',text:'16:50。正式交班還沒開始。護理站裡已經有人在忙。'},
+        {speaker:'內心',text:'先找到護理師，問清楚 408C 的狀況。'}
+      ], '找到四樓護理站護理師')
     ],
     ZHOU_OPEN_8F: [
       event('檢視 1998 團隊合照', ['院史長廊最底非常安靜。大型照片裡是 1998 年青嶺醫療中心的核心夜班團隊。攝影者不在畫面中，角落只有相機包的影子。', '我：「光圈開太大了。後排有點糊。」', '往前一步。「拍的人站得太靠牆。」', '再一步。「如果退半步，右邊就不會切到門牌。」', '我停住：「……我為什麼一直在挑照片？」'], '記下構圖與缺席的攝影者', { art: 'photo', photoId: 'history_group_1998' }),
