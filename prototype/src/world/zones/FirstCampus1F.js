@@ -263,6 +263,36 @@ export class FirstCampus1F {
     this.zoneGroup.add(guardPost);this.guardPostObject=guardPost;this.interactables.push(guardPost);
     solid(guardPost,this.gf.materials.doorWood,[0,.53,0],[2.1,1.06,.78]);
     solid(guardPost,this.gf.materials.counterTop,[0,1.10,0],[2.18,.08,.84]);
+
+    // Identy Loop: Zhou's second photo clue is a physical framed print on the
+    // old guard desk. The glass reflection contains the photographer's partial
+    // camera/hand silhouette but no readable identity label.
+    const reflectionTexture=new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}assets/identity-v03/history-reflection.png`);
+    reflectionTexture.colorSpace=THREE.SRGBColorSpace;
+    const reflectionFrame=new THREE.Group();
+    reflectionFrame.name='IdentityGuardReflectionPhoto_Frame';
+    reflectionFrame.position.set(-.40,1.50,-.29);
+    reflectionFrame.rotation.x=-.10;
+    const reflectionBacking=new THREE.Mesh(
+      new THREE.BoxGeometry(.78,.54,.035),
+      new THREE.MeshStandardMaterial({color:0x30271d,roughness:.8})
+    );
+    reflectionFrame.add(reflectionBacking);
+    const reflectionPhoto=new THREE.Mesh(
+      new THREE.PlaneGeometry(.72,.48),
+      new THREE.MeshBasicMaterial({map:reflectionTexture,toneMapped:false})
+    );
+    reflectionPhoto.position.z=.019;
+    reflectionPhoto.name='IdentityGuardReflectionPhoto';
+    reflectionPhoto.userData={
+      interactable:true,
+      id:'IDENTITY_GUARD_REFLECTION_PHOTO',
+      type:'identity_photo',
+      label:'查看警衛台上的事故前設備照片'
+    };
+    reflectionFrame.add(reflectionPhoto);
+    guardPost.add(reflectionFrame);
+    this.interactables.push(reflectionPhoto);
     const cctv=monitor(guardPost,this.gf.materials,-.48,1.17,-.18,0);cctv.name='OldGuardPost_CCTVMonitor';
     solid(guardPost,this.gf.materials.metal,[.50,1.15,-.1],[.30,.12,.22]);
     solid(guardPost,this.gf.materials.lightWarm,[.06,1.155,.08],[.36,.018,.24]).name='OldGuardPost_NightLogbook';
