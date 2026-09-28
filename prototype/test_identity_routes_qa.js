@@ -165,7 +165,7 @@ assert.match(routeDirectorSource,/M4_409A_TRANSFER_PATIENTIZATION/);
 assert.match(routeSceneSource,/警衛台舊相簿/);
 assert.match(routeDirectorSource,/SECOND_GUARD_PHOTO_ALBUM/);
 assert.match(routeDirectorSource,/M7_HISTORICAL_PROCEDURE_PATIENTIZATION/);
-assert.match(routeSceneSource,/我想去一樓找警衛要咖啡|有點想喝咖啡/);
+assert.match(routeSceneSource,/需要黑咖啡|警衛台永遠有一壺煮過頭的咖啡/);
 assert.match(routeSceneSource,/剛才監視器有點怪/);
 assert.match(routeSceneSource,/畫面裡好像多了一個人/);
 assert.match(routeSceneSource,/監控室電話/);
@@ -202,7 +202,7 @@ const first3FSource=readFileSync(new URL('./src/world/zones/FirstCampus3F.js',im
 assert.match(first3FSource,/ARCHIVE_HISTORY_PHOTO_WALL/);
 const b2RecapSource=readFileSync(new URL('./src/story/B2FireRecapDirector.js',import.meta.url),'utf8');
 for(const doctorName of ['張守恆','李承禮','周啟文','陳柏勳'])assert.doesNotMatch(b2RecapSource,new RegExp(doctorName));
-assert.match(b2RecapSource,/第一線住院醫師在 4F 409-A/);
+assert.match(b2RecapSource,/第一線住院醫師：4F 409-A/);
 const level3Source=readFileSync(new URL('./src/world/Level3FBlockout.js',import.meta.url),'utf8');
 assert.match(level3Source,/keyGroup\.position\.set\(2\.39, 1\.02, 7\.55\)/);
 assert.match(level3Source,/316_LockerDoor/);
