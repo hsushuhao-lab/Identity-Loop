@@ -434,6 +434,34 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playTerminalKey() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+      osc.type='square';osc.frequency.setValueAtTime(1750+Math.random()*220,now);osc.frequency.exponentialRampToValueAtTime(620,now+.035);
+      filter.type='bandpass';filter.frequency.value=1550;filter.Q.value=.9;
+      gain.gain.setValueAtTime(.055,now);gain.gain.exponentialRampToValueAtTime(.001,now+.055);
+      osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);osc.start(now);osc.stop(now+.06);
+    }catch(e){}
+  }
+
+  playTerminalFanHold(duration=1.2) {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime,d=Math.max(.25,Number(duration)||1.2);
+      const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+      osc.type='sawtooth';osc.frequency.setValueAtTime(71,now);
+      filter.type='lowpass';filter.frequency.value=210;
+      gain.gain.setValueAtTime(.001,now);
+      gain.gain.linearRampToValueAtTime(.035,now+.08);
+      gain.gain.setValueAtTime(.035,now+Math.max(.1,d-.12));
+      gain.gain.exponentialRampToValueAtTime(.001,now+d);
+      osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);
+      osc.start(now);osc.stop(now+d+.03);
+    }catch(e){}
+  }
+
   playClick() {
     if (!this.ctx || this.isMuted) return;
     try {
