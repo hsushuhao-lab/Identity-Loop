@@ -1139,7 +1139,7 @@ export class IdentityRouteDirector {
             {stamp:'MEMORY 01',title:'5042',caption:'手指不看刻度就停在 5－0－4－2。',narration:'我今晚已經親手打開那個保險箱。不是猜到，是手先知道。'},
             {stamp:'MEMORY 02',title:'灰滾邊',caption:'MED-89••••／跨院支援住院醫師／姓名欄被救護出入戳印覆蓋。',narration:'這張證件就在我身上。它能打開只有跨院支援人員才會使用的通道。'},
             {stamp:'MEMORY 03',title:'偏軸輪椅',caption:'左輪卡住；握把抵著髖骨；跨接縫三聲喀啦。',narration:'監控裡那個人和我推輪椅的手感完全一樣。'},
-            {stamp:'MEMORY 04',title:'目的地',caption:'409-A 出現在轉送醫囑、臨時床位與急診轉送聯。',narration:'每一次「流程往下走」，都把人推向同一個不存在的目的地。'}
+            {stamp:'MEMORY 04',title:'目的地',caption:'409-A 出現在醫囑、臨時床位與急診轉送聯。',narration:'每一次「流程往下走」，都把人推向同一個不存在的目的地。'}
           ]
         };
         this.gameState.setFlag('CHEN_M6_PROCEDURAL_MEMORY_CONFIRMED',true);
@@ -1267,7 +1267,7 @@ export class IdentityRouteDirector {
           title:'第二院區｜409-A 醫囑單',
           body:'504B 病況已穩定，但這張 409-A 醫囑單在醫師重新查核前就已填好目的地。\n\n要簽名確認這筆醫囑，還是拒絕簽名並重新核對？',
           primaryText:'不簽名，退回重核',
-          secondaryText:'簽名核准 409-A 轉送醫囑',
+          secondaryText:'簽名確認 409-A 醫囑',
           systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
