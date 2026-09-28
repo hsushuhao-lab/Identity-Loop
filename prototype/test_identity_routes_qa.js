@@ -26,7 +26,7 @@ for(const [identity,route] of Object.entries(expected)){
     assert.equal(manager.completeRouteStep('INVALID'),false);
     if(step!=='M9'){
       assert.equal(manager.completeRouteStep('M9'),false);
-      if(step!=='M8')assert.equal(manager.advanceMilestone('M9'),false);
+      if(route[index+1]!=='M9')assert.equal(manager.advanceMilestone('M9'),false);
       assert.equal(manager.commitM9(identity).reason,'M9_NOT_ACTIVE');
       assert.equal(store.value,before);
       assert.equal(manager.completeRouteStep(step),true);
