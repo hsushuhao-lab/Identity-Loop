@@ -45,7 +45,7 @@ assert(main.includes('function completeSecondCampus5FWardReport()')&&main.includ
 assert(ward.includes('Second5F_DutyPhoto_')&&ward.includes('1998 夜班合照')&&ward.includes('臨床教學留影'),'M4 second-campus 5F duty room must contain visible framed photos');
 const second2f=readFileSync('./src/world/zones/SecondCampus2F.js','utf8');
 assert(!second2f.includes("Doorway.build({scene:this.zoneGroup,colliders:this.colliders,x:72,z:4.5"),'second-campus 2F elevator-front doorway must remain removed');
-assert(ward.includes("label:'查看 409-A 醫囑單'"),'M4 desk paper must be named 409-A medical order');
+assert(ward.includes("label:'查看 409-A 轉送醫囑單'"),'M4 desk paper must match the current 409-A transfer medical-order runtime contract');
 assert(main.includes("SECOND_CAMPUS_5F_REPORTED")&&main.includes('門禁看到你的刷卡紀錄了，算報到完成')&&main.includes('李承禮醫師？我剛剛也有這張醫囑單嗎？'),'M4 must use automatic ward-door report wording plus protagonist Li-identity misdirection');
 assert(main.includes("LEGEND 03 — 事先填妥的 409-A 醫囑")&&main.includes("M4_CHEST_RESOLVED")&&main.includes("second_chest_roster_clue"),'M4 clinical/admin-horror decision flow or physical clue missing');
 
