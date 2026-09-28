@@ -577,7 +577,9 @@ export class WardFloorplan {
       this.chenDutyPhone.userData.label=ringing?'接聽正在響的 5F 值班室電話':'查看 5F 值班室電話';
     }
     if(this.chenWheelchairHit){
-      const active=gameState.getFlag('CHEN_WHEELCHAIR_BLOCKING')===true&&!gameState.getFlag('CHEN_WHEELCHAIR_PUSHED');
+      const pushed=gameState.getFlag('CHEN_WHEELCHAIR_PUSHED')===true;
+      const active=gameState.getFlag('CHEN_WHEELCHAIR_BLOCKING')===true&&!pushed;
+      if(this.chenWheelchair)this.chenWheelchair.visible=active||pushed;
       this.chenWheelchairHit.userData.interactable=active;
       this.setChenWheelchairBlocking(active);
     }

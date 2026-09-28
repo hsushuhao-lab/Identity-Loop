@@ -68,24 +68,26 @@ export function installIdentityFloorPhoto(zone, zoneId) {
   zone.zoneGroup.add(root);
   zone.interactables.push(face);
 
-  if (typeof document === 'undefined' || typeof document.createElementNS !== 'function') return root;
-
-  const sheetUrl = `${import.meta.env?.BASE_URL ?? '/'}assets/identity-v03/floor-photo-contact-sheet.png`;
-  new THREE.TextureLoader().load(sheetUrl, (sheet) => {
-    if (!face.parent) { sheet.dispose(); return; }
-    const texture = sheet.clone();
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    const column = placement.cell % 4;
-    const row = Math.floor(placement.cell / 4);
-    texture.repeat.set(.24, .48);
-    texture.offset.set(column * .25 + .005, .5 - row * .5 + .01);
-    texture.needsUpdate = true;
-    face.material.map = texture;
-    face.material.needsUpdate = true;
-    sheet.dispose();
-  }, undefined, (error) => console.warn('[identity-photo] photo atlas failed to load', error));
+  const canLoadImage=typeof document!=='undefined'&&typeof document.createElementNS==='function';
+  if(canLoadImage){
+    const baseUrl=import.meta.env?.BASE_URL||'./';
+    const sheetUrl = `${baseUrl}assets/identity-v03/floor-photo-contact-sheet.png`;
+    new THREE.TextureLoader().load(sheetUrl, (sheet) => {
+      if (!face.parent) { sheet.dispose(); return; }
+      const texture = sheet.clone();
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      const column = placement.cell % 4;
+      const row = Math.floor(placement.cell / 4);
+      texture.repeat.set(.24, .48);
+      texture.offset.set(column * .25 + .005, .5 - row * .5 + .01);
+      texture.needsUpdate = true;
+      face.material.map = texture;
+      face.material.needsUpdate = true;
+      sheet.dispose();
+    }, undefined, (error) => console.warn('[identity-photo] photo atlas failed to load', error));
+  }
 
   return root;
 }
