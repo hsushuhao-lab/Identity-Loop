@@ -2,7 +2,7 @@ export const IDENTITY_ROUTES=Object.freeze({
   ZHANG:Object.freeze(['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9']),
   LI:Object.freeze(['M1','M2','LI_DUTY_CALL_2000','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9']),
   ZHOU:Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']),
-  CHEN:Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9'])
+  CHEN:Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','CHEN_M8_DISPATCH','M9'])
 });
 
 export const ROUTE_STEPS=Object.freeze({
@@ -34,6 +34,7 @@ export const ROUTE_STEPS=Object.freeze({
   B2:{zoneId:'b2_archive',spawn:'b2_archive_entry',label:'封存隔離層',time:null},
   M8:{zoneId:'first_campus_4f',spawn:'m3_4f_nursing_station',label:'身分拒絕',time:null},
   ZHANG_3F_ARCHIVE:{zoneId:'first_campus_3f',spawn:'m0_3f_corridor',label:'三樓文史館',time:'03:30'},
+  CHEN_M8_DISPATCH:{zoneId:'b1_dispatch_hub',spawn:'chen_b1_dispatch',label:'地下救護車接駁調度室',time:'03:30'},
   M9:{zoneId:'first_campus_3f',spawn:'m0_316_office',label:'最後交班',time:null}
 });
 Object.values(ROUTE_STEPS).forEach(Object.freeze);
