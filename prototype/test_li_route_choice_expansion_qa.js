@@ -23,11 +23,16 @@ assert.match(scenes,/LI_OUTBOUND_8F:[\s\S]*六樓開門後/);
 assert.match(director,/SECOND_CAMPUS_ACCESS/);
 assert.match(scenes,/LI_3F_EVIDENCE:[\s\S]*行政辦公室[\s\S]*文史室[\s\S]*evidenceSweep:true/);
 
-assert.match(scenes,/核對預填醫囑單/);
+assert.match(scenes,/核對 409-A 醫囑單/);
 assert.match(scenes,/transferSignChoice:true/);
-assert.match(director,/title:'第二院區｜409-A 預填醫囑單'/);
+assert.doesNotMatch(scenes,/轉院單|轉送醫囑單/);
+assert.doesNotMatch(director,/轉院單|轉送醫囑單/);
+assert.doesNotMatch(main,/轉院單|轉送醫囑單/);
+assert.match(director,/title:'第二院區｜409-A 醫囑單'/);
 assert.match(director,/secondaryText:'簽名確認 409-A 醫囑'/);
 assert.match(director,/M4_409A_ORDER_PATIENTIZATION/);
+assert.match(scenes,/lightFlicker: identity==='LI'/);
+assert.match(director,/LI_SECOND_CAMPUS_LIGHT_FLICKER_SEEN/);
 
 assert.match(director,/title:'00:33｜有紀錄，但沒有病人'/);
 assert.match(director,/secondaryText:'建立無名新病歷'/);
