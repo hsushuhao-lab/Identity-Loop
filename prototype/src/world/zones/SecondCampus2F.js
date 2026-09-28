@@ -55,9 +55,43 @@ export class SecondCampus2F {
         buildDeskCluster(this.art,this.gf.materials,{x:x-1,z:-8.7,chairs:2,name:'Second2F_SecurityControlDesk'});
         buildMonitorWall(this.art,this.gf.materials,{x,z:-10.25,name:'Second2F_CCTVWall'});
         buildSupplyCabinet(this.art,this.gf.materials,{x:x+2.8,z:-9.65,name:'Second2F_SecurityArchiveShelf'});
-        const cctvHit=new THREE.Mesh(new THREE.BoxGeometry(3.2,2.0,1.2),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-        cctvHit.position.set(x,1.55,-9.75);cctvHit.userData={interactable:true,id:'SECOND_2F_CCTV_SELF',type:'security_monitor_anomaly',label:'查看監視畫面'};
-        this.zoneGroup.add(cctvHit);this.interactables.push(cctvHit);
+        // Wall-mounted historical recordings are always optional exploration.
+        const archiveWallHit=new THREE.Mesh(
+          new THREE.BoxGeometry(3.2,2.0,1.2),
+          new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+        );
+        archiveWallHit.position.set(x,1.55,-9.75);
+        archiveWallHit.userData={
+          interactable:true,
+          id:'SECOND_2F_CCTV_ARCHIVE_WALL',
+          type:'archive_document',
+          label:'查看牆面的過去監視錄影',
+          documentTitle:'第二院區 2F｜過去監視錄影',
+          pages:[
+            '1998 年舊監視畫面：天橋與第二院區 2F 連通口。時間戳多次缺格，但仍可辨認值班醫師、警衛與工務人員往返。',
+            '其中幾段影像在 02:17 前後突然失去同步；畫面右側偶爾多出不在值勤名冊上的白袍輪廓。',
+            '這些舊畫面可以隨時重看，但不是目前監控主機的即時異常。'
+          ]
+        };
+        this.zoneGroup.add(archiveWallHit);
+        this.interactables.push(archiveWallHit);
+
+        // Current CCTV workstation: visible at all times but locked as an interaction
+        // until Zhang has heard the guard's coffee-room hint.
+        const cctvDeskHit=new THREE.Mesh(
+          new THREE.BoxGeometry(1.45,.95,1.10),
+          new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+        );
+        cctvDeskHit.position.set(x-1.0,1.22,-8.72);
+        cctvDeskHit.userData={
+          interactable:false,
+          id:'SECOND_2F_CCTV_DESK',
+          type:'security_monitor_anomaly',
+          label:'使用桌上監控電腦'
+        };
+        this.zoneGroup.add(cctvDeskHit);
+        this.interactables.push(cctvDeskHit);
+        this.cctvDeskHit=cctvDeskHit;
 
         // Identity Loop monitoring-room phone; same visual language as the 316 desk phone.
         const cctvPhone=new THREE.Group();
