@@ -898,7 +898,15 @@ controller.onInteract = async (interactable) => {
         gameState.setFlag('OPENED_316',true);
         gameState.markTaskComplete('OPENED_316');
         soundManager.playClick();
-        uiManager.showSubtitle('值班醫師',gameState.getFlag('FAST_PATH_3F')?'「門開了。這些流程我已經走過，先進去接電話。」':'「開了。先找值班手冊，學長應該有留下交班方式。」',3200);
+        uiManager.showSubtitle(
+          '值班醫師',
+          identityLoopMode
+            ? '「門開了。進去 316，完成今晚的交接。」'
+            : gameState.getFlag('FAST_PATH_3F')
+              ? '「門開了。這些流程我已經走過，先進去接電話。」'
+              : '「開了。先找值班手冊，學長應該有留下交班方式。」',
+          3200
+        );
       }
     }
   } else if (interactable.type === 'locker_316') {
