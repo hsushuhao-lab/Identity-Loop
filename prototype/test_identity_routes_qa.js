@@ -7,7 +7,7 @@ import { runInNewContext } from 'node:vm';
 import { anonymousNarrative, worldNarrative } from './src/story/IdentityPrivacy.js';
 import { drawCharacterStrip } from './src/art/CharacterPortraitArt.js';
 const expected={
-  ZHANG:['ZHANG_OPEN_4F','M2','M1','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','ZHANG_6F_FORESHADOW','M3','M6','M7','B2','M8','M9'],
+  ZHANG:['ZHANG_OPEN_4F','M2','M1','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','M8','M9'],
   LI:['M1','M2','M3','M4','M5','M6','M7','B2','M8','M9'],
   ZHOU:['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'],
   CHEN:['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9']
@@ -94,7 +94,9 @@ console.log('PASS Zhou regression: wall photo -> guard -> ringing phone -> 2F ->
 const wardSource=readFileSync(new URL('./src/world/shared/WardFloorplan.js',import.meta.url),'utf8');
 assert.match(wardSource,/Identity4F_WardSpareKey/);
 assert.match(wardSource,/Identity4F_TemporaryAccessCard/);
-assert.match(wardSource,/Identity4F_Nurse_LinWanZhen/);
+assert.doesNotMatch(wardSource,/Identity4F_Nurse_LinWanZhen|IdentitySecond5F_Nurse/);
+assert.match(wardSource,/first_station_A/);
+assert.match(wardSource,/second_station_A/);
 assert.match(wardSource,/IDENTITY_4F_NURSE_STATION/);
 assert.doesNotMatch(wardSource,/IDENTITY_403_PATIENT|Identity403PatientInteraction|identity_patient_403/);
 assert.match(routeDirectorSource,/ZHANG_4F_SPARE_KEY_BORROWED/);
@@ -114,11 +116,11 @@ assert.match(sceneSource,/409-A 臨時床位單/);
 assert.match(sceneSource,/值班醫師您好/);
 assert.match(routeDirectorSource,/playBed33KnockPattern/);
 assert.match(routeDirectorSource,/return !IDENTITY_STORY_CRITICAL_TYPES\.has\(data\?\.type\)/);
-console.log('PASS M2 mainline: visible nurse -> temporary key/card -> 408C -> audible 409 -> required temporary bed form; 403 removed and optional exploration remains open');
+console.log('PASS M2 mainline: workstation nursing interaction -> temporary key/card -> 408C -> audible 409 -> required temporary bed form; 403 removed and optional exploration remains open');
 
 assert.match(wardSource,/IdentitySecond5F_ConsultSpareKey/);
 assert.match(wardSource,/IDENTITY_SECOND_5F_NURSE_STATION/);
-assert.match(wardSource,/IdentitySecond5F_Nurse/);
+assert.doesNotMatch(wardSource,/IdentitySecond5F_Nurse/);
 assert.match(wardSource,/setIdentitySecondConsultKeyBorrowed/);
 assert.match(routeDirectorSource,/SECOND_5F_CONSULT_KEY_BORROWED/);
 assert.match(routeDirectorSource,/id: 'IDENTITY_SECOND_5F_NURSE_STATION'/);
@@ -145,13 +147,25 @@ assert.match(routeDirectorSource,/index===4\) return \{ type:'locker_316'.*compl
 assert.match(routeDirectorSource,/index===5\) return \{ id:'KEY_PICKUP'.*completeTask:'KEY_PICKUP'/);
 assert.match(routeDirectorSource,/bindingCompletionReady/);
 assert.match(routeDirectorSource,/setIdentityDutyItemsVisible/);
-assert.match(routeSceneSource,/監視器室的閃爍/);
+assert.match(routeSceneSource,/316 電話/);
+assert.match(routeSceneSource,/奇怪……大家不是都走了？怎麼這時候還有人打 316/);
+assert.match(routeSceneSource,/我想去一樓找警衛要咖啡|有點想喝咖啡/);
+assert.match(routeSceneSource,/剛才監視器有點怪/);
+assert.match(routeSceneSource,/畫面裡好像多了一個人/);
+assert.match(routeSceneSource,/監控室電話/);
+assert.match(routeSceneSource,/第一院區 2F 急診/);
 assert.match(routeSceneSource,/bridgeChoice:true/);
 assert.match(routeSceneSource,/安妮.*「回頭啊。」/s);
+assert.match(routeDirectorSource,/IDENTITY_ZHANG_SECOND_CAMPUS/);
+assert.match(routeDirectorSource,/IDENTITY_ZHANG_ER_FROM_CCTV/);
+assert.match(routeDirectorSource,/IDENTITY_SECOND_2F_CCTV_PHONE/);
 assert.match(routeDirectorSource,/primaryText:'不要回頭，繼續走'/);
 assert.match(routeDirectorSource,/secondaryText:'回頭'/);
 assert.match(routeDirectorSource,/BRIDGE_LOOKBACK_PATIENTIZATION/);
 assert.match(routeDirectorSource,/BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION/);
+const second2FSource=readFileSync(new URL('./src/world/zones/SecondCampus2F.js',import.meta.url),'utf8');
+assert.match(second2FSource,/Second2F_CCTV_Phone/);
+assert.match(second2FSource,/IDENTITY_SECOND_2F_CCTV_PHONE/);
 const level3Source=readFileSync(new URL('./src/world/Level3FBlockout.js',import.meta.url),'utf8');
 const uiManagerSource=readFileSync(new URL('./src/ui/UIManager.js',import.meta.url),'utf8');
 assert.match(level3Source,/keyGroup\.position\.set\(2\.39, 1\.02, 7\.55\)/);
