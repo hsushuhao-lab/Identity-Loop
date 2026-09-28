@@ -104,6 +104,7 @@ assert.match(sceneSource,/守恆，等一下/);
 assert.match(sceneSource,/以前，我只留下證據；這一次不能再等下一張照片/);
 assert.match(sceneSource,/cameraMemoryCue: identity==='ZHOU'/);
 assert.match(routeDirectorSource,/playZhouBridgePhotoLoop/);
+assert.match(routeDirectorSource,/identity==='ZHOU'&&index===5\) return \{ auto:true \};/);
 assert.match(routeDirectorSource,/ZHOU_BRIDGE_LOOKBACK_SEEN/);
 assert.match(routeDirectorSource,/ZHOU_BRIDGE_PHOTOGRAPHIC_LOOP/);
 assert.match(routeDirectorSource,/this\.manager\.currentIdentity==='ZHOU'[\s\S]{0,900}M5_BRIDGE_RESOLVED/);

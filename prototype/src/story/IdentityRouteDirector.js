@@ -525,6 +525,7 @@ export class IdentityRouteDirector {
         if(index===7) return { id:'CHEN_WHEELCHAIR', prompt:'推開擋住通往電梯路線的舊輪椅' };
         if(index===8) return { auto:true };
       }
+      if(identity==='ZHOU'&&index===5) return { auto:true };
       if(index===4) return { auto:true };
     }
 
