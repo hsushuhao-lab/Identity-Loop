@@ -156,6 +156,19 @@ body::after {
 .identity-entry-submit{width:100%;padding:10px 11px;background:#355342;color:#f3f1e9;border:1px solid rgba(180,199,184,.42);border-radius:3px;text-align:center;cursor:pointer;font-weight:700}
 .identity-entry-submit:hover,.identity-entry-submit:focus-visible{background:#4d6b59;outline:2px solid #f2d6a3;outline-offset:2px}
 .identity-entry-status{min-height:1.4em;color:#d9b79a;font:11px/1.4 ui-monospace,SFMono-Regular,monospace}
+.story-system-choice .bed33-form{border-color:#4978b8;box-shadow:0 18px 56px rgba(0,0,0,.82),0 0 0 1px rgba(92,139,205,.28)}
+.story-system-choice .bed33-form-header{background:linear-gradient(180deg,#1d4d85,#153d6f);color:#eef6ff;letter-spacing:.04em}
+.story-system-choice .bed33-form-actions{align-items:stretch}
+.story-system-choice .bed33-form-actions button{position:relative;min-height:54px;padding-top:24px}
+.story-system-choice .bed33-form-actions button::before{content:attr(data-workflow);position:absolute;top:7px;left:10px;font:700 9px/1 ui-monospace,SFMono-Regular,monospace;letter-spacing:.12em;opacity:.68}
+.story-system-choice .his-standard-action{background:#245f9f;border:1px solid #6fa5df;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 0 2px rgba(70,127,192,.14)}
+.story-system-choice .his-standard-action:hover,.story-system-choice .his-standard-action:focus-visible{background:#2c70b9;outline:2px solid #a9d3ff;outline-offset:2px}
+.story-system-choice .his-standard-action.his-confirm-armed{background:#7c2f2f;border-color:#d08a76;animation:hisTrapPulse .72s ease-in-out infinite alternate}
+.story-system-choice .his-manual-review{background:#d9d9d9;border:1px solid #aaa;color:#303030}
+.story-system-choice .his-manual-review:hover,.story-system-choice .his-manual-review:focus-visible{background:#ececec;outline:2px solid #c9c9c9;outline-offset:2px}
+@keyframes hisTrapPulse{from{box-shadow:0 0 0 2px rgba(208,138,118,.12)}to{box-shadow:0 0 0 4px rgba(208,138,118,.28)}}
+.identity-entry-submit[disabled],.identity-entry-form input[disabled]{cursor:wait;opacity:.62}
+.identity-entry-form.submitting{filter:saturate(.72)}
 
 .task-header {
   background: #40594b;
