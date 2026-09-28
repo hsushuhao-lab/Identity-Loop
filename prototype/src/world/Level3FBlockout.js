@@ -530,6 +530,7 @@ export class Level3FBlockout {
       targetGroup: keyGroup
     };
     this.scene.add(keyHitbox);
+    this.interactables.push(keyHitbox);
     this.keyMesh = keyHitbox;
 
     // INTERACTABLE 2: Duty Log Book (值班本)
