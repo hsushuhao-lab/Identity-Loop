@@ -156,6 +156,8 @@ assert.match(routeDirectorSource,/index===5\) return \{ id:'KEY_PICKUP'.*complet
 assert.match(routeDirectorSource,/freeTypes=new Set\(\['duty_log','credential_drawer_316','workstation','locker_316','key'\]\)/);
 assert.match(routeDirectorSource,/完成 316 交班（可自由操作）/);
 assert.match(uiManagerSource,/SYSTEM WARNING：CURRENT DUTY PHYSICIAN 與歷史值班索引不一致/);
+assert.match(uiManagerSource,/錯誤：未插入夜間值班醫師登入卡｜終端處於待機鎖定/);
+assert.match(uiManagerSource,/請輸入交班時間代碼（HHMM）/);
 assert.match(routeDirectorSource,/bindingCompletionReady/);
 assert.match(routeDirectorSource,/setIdentityDutyItemsVisible/);
 assert.match(routeSceneSource,/316 電話/);
@@ -173,6 +175,9 @@ assert.match(routeDirectorSource,/M7_HISTORICAL_ERROR_REPLAYED/);
 assert.match(routeDirectorSource,/startZhangArchivePressure/);
 assert.match(routeDirectorSource,/04:09 系統資料總核銷即將封存/);
 assert.match(routeDirectorSource,/zhang-archive-pressure-active/);
+assert.match(routeDirectorSource,/playCartWheelRattle/);
+assert.match(routeDirectorSource,/ARCHIVE_PURGE_PATIENTIZATION/);
+assert.match(routeDirectorSource,/ZHANG_ARCHIVE_PURGE_TRIGGERED/);
 assert.match(routeDirectorSource,/playElevatorCableScrape/);
 assert.match(routeDirectorSource,/playAmbuBagBurst/);
 assert.match(routeSceneSource,/需要黑咖啡|警衛台永遠有一壺煮過頭的咖啡/);
@@ -218,6 +223,7 @@ const b2RecapSource=readFileSync(new URL('./src/story/B2FireRecapDirector.js',im
 for(const doctorName of ['張守恆','李承禮','周啟文','陳柏勳'])assert.doesNotMatch(b2RecapSource,new RegExp(doctorName));
 assert.match(b2RecapSource,/MED-87••••／第一線住院醫師：4F 409-A/);
 assert.match(b2RecapSource,/完整姓名仍需回 3F 文史館核對/);
+assert.match(mainSourceFor316,/CURRENT SELF：CORRUPTED｜409-A 死者姓名欄遭除籍塗銷｜員編前綴 MED-87••••/);
 const identityPanelSource=readFileSync(new URL('./src/ui/IdentityLoopPanel.js',import.meta.url),'utf8');
 assert.match(identityPanelSource,/手動輸入你認為屬於這一輪記憶的姓名與員編/);
 assert.match(identityPanelSource,/identity-entry-form/);
