@@ -517,8 +517,8 @@ export class WardFloorplan {
     const li2117Drift=this.campus==='first'&&this.floor===4&&gameState.getFlag('LI_2117_ENV_DRIFT')===true;
     if(this.dutyCoffeeSteam)this.dutyCoffeeSteam.visible=!li2117Drift;
     if(this.dutyPhoneHandset){
-      this.dutyPhoneHandset.rotation.z=Math.PI/2+(li2117Drift?.16:0);
-      this.dutyPhoneHandset.position.x=li2117Drift?.035:0;
+      this.dutyPhoneHandset.rotation.z=Math.PI/2+(li2117Drift ? .16 : 0);
+      this.dutyPhoneHandset.position.x=li2117Drift ? .035 : 0;
       this.dutyPhoneHandset.position.z=li2117Drift?-.035:-.055;
     }
     if(this.dutyPhone){
