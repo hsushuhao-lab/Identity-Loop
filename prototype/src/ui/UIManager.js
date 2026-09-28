@@ -166,13 +166,12 @@ export class UIManager {
       const status=document.getElementById('locker-status');
       if(value!=='1700'){status.textContent='紅燈閃爍：密碼錯誤';soundManager.playClick();return;}
       persistentMemory.learnCode('pass_1700');
-      status.textContent='綠燈亮起：櫃門已解鎖';
+      status.textContent='綠燈亮起：櫃門已解鎖｜請關閉畫面並從櫃內拿取實體鑰匙與感應卡';
       document.getElementById('locker-contents')?.classList.add('revealed');
       this.gameState.setFlag('LOCKER_OPENED',true);
       this.gameState.markTaskComplete('LOCKER_OPENED');
-      this.gameState.markTaskComplete('KEY_PICKUP');
       window.worldRouter?.activeZoneInstance?.markLockerOpen?.();
-      soundManager.playKeyPickup();
+      soundManager.playComputerBeep();
       this.updateTasks();
     });
     document.getElementById('btn-ack-anomaly')?.addEventListener('click',()=>this.acknowledgeAnomaly());
@@ -823,7 +822,11 @@ export class UIManager {
       this.closeWorkstation();
       if(btn){btn.disabled=false;btn.textContent='確認電子交班';}
       if(msg)msg.textContent='系統連線正常 ｜ 夜班資料節點：時間欄位待同步';
-      this.showAnomalyMessage();
+      if(isIdentityRouteMode()){
+        this.showSubtitle('HIS','電子交班已送出。下一步：解鎖 316 值班物品櫃。',2600);
+      }else{
+        this.showAnomalyMessage();
+      }
     },1200);
   }
 
