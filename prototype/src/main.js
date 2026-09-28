@@ -723,7 +723,13 @@ function completeSecondCampus5FWardReport(){
 }
 
 controller.onInteract = async (interactable) => {
-  if(identityLoopMode){identityRouteDirector.handleInteract(interactable);return;}
+  if(identityLoopMode){
+    if(identityRouteDirector.handleInteract(interactable)) return;
+    if(!identityRouteDirector.allowWorldInteraction(interactable)){
+      uiManager.showSubtitle('值班醫師','「先把眼前這件事處理完。」',1800);
+      return;
+    }
+  }
   console.log('Interacting with:', interactable);
 
   if (interactable.type === 'access_door') {
@@ -761,7 +767,7 @@ controller.onInteract = async (interactable) => {
         uiManager.showSubtitle('值班醫師','「文史館？今晚的正常交班流程沒有提到這裡。先把 316 的交班做完。」',3200);
         return;
       }
-      if(!gameState.getFlag('STAFF_ACCESS_CARD')){
+      if(!identityLoopMode&&!gameState.getFlag('STAFF_ACCESS_CARD')){
         soundManager.playClick();
         uiManager.showSubtitle('門禁','「需要先到 316 領取值班室鑰匙與感應卡。」',2800);
         controller.currentInteractable=null;uiManager.showPrompt(null);
@@ -1390,7 +1396,7 @@ controller.onInteract = async (interactable) => {
       uiManager.showSubtitle('值班醫師', interactable.subtitle || '「夜間門禁管制時間，此區域暫不開放。」', 3000);
     }
   } else if (interactable.type === 'elevator' || interactable.type === 'travel_selector') {
-    if(!gameState.getFlag('STAFF_ACCESS_CARD')){
+    if(!identityLoopMode&&!gameState.getFlag('STAFF_ACCESS_CARD')){
       soundManager.playClick();
       uiManager.showSubtitle('門禁','「電梯與安全梯尚未授權。先到總醫師辦公室領取感應卡。」',2800);
       return;
