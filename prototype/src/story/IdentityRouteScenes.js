@@ -10,7 +10,7 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'晚班護理師',text:'「還沒啊。你每次都先跑來病房。」'},
         {speaker:'晚班護理師',text:'「既然來了，先拿 4F 這組備用鑰匙跟臨時感應卡。408C 一直說隔壁有規律敲牆。」'},
         {speaker:'值班醫師',text:'「好，我先去看 408C。」'}
-      ], '使用護理站電腦聯絡晚班護理師', { flag:'ZHANG_4F_SPARE_KEY_BORROWED' })
+      ], '按下護理站對講機聯絡晚班護理師', { flag:'ZHANG_4F_SPARE_KEY_BORROWED' })
     ],
     ZHOU_OPEN_8F: [
       event('檢視 1998 團隊合照', ['院史長廊最底非常安靜。大型照片裡是 1998 年青嶺醫療中心的核心夜班團隊。攝影者不在畫面中，角落只有相機包的影子。', '我：「光圈開太大了。後排有點糊。」', '往前一步。「拍的人站得太靠牆。」', '再一步。「如果退半步，右邊就不會切到門牌。」', '我停住：「……我為什麼一直在挑照片？」'], '記下構圖與缺席的攝影者', { art: 'photo', photoId: 'history_group_1998' }),
@@ -28,7 +28,7 @@ export function getIdentityRouteScene(step, identity) {
           ZHOU:'人都走了。以前學長等不到我，大概只會把交班東西留在桌上。',
           CHEN:'316 已經空了。先把正式交班補完，否則後面連門禁都不完整。'
         })},
-        {speaker:'內心',text:'值班本、系統登入卡、HIS 電子交班、值班物品櫃。一項一項完成。'}
+        {speaker:'內心',text:'值班本、系統登入卡、HIS、值班物品櫃都在這裡。順序不用死守，但離開前要把正式交班全部完成。'}
       ], '先查看並簽署值班本'),
       event('簽署值班簿', [
         {speaker:'內心',text:'值班本最後一頁停在今晚。簽名欄仍空著。'}
@@ -79,7 +79,7 @@ export function getIdentityRouteScene(step, identity) {
             {speaker:'值班醫師',text:'「我去看。」'},
             {speaker:'內心',text:'504B 那張寫著 409-A 的轉院單還留在腦中。'}
           ]
-        }), '使用護理站電腦聯絡晚班護理師，確認 408C 狀況')
+        }), '按下護理站對講機聯絡晚班護理師，確認 408C 狀況')
       ]),
       event('408C 確認', [
         {speaker:'408C 老先生',text:'「醫師，又來了。」'},
@@ -213,8 +213,9 @@ export function getIdentityRouteScene(step, identity) {
       }),
       event(identity==='ZHANG'?'離開 5F 護理站':'監視器室的閃爍', reaction({
         ZHANG:[
-          {speaker:'內心',text:'事情先處理完了。'},
-          {speaker:'內心',text:'「有點想喝咖啡……我記得一樓警衛那邊常常有咖啡。」'},
+          {speaker:'內心',text:'走出 504B，太陽穴忽然一陣一陣抽痛，視野邊緣微微發黑。'},
+          {speaker:'內心',text:'「胃裡空得發慌，掌心也有點涼……我需要黑咖啡。濃到發苦的那種。」'},
+          {speaker:'內心',text:'「奇怪，我怎麼會記得二院區一樓警衛台永遠有一壺煮過頭的咖啡？」'},
           {speaker:'內心',text:'先下去找警衛。'}
         ],
         LI:[
