@@ -10,7 +10,7 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'晚班護理師',text:'「還沒啊。你每次都先跑來病房。」'},
         {speaker:'晚班護理師',text:'「既然來了，先拿 4F 這組備用鑰匙跟臨時感應卡。408C 一直說隔壁有規律敲牆。」'},
         {speaker:'值班醫師',text:'「好，我先去看 408C。」'}
-      ], '按下護理站對講機聯絡晚班護理師', { flag:'ZHANG_4F_SPARE_KEY_BORROWED' })
+      ], '使用護理站電腦聯絡晚班護理師', { flag:'ZHANG_4F_SPARE_KEY_BORROWED' })
     ],
     ZHOU_OPEN_8F: [
       event('檢視 1998 團隊合照', ['院史長廊最底非常安靜。大型照片裡是 1998 年青嶺醫療中心的核心夜班團隊。攝影者不在畫面中，角落只有相機包的影子。', '我：「光圈開太大了。後排有點糊。」', '往前一步。「拍的人站得太靠牆。」', '再一步。「如果退半步，右邊就不會切到門牌。」', '我停住：「……我為什麼一直在挑照片？」'], '記下構圖與缺席的攝影者', { art: 'photo', photoId: 'history_group_1998' }),
@@ -86,7 +86,7 @@ export function getIdentityRouteScene(step, identity) {
             {speaker:'值班醫師',text:'「我去看。」'},
             {speaker:'內心',text:'504B 那張寫著 409-A 轉送醫囑單還留在腦中。'}
           ]
-        }), '按下護理站對講機聯絡晚班護理師，確認 408C 狀況')
+        }), '使用護理站電腦聯絡晚班護理師，確認 408C 狀況')
       ]),
       event('408C 確認', [
         {speaker:'408C 老先生',text:'「醫師，又來了。」'},
@@ -194,7 +194,7 @@ export function getIdentityRouteScene(step, identity) {
     LI_3F_EVIDENCE: [
       event('三樓交叉核對', [
         {speaker:'內心',text:'B2 只證明四種職務都和事故有關，沒有替我決定我是誰。'},
-        {speaker:'內心',text:'回到三樓。先打開行政辦公室，再去文史室確認今晚留下的兩個來源。'},
+        {speaker:'內心',text:'回到三樓。行政辦公室與文史室各還留著一個來源，兩個房間都要確認。'},
         {speaker:'內心',text:'兩個房間都確認過，就回 316。'}
       ], '打開行政辦公室與文史室後回 316', { evidenceSweep:true })
     ],
