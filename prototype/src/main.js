@@ -672,6 +672,7 @@ controller.onHoverChange = (interactable) => {
 };
 
 function completeFirstCampus4FWardReport(){
+  if(identityLoopMode)return false;
   if(worldRouter.activeZoneId!=='first_campus_4f')return false;
   if(!gameState.isTaskComplete('WARD_ENTRY')||gameState.isTaskComplete('P1_4F_REPORT'))return false;
 
@@ -704,6 +705,7 @@ function completeFirstCampus4FWardReport(){
 }
 
 function completeSecondCampus5FWardReport(){
+  if(identityLoopMode)return false;
   if(worldRouter.activeZoneId!=='second_campus_5f')return false;
   if(!gameState.getFlag('SECOND_CAMPUS_ACCESS')||gameState.getFlag('SECOND_CAMPUS_5F_REPORTED'))return false;
 
