@@ -93,20 +93,24 @@ console.log('PASS Zhou regression: wall photo -> guard -> ringing phone -> 2F ->
 
 const wardSource=readFileSync(new URL('./src/world/shared/WardFloorplan.js',import.meta.url),'utf8');
 assert.match(wardSource,/Identity4F_WardSpareKey/);
-assert.match(wardSource,/setIdentityWardSpareKeyBorrowed/);
+assert.match(wardSource,/Identity4F_TemporaryAccessCard/);
+assert.match(wardSource,/Identity4F_Nurse_LinWanZhen/);
+assert.match(wardSource,/IDENTITY_4F_NURSE_STATION/);
+assert.doesNotMatch(wardSource,/IDENTITY_403_PATIENT|Identity403PatientInteraction|identity_patient_403/);
 assert.match(routeDirectorSource,/ZHANG_4F_SPARE_KEY_BORROWED/);
-assert.match(routeDirectorSource,/id: 'BED33_BOARD'/);
-assert.match(routeDirectorSource,/id: 'BED33_HIS_409'/);
-assert.match(routeDirectorSource,/id: 'BED33_ASSIGNMENT'/);
-assert.match(routeDirectorSource,/把護理站備用鑰匙歸還/);
+assert.match(routeDirectorSource,/IDENTITY_4F_TEMP_ACCESS_CARD/);
+assert.doesNotMatch(routeDirectorSource,/IDENTITY_403_PATIENT/);
+assert.match(routeDirectorSource,/id: '408C_BED_PLAQUE'/);
+assert.match(routeDirectorSource,/id: 'BED33_409_SEALED'/);
+assert.doesNotMatch(routeDirectorSource,/id: 'BED33_BOARD'.*M2|id: 'BED33_HIS_409'.*M2|id: 'BED33_ASSIGNMENT'.*M2/s);
 assert.ok(mainSourceFor316.includes("borrowedWardSpareKey"));
 assert.ok(mainSourceFor316.includes("/^room_40[1-8]$/.test"));
-assert.match(sceneSource,/向護理站借查房備用鑰匙/);
-assert.match(sceneSource,/核對 4F 晚間床位板/);
-assert.match(sceneSource,/核對 409 HIS 列印/);
-assert.match(sceneSource,/核對 409-A 臨時住院單/);
-assert.match(sceneSource,/clearFlag:'ZHANG_4F_SPARE_KEY_BORROWED'/);
-console.log('PASS Zhang pre-handoff round: borrow nursing spare key -> 403/408/409 -> board/HIS/temp admission form -> return key -> 316');
+assert.doesNotMatch(sceneSource,/403 病人|403 床邊紀錄|詢問 403/);
+assert.match(sceneSource,/向護理師拿 4F 備用鑰匙與臨時感應卡/);
+assert.match(sceneSource,/408C 確認/);
+assert.match(sceneSource,/409 封閉房/);
+assert.match(routeDirectorSource,/return !IDENTITY_STORY_CRITICAL_TYPES\.has\(data\?\.type\)/);
+console.log('PASS M2 mainline: visible nurse -> temporary key/card -> 408C -> 409; 403 and paperwork removed from required route, optional exploration remains open');
 
 assert.match(wardSource,/IdentitySecond5F_ConsultSpareKey/);
 assert.match(wardSource,/IDENTITY_SECOND_5F_NURSE_STATION/);
