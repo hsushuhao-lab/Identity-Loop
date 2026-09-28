@@ -308,6 +308,28 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playWheelchairRattle(volume=.13) {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      for(let i=0;i<3;i++){
+        const t=now+i*.24;
+        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+        osc.type='sawtooth';osc.frequency.setValueAtTime(320+i*18,t);osc.frequency.exponentialRampToValueAtTime(92,t+.16);
+        filter.type='bandpass';filter.frequency.value=540;filter.Q.value=1.4;
+        gain.gain.setValueAtTime(.001,t);gain.gain.linearRampToValueAtTime(volume,t+.01);gain.gain.exponentialRampToValueAtTime(.001,t+.19);
+        osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);osc.start(t);osc.stop(t+.21);
+      }
+    }catch(e){}
+  }
+
+  playWheelchairApproach() {
+    if(!this.ctx||this.isMuted)return;
+    this.playWheelchairRattle(.10);
+    setTimeout(()=>this.playWheelchairRattle(.15),620);
+    setTimeout(()=>this.playWheelchairRattle(.20),1180);
+  }
+
   duckAmbient(level=.2,durationMs=4200) {
     if(!this.ctx||!this.ambientGain)return;
     try{
