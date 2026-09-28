@@ -1172,6 +1172,21 @@ export class IdentityRouteDirector {
         });
         return;
       }
+      if(beat.chenDispatchServiceLift){
+        this.gameState.setFlag('CHEN_DISPATCH_SERVICE_LIFT_UNLOCKED',true);
+        void soundManager.ensureRunning().then(ready=>{
+          if(!ready)return;
+          soundManager.playElevatorChime();
+          soundManager.playElevatorMotor();
+        });
+        void this.completeBeat().then(async()=>{
+          if(this.manager.runSave.runEnded)return;
+          await this.prepareZone('first_campus_3f');
+          this.worldRouter.loadZone('first_campus_3f','m0_316_office');
+          await this.onArriveTargetZone();
+        });
+        return;
+      }
       if(beat.chenDispatchBadgeSwipe){
         if(!this.gameState.getFlag('CHEN_GREY_BADGE_COLLECTED')){
           this.uiManager.showDialogue([
@@ -1331,7 +1346,8 @@ export class IdentityRouteDirector {
       second_campus_5f: '第二院區 5F',
       skybridge: '空中天橋',
       phantom_6f: '異常樓層',
-      b2_archive: 'B2 封存層'
+      b2_archive: 'B2 封存層',
+      b1_dispatch_hub: 'B1 地下救護車接駁調度室'
     };
     let objective;
     if(this.step==='LI_ER_2005'){
@@ -1455,6 +1471,7 @@ export class IdentityRouteDirector {
         this.gameState.setFlag('B2_FIRE_RECAP_SEEN', true);
         this.gameState.setFlag('RECORD_OVERWRITE_ACTIVE', true);
         if(['ZHANG','LI'].includes(this.manager.currentIdentity))this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
+        if(this.manager.currentIdentity==='CHEN')this.gameState.setFlag('CHEN_B1_DISPATCH_ACCESS',true);
       }
 
       this.manager.recordEvidence({
@@ -1468,7 +1485,10 @@ export class IdentityRouteDirector {
         this.panel.openB2Archive();
       }
 
-      if (this.beatIndex + 1 < this.beats.length) {
+      if(this.step==='M3'&&this.manager.currentIdentity==='CHEN'&&this.beatIndex===0&&this.beats.length>2){
+        this.beatIndex=2;
+        await this.placeBeat({forceLoad:false});
+      } else if (this.beatIndex + 1 < this.beats.length) {
         this.beatIndex += 1;
         await this.placeBeat({ forceLoad: false });
       } else {
