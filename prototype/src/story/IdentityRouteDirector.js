@@ -430,7 +430,7 @@ export class IdentityRouteDirector {
     const identity = this.manager.currentIdentity;
     if (step === 'ZHANG_OPEN_4F') return {
       id:'IDENTITY_4F_NURSE_STATION',
-      prompt:'按下 4F 護理站對講機'
+      prompt:'使用 4F 護理站電腦'
     };
     if (step === 'ZHOU_OPEN_8F') return index === 0
       ? { id: 'IDENTITY_HISTORY_GROUP_PHOTO', prompt: '查看院史長廊大型合照' }
@@ -1384,8 +1384,12 @@ export class IdentityRouteDirector {
         return;
       }
       if(beat.restDelayMs){
+        this.busy=true;
         this.uiManager.showSubtitle('內心','「先坐一下，把剛才的紀錄整理完。」',Math.max(1600,beat.restDelayMs-400));
-        setTimeout(()=>{if(!this.manager.runSave.runEnded)void this.completeBeat();},beat.restDelayMs);
+        setTimeout(()=>{
+          this.busy=false;
+          if(!this.manager.runSave.runEnded)void this.completeBeat();
+        },beat.restDelayMs);
         return;
       }
       void this.completeBeat();
