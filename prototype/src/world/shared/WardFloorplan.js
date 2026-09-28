@@ -100,21 +100,44 @@ export class WardFloorplan {
     }
 
     if(!second&&this.floor===4){
-      const nurseStationScreen=this.workstations.find(item=>item.id==='first_station_A')?.screen;
-      if(nurseStationScreen){
-        nurseStationScreen.userData={
-          ...nurseStationScreen.userData,
-          interactable:true,
-          id:'IDENTITY_4F_NURSE_STATION',
-          type:'identity_nurse_station_4f',
-          label:'和護理站護理師說話'
-        };
-        this.interactables.push(nurseStationScreen);
+      // A visible nurse is the main interaction anchor for the 4F opening.
+      // The player should find a person, not click a monitor to start the round.
+      const nurse=new THREE.Group();
+      nurse.name='Identity4F_Nurse_LinWanZhen';
+      nurse.position.set(-2.15,0,-3.15);
+      const skinMat=new THREE.MeshStandardMaterial({color:0xd2aa88,roughness:.78});
+      const scrubMat=new THREE.MeshStandardMaterial({color:0xdfe7e2,roughness:.82});
+      const trimMat=new THREE.MeshStandardMaterial({color:0x477261,roughness:.78});
+      const nurseTorso=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.28),scrubMat);
+      nurseTorso.position.set(0,1.12,0);nurse.add(nurseTorso);
+      const nurseHead=new THREE.Mesh(new THREE.SphereGeometry(.17,18,14),skinMat);
+      nurseHead.position.set(0,1.68,0);nurse.add(nurseHead);
+      const nurseHair=new THREE.Mesh(new THREE.SphereGeometry(.18,18,14),this.gf.materials.wallDark);
+      nurseHair.scale.set(1,.56,1);nurseHair.position.set(0,1.79,.015);nurse.add(nurseHair);
+      const badge=new THREE.Mesh(new THREE.BoxGeometry(.12,.09,.018),trimMat);
+      badge.position.set(.13,1.30,.15);nurse.add(badge);
+      for(const x of [-.13,.13]){
+        const leg=new THREE.Mesh(new THREE.BoxGeometry(.13,.68,.15),trimMat);
+        leg.position.set(x,.48,0);nurse.add(leg);
       }
+      const nurseHit=new THREE.Mesh(
+        new THREE.BoxGeometry(.88,1.95,.82),
+        new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+      );
+      nurseHit.position.set(0,1.0,0);
+      nurseHit.userData={
+        interactable:true,
+        id:'IDENTITY_4F_NURSE_STATION',
+        type:'identity_nurse_station_4f',
+        label:'和護理站護理師說話'
+      };
+      nurse.add(nurseHit);
+      this.zoneGroup.add(nurse);
+      this.interactables.push(nurseHit);
+      this.identity4FNurse=nurse;
 
-      // A real spare ward-key ring sits on the nursing desk. Zhang borrows this
-      // before the pre-handoff round and returns it after checking all temporary
-      // admission paperwork. It is NOT the formal 316 duty key/access card.
+      // 4F temporary access set: traditional room key + temporary ward access card.
+      // This is intentionally separate from the formal 316 duty credentials.
       const keyDesk=this.workstations.find(item=>item.id==='first_station_A')?.desk;
       const keySurfaceY=keyDesk?new THREE.Box3().setFromObject(keyDesk).max.y:.82;
       const spareKey=new THREE.Group();
@@ -130,29 +153,16 @@ export class WardFloorplan {
       }
       const tag=solid(spareKey,this.gf.materials.wallBumper,[.08,.012,.015],[.12,.022,.075]);
       tag.name='Identity4F_WardSpareKey_Tag';
+      const tempCard=new THREE.Mesh(
+        new THREE.BoxGeometry(.14,.012,.09),
+        new THREE.MeshStandardMaterial({color:0x3e765f,roughness:.5})
+      );
+      tempCard.position.set(-.10,.006,.06);
+      tempCard.rotation.y=-.18;
+      tempCard.name='Identity4F_TemporaryAccessCard';
+      spareKey.add(tempCard);
       this.zoneGroup.add(spareKey);
       this.identityWardSpareKey=spareKey;
-
-      // 403 is a normal bedside conversation. Mount a forgiving sensor directly
-      // over the physical 403A bed so the prompt belongs to the patient/bed,
-      // not to an arbitrary route marker.
-      const bed403=this.bedAreas.find(item=>item.id==='403A');
-      if(bed403?.position){
-        const hit=new THREE.Mesh(
-          new THREE.BoxGeometry(1.35,1.25,2.0),
-          new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
-        );
-        hit.position.set(bed403.position[0],1.0,bed403.position[2]);
-        hit.name='Identity403PatientInteraction';
-        hit.userData={
-          interactable:true,
-          id:'IDENTITY_403_PATIENT',
-          type:'identity_patient_403',
-          label:'詢問 403 病人今晚狀況'
-        };
-        this.zoneGroup.add(hit);
-        this.interactables.push(hit);
-      }
     }
 
     this.wardDoor=new AccessDoor(this,{id:second?'second_ward':'first_ward',x:o,z:2,width:2.4,title:'感應式鐵門'});
