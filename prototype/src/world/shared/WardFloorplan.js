@@ -71,6 +71,34 @@ export class WardFloorplan {
     // Identy Loop: route dialogue must be attached to real world fixtures.
     // Reuse the actual nursing-station monitor as the nurse conversation surface;
     // do not spawn a floating/context quest hitbox near the player.
+    if(second&&this.floor===5){
+      const nurseStationScreen=this.workstations.find(item=>item.id==='second_station_A')?.screen;
+      if(nurseStationScreen){
+        nurseStationScreen.userData={
+          ...nurseStationScreen.userData,
+          interactable:true,
+          id:'IDENTITY_SECOND_5F_NURSE_STATION',
+          type:'identity_second_5f_nurse_station',
+          label:'和第二院區 5F 護理師說話'
+        };
+        this.interactables.push(nurseStationScreen);
+      }
+
+      const keyDesk=this.workstations.find(item=>item.id==='second_station_A')?.desk;
+      const keySurfaceY=keyDesk?new THREE.Box3().setFromObject(keyDesk).max.y:.82;
+      const consultKey=new THREE.Group();
+      consultKey.name='IdentitySecond5F_ConsultSpareKey';
+      consultKey.position.set(o-3.05,keySurfaceY+.035,-2.17);
+      const consultRing=new THREE.Mesh(new THREE.TorusGeometry(.052,.008,8,22),this.gf.materials.stainless);
+      consultRing.rotation.x=Math.PI/2;consultKey.add(consultRing);
+      const consultBlade=new THREE.Mesh(new THREE.BoxGeometry(.028,.012,.16),this.gf.materials.stainless);
+      consultBlade.position.set(0,.004,-.09);consultKey.add(consultBlade);
+      const consultTag=solid(consultKey,this.gf.materials.wallBumper,[.075,.012,.018],[.15,.022,.085]);
+      consultTag.name='IdentitySecond5F_ConsultSpareKey_Tag';
+      this.zoneGroup.add(consultKey);
+      this.identitySecondConsultKey=consultKey;
+    }
+
     if(!second&&this.floor===4){
       const nurseStationScreen=this.workstations.find(item=>item.id==='first_station_A')?.screen;
       if(nurseStationScreen){
@@ -479,6 +507,9 @@ export class WardFloorplan {
     }
   }
 
+  setIdentitySecondConsultKeyBorrowed(borrowed){
+    if(this.identitySecondConsultKey)this.identitySecondConsultKey.visible=!borrowed;
+  }
   setIdentityWardSpareKeyBorrowed(borrowed){
     if(this.identityWardSpareKey)this.identityWardSpareKey.visible=!borrowed;
   }
