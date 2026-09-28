@@ -328,7 +328,7 @@ export function getIdentityRouteScene(step, identity) {
           {speaker:'內心',text:'值班室外的通道正中央停著一輛老舊金屬輪椅，擋住往電梯的路。'},
           {speaker:'內心',text:'「左前輪的偏軸阻力……我推過這種輪椅很多次。握把高度甚至剛好卡在髖骨。」'},
           {speaker:'內心',text:'輪子壓過地面接縫時，固定發出三聲：喀啦、喀啦、喀啦。'}
-        ], '親手把輪椅往前推開兩公尺', { chenWheelchairPush:true, flag:'CHEN_WHEELCHAIR_BLOCKING' })
+        ], '親手把輪椅往前推開兩公尺', { chenWheelchairPush:true })
       ] : []),
       event(identity==='ZHANG'?'離開 5F 護理站':'監視器室的閃爍', reaction({
         ZHANG:[
