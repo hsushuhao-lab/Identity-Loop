@@ -239,7 +239,7 @@ export class WardFloorplan {
       dutyDesk.screen.userData={interactable:true,id:'4F_DUTY_COMPUTER',type:'p1_action',action:'END_SHIFT',label:'使用值班室電腦稍作休息'};
       this.interactables.push(dutyDesk.screen);
       dutyDesk.screen.getObjectByName('WorkstationCoffeeSurface').material=new THREE.MeshBasicMaterial({color:0x3b2417,side:THREE.DoubleSide});
-      const steam=new THREE.Group();steam.name='DutyRoom_HotCoffeeSteam';steam.position.set(-.34,.13,.14);dutyDesk.screen.add(steam);
+      const steam=new THREE.Group();steam.name='DutyRoom_HotCoffeeSteam';steam.position.set(-.34,.13,.14);dutyDesk.screen.add(steam);this.dutyCoffeeSteam=steam;
       const steamMaterial=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.16,depthWrite:false});
       for(const [x,y] of [[-.018,0],[.016,.06]]){const wisp=new THREE.Mesh(new THREE.SphereGeometry(.022,8,6),steamMaterial);wisp.scale.set(.65,1.8,.65);wisp.position.set(x,y,0);steam.add(wisp);}
     }
@@ -248,7 +248,7 @@ export class WardFloorplan {
     solid(phone,this.gf.materials.metal,[0,.89,-.01],[.19,.018,.09]);
     solid(phone,this.gf.materials.bedSheet,[0,.92,-.055],[.25,.035,.055]);
     for(let row=0;row<3;row++)for(let col=0;col<3;col++)solid(phone,this.gf.materials.stainless,[-.065+col*.065,.885,.025+row*.035],[.025,.008,.016]);
-    const handset=new THREE.Mesh(new THREE.CapsuleGeometry(.025,.19,4,10),this.gf.materials.wallDark);handset.name='DutyPhoneHandset';handset.rotation.z=Math.PI/2;handset.position.set(0,.98,-.055);phone.add(handset);
+    const handset=new THREE.Mesh(new THREE.CapsuleGeometry(.025,.19,4,10),this.gf.materials.wallDark);handset.name='DutyPhoneHandset';handset.rotation.z=Math.PI/2;handset.position.set(0,.98,-.055);phone.add(handset);this.dutyPhoneHandset=handset;
     phone.updateWorldMatrix(true,true);
     phone.position.y+=deskSurfaceY-new THREE.Box3().setFromObject(phone).min.y;
     this.dutyCabinetAnchor=[-8.8,0,9.3];this.dutyCabinetYaw=Math.PI;
@@ -511,7 +511,16 @@ export class WardFloorplan {
     this.secondCampusLegend={id:'LEGEND_CHEST_PAIN',patient:'SECOND_CHEST_PATIENT',form:'SECOND_CHEST_TRANSFER'};
   }
 
+  applyGamePhase(){this.syncStoryState();}
+
   syncStoryState(){
+    const li2117Drift=this.campus==='first'&&this.floor===4&&gameState.getFlag('LI_2117_ENV_DRIFT')===true;
+    if(this.dutyCoffeeSteam)this.dutyCoffeeSteam.visible=!li2117Drift;
+    if(this.dutyPhoneHandset){
+      this.dutyPhoneHandset.rotation.z=Math.PI/2+(li2117Drift?.16:0);
+      this.dutyPhoneHandset.position.x=li2117Drift?.035:0;
+      this.dutyPhoneHandset.position.z=li2117Drift?-.035:-.055;
+    }
     if(this.dutyPhone){
       const ringing=gameState.getFlag('PHONE_RING_ACTIVE')===true;
       this.dutyPhone.userData.interactable=ringing;
