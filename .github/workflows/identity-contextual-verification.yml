@@ -1,0 +1,41 @@
+name: One-time Identity Contextual Gameplay Verification
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: identity-contextual-once
+  cancel-in-progress: true
+
+jobs:
+  contextual-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: prototype/package-lock.json
+      - name: Install dependencies
+        working-directory: prototype
+        run: npm ci
+      - name: Identity structural QA
+        working-directory: prototype
+        run: npm run test:identity
+      - name: Production build
+        working-directory: prototype
+        run: node scripts/write-build-info.mjs && npm run build
+      - name: Install browser
+        working-directory: prototype
+        run: npx playwright install --with-deps chromium
+      - name: Four routes contextual browser QA
+        working-directory: prototype
+        run: node scripts/test-identity-routes-browser.mjs qa-results/identity-contextual
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: identity-contextual-browser-evidence
+          path: prototype/qa-results/
