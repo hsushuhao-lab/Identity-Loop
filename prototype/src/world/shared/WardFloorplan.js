@@ -84,6 +84,27 @@ export class WardFloorplan {
         this.interactables.push(nurseStationScreen);
       }
 
+      // A real spare ward-key ring sits on the nursing desk. Zhang borrows this
+      // before the pre-handoff round and returns it after checking all temporary
+      // admission paperwork. It is NOT the formal 316 duty key/access card.
+      const keyDesk=this.workstations.find(item=>item.id==='first_station_A')?.desk;
+      const keySurfaceY=keyDesk?new THREE.Box3().setFromObject(keyDesk).max.y:.82;
+      const spareKey=new THREE.Group();
+      spareKey.name='Identity4F_WardSpareKey';
+      spareKey.position.set(-3.05,keySurfaceY+.035,-2.17);
+      const keyRing=new THREE.Mesh(new THREE.TorusGeometry(.052,.008,8,22),this.gf.materials.stainless);
+      keyRing.rotation.x=Math.PI/2;spareKey.add(keyRing);
+      for(let i=0;i<2;i++){
+        const key=new THREE.Mesh(new THREE.BoxGeometry(.025,.012,.14),this.gf.materials.stainless);
+        key.position.set(-.025+i*.055,.004,-.085-i*.015);
+        key.rotation.y=(-.18+i*.32);
+        spareKey.add(key);
+      }
+      const tag=solid(spareKey,this.gf.materials.wallBumper,[.08,.012,.015],[.12,.022,.075]);
+      tag.name='Identity4F_WardSpareKey_Tag';
+      this.zoneGroup.add(spareKey);
+      this.identityWardSpareKey=spareKey;
+
       // 403 is a normal bedside conversation. Mount a forgiving sensor directly
       // over the physical 403A bed so the prompt belongs to the patient/bed,
       // not to an arbitrary route marker.
@@ -458,6 +479,9 @@ export class WardFloorplan {
     }
   }
 
+  setIdentityWardSpareKeyBorrowed(borrowed){
+    if(this.identityWardSpareKey)this.identityWardSpareKey.visible=!borrowed;
+  }
   setWardGateClosed(closed){this.wardDoor.setClosed(closed);this.wardGateClosed=closed;}
   setInnerWardGateClosed(closed){if(this.innerWardDoor)this.innerWardDoor.setClosed(closed);this.innerWardGateClosed=closed;}
   setGlassBypassClosed(closed){if(this.glassBypassDoor)this.glassBypassDoor.setClosed(closed);this.glassBypassClosed=closed;}
