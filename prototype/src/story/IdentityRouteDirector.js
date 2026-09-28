@@ -1305,16 +1305,27 @@ export class IdentityRouteDirector {
       }
       if(beat.chenDispatchServiceLift){
         this.gameState.setFlag('CHEN_DISPATCH_SERVICE_LIFT_UNLOCKED',true);
+        this.gameState.setFlag('CHEN_DISPATCH_ROUTE_VERIFIED',true);
+        persistentMemory.addJournalNote(
+          'CHEN_DISPATCH_ROUTE_VERIFIED',
+          'B1 調度白板、灰滾邊證件與車次 094 交接簽名完成三合一核對；後勤工務電梯已解鎖返回 3F／316。'
+        );
         void soundManager.ensureRunning().then(ready=>{
           if(!ready)return;
           soundManager.playElevatorChime();
           soundManager.playElevatorMotor();
         });
-        void this.completeBeat().then(async()=>{
-          if(this.manager.runSave.runEnded)return;
+        this.busy=true;
+        this.controller.enabled=false;
+        void (async()=>{
           await this.prepareZone('first_campus_3f');
           this.worldRouter.loadZone('first_campus_3f','m0_316_office');
-          await this.onArriveTargetZone();
+          this.busy=false;
+          await this.completeBeat();
+        })().catch(error=>{
+          console.error('[IdentityRouteDirector] Chen dispatch lift failed',error);
+          this.busy=false;
+          this.controller.enabled=true;
         });
         return;
       }
