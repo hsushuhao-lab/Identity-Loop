@@ -5,6 +5,9 @@ on:
     paths: ['.github/workflows/identity-m6-targeted-patch.yml']
 permissions:
   contents: write
+defaults:
+  run:
+    shell: bash
 concurrency:
   group: identity-m6-targeted-patch
   cancel-in-progress: true
@@ -30,7 +33,7 @@ jobs:
             echo 'Expected the unpatched M6 trigger regression to fail'; exit 1
           fi
           grep -F 'LI M6 must bind the dedicated CG' qa-results/identity-m6-cg/baseline-red.log
-      - name: Apply only four verified integration edits
+      - name: Apply verified integration edits and canvas leak coverage
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -39,7 +42,10 @@ jobs:
             'prototype/src/story/IdentityRouteDirector.js':'3dacae613e3b0fb08fbd70d082b89ba3ae0f0493',
             'prototype/src/story/IdentityRouteScenes.js':'b46e7152cd4381b65c87e1c2e8158237d123d673',
             'prototype/src/ui/UIManager.js':'b94e67610b9952120a7fe404b54c26a019a92f9a',
-            'prototype/scripts/run-identity-qa.mjs':'fe78c1ae7940ffe4c6f7ebdd0588055018d00742'
+            'prototype/scripts/run-identity-qa.mjs':'fe78c1ae7940ffe4c6f7ebdd0588055018d00742',
+            'prototype/src/art/IdentityM6MemoryArt.js':'d0b59959e0039853c3356c2fdd247be1a7a75bb4',
+            'prototype/test_identity_m6_cg_qa.js':'118862164f5cafb3d7a1cfdb891e5593b0143c65',
+            'prototype/scripts/test-identity-m6-cg-browser.mjs':'8683a5c273603c440d0672597a774821c192f919'
           }
           for path,sha in expected.items():
             actual=subprocess.check_output(['git','hash-object',path],text=True).strip()
@@ -55,10 +61,28 @@ jobs:
           replace(ui,'  renderMemoryFrame(){','  renderMemoryFrame(elapsedMs=0){')
           replace(ui,'    if(cctv){ctx.globalAlpha=.18;', '    drawIdentityM6Memory(ctx,sequence,frame,w,h,elapsedMs);\n    if(cctv){ctx.globalAlpha=.18;')
           replace('prototype/scripts/run-identity-qa.mjs',"  'test_identity_routes_qa.js',", "  'test_identity_routes_qa.js',\n  'test_identity_m6_cg_qa.js',")
+          replace('prototype/test_identity_m6_cg_qa.js','    visuals.push(draw(1800));','    assert.doesNotMatch(draw(1800),forbidden,`${identity}/${frame.m6Shot}: canvas identity/ending spoiler`);\n    visuals.push(draw(1800));')
+          browser=Path('prototype/scripts/test-identity-m6-cg-browser.mjs')
+          s=browser.read_text();assert s.count('window.__drawn=[];')==2
+          s=s.replace('window.__drawn=[];','window.__drawn=new Set();').replace('window.__drawn.push(String(text))','window.__drawn.add(String(text))').replace("window.__drawn.join('\\n')","[...window.__drawn].join('\\n')")
+          browser.write_text(s)
+          PY
+      - name: Reproduce and remove canvas ending-title hint
+        working-directory: prototype
+        run: |
+          if node test_identity_m6_cg_qa.js > qa-results/identity-m6-cg/canvas-red.log 2>&1; then
+            echo 'Expected the canvas spoiler regression to fail'; exit 1
+          fi
+          grep -F 'ZHOU/lower: canvas identity/ending spoiler' qa-results/identity-m6-cg/canvas-red.log
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/art/IdentityM6MemoryArt.js');s=p.read_text()
+          assert s.count('DELIVER THE WARNING')==1
+          p.write_text(s.replace('DELIVER THE WARNING','SEND / DO NOT DELAY'))
           PY
           git diff --check
           git diff --stat
-          git diff > prototype/qa-results/identity-m6-cg/integration.patch
+          git diff > qa-results/identity-m6-cg/integration.patch
       - name: Identity regressions including new CG
         working-directory: prototype
         run: npm run test:identity | tee qa-results/identity-m6-cg/structural.log
@@ -77,7 +101,7 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           import {readFile,writeFile} from 'node:fs/promises';
-          const paths=['prototype/src/story/IdentityRouteDirector.js','prototype/src/story/IdentityRouteScenes.js','prototype/src/ui/UIManager.js','prototype/scripts/run-identity-qa.mjs'];
+          const paths=['prototype/src/story/IdentityRouteDirector.js','prototype/src/story/IdentityRouteScenes.js','prototype/src/ui/UIManager.js','prototype/scripts/run-identity-qa.mjs','prototype/src/art/IdentityM6MemoryArt.js','prototype/test_identity_m6_cg_qa.js','prototype/scripts/test-identity-m6-cg-browser.mjs'];
           const blobs=[];
           for(const path of paths){
             const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:JSON.stringify({content:await readFile(path,'utf8'),encoding:'utf-8'})});
