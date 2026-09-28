@@ -58,6 +58,59 @@ export class SecondCampus2F {
         const cctvHit=new THREE.Mesh(new THREE.BoxGeometry(3.2,2.0,1.2),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
         cctvHit.position.set(x,1.55,-9.75);cctvHit.userData={interactable:true,id:'SECOND_2F_CCTV_SELF',type:'security_monitor_anomaly',label:'查看監視畫面'};
         this.zoneGroup.add(cctvHit);this.interactables.push(cctvHit);
+
+        // Identity Loop monitoring-room phone; same visual language as the 316 desk phone.
+        const cctvPhone=new THREE.Group();
+        cctvPhone.name='Second2F_CCTV_Phone';
+        cctvPhone.position.set(x-1.2,1.02,-8.72);
+        const phoneBase=new THREE.Mesh(
+          new THREE.BoxGeometry(.34,.09,.23),
+          new THREE.MeshStandardMaterial({color:0x27302b,roughness:.58})
+        );
+        phoneBase.position.y=.045;cctvPhone.add(phoneBase);
+        const phonePanel=new THREE.Mesh(
+          new THREE.BoxGeometry(.27,.025,.08),
+          new THREE.MeshStandardMaterial({color:0xd8ded8,roughness:.72})
+        );
+        phonePanel.position.set(0,.102,-.045);cctvPhone.add(phonePanel);
+        for(let row=0;row<3;row++)for(let col=0;col<3;col++){
+          const key=new THREE.Mesh(
+            new THREE.BoxGeometry(.026,.012,.018),
+            new THREE.MeshStandardMaterial({color:0x828a85,roughness:.6})
+          );
+          key.position.set(-.07+col*.07,.118,.015+row*.036);
+          cctvPhone.add(key);
+        }
+        const handset=new THREE.Mesh(
+          new THREE.CapsuleGeometry(.026,.20,4,10),
+          new THREE.MeshStandardMaterial({color:0x1d2421,roughness:.6})
+        );
+        handset.rotation.z=Math.PI/2;handset.position.set(0,.17,-.065);cctvPhone.add(handset);
+        const cordCurve=new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-.12,.13,.02),
+          new THREE.Vector3(-.18,.09,.12),
+          new THREE.Vector3(-.09,.05,.20),
+          new THREE.Vector3(-.16,.02,.28)
+        ]);
+        cctvPhone.add(new THREE.Mesh(
+          new THREE.TubeGeometry(cordCurve,24,.004,6,false),
+          new THREE.MeshStandardMaterial({color:0x1d2421,roughness:.8})
+        ));
+        const cctvPhoneHit=new THREE.Mesh(
+          new THREE.BoxGeometry(.62,.42,.50),
+          new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+        );
+        cctvPhoneHit.position.set(0,.12,0);
+        cctvPhoneHit.userData={
+          interactable:false,
+          id:'IDENTITY_SECOND_2F_CCTV_PHONE',
+          type:'identity_cctv_phone',
+          label:'接聽監控室電話'
+        };
+        cctvPhone.add(cctvPhoneHit);
+        this.art.add(cctvPhone);
+        this.interactables.push(cctvPhoneHit);
+        this.identityCctvPhone=cctvPhoneHit;
       }
       this.gf.buildCeilingLight(this.zoneGroup,x,3.15,-7.5);
       this.roomAreas.push({id:code,label,point:[x,1.7,-7.5],door:[x,1.7,-4.5],corridor:[x,1.7,0]});
