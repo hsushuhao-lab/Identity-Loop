@@ -59,6 +59,7 @@ async function runtimeState(){
     dialogue:!!window.__storyQA.uiManager.dialogueSequence,
     choiceModal:document.getElementById('story-choice-modal')?.classList.contains('active')===true,
     panelVisible:getComputedStyle(document.getElementById('identity-loop-panel')).opacity==='1',
+    awaitingZone:window.__storyQA.identityRouteDirector.qaInteractionState().awaitingZone,
     text:document.body.innerText,
     canvasText:window.__drawnText.join('\n'),
     body:document.body.scrollWidth,
@@ -122,6 +123,14 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       run.ending=wrong?'WRONG_MEMORY_PATIENTIZATION':'GOOD_END';
       report.routes.push(run);
       return;
+    }
+
+    if(state.awaitingZone){
+      assert.notEqual(state.zone,state.awaitingZone,'director must wait for physical/manual travel instead of auto-loading the destination');
+      const arrived=await page.evaluate(()=>window.__storyQA.identityRouteDirector.qaArriveAtAwaitingZone());
+      assert.equal(arrived,true,'QA must be able to simulate arriving at the awaited zone');
+      run.actions++;
+      continue;
     }
 
     if(state.choiceModal){
