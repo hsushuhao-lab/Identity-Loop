@@ -46,7 +46,7 @@ export class B1DispatchHub {
     const ctx=boardCanvas.getContext('2d');ctx.fillStyle='#e6eadf';ctx.fillRect(0,0,1100,650);
     ctx.fillStyle='#40564b';ctx.fillRect(0,0,1100,70);ctx.fillStyle='#fff';ctx.font='bold 34px sans-serif';ctx.fillText('跨院救護調度白板｜1998',32,47);
     ctx.fillStyle='#29372f';ctx.font='26px ui-monospace,monospace';
-    ['車次 092 | 21:10 第一院區 → 第二院區','車次 093 | 22:35 第二院區 → 第一院區','車次 094 | 23:40 第二院區 → 第一院區','隨車支援醫師：陳○○  MED-89••••'].forEach((line,i)=>ctx.fillText(line,48,150+i*92));
+    ['車次 092 | 21:10 第一院區 → 第二院區','車次 093 | 22:35 第二院區 → 第一院區','車次 094 | 23:40 第二院區 → 第一院區','隨車支援醫師：[姓名欄磨損]  MED-89••••'].forEach((line,i)=>ctx.fillText(line,48,150+i*92));
     const boardTex=new THREE.CanvasTexture(boardCanvas);boardTex.colorSpace=THREE.SRGBColorSpace;
     const board=new THREE.Mesh(new THREE.PlaneGeometry(3.5,2.05),new THREE.MeshStandardMaterial({map:boardTex,roughness:.88}));
     board.position.set(-6.55,1.68,-3.5);board.rotation.y=Math.PI/2;
