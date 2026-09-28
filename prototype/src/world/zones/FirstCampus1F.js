@@ -264,9 +264,9 @@ export class FirstCampus1F {
     solid(guardPost,this.gf.materials.doorWood,[0,.53,0],[2.1,1.06,.78]);
     solid(guardPost,this.gf.materials.counterTop,[0,1.10,0],[2.18,.08,.84]);
 
-    // Identy Loop: Zhou's second photo clue is a physical framed print on the
-    // old guard desk. The glass reflection contains the photographer's partial
-    // camera/hand silhouette but no readable identity label.
+    // Identy Loop: Zhou's second photo clue is wall-mounted and deliberately
+    // large enough to inspect from normal first-person distance. It must not sit
+    // on the guard desk, where the telephone/logbook compete for the same view.
     const canLoadIdentityImage=typeof document!=='undefined'&&typeof document.createElementNS==='function';
     const reflectionTexture=canLoadIdentityImage
       ? new THREE.TextureLoader().load(`${import.meta.env?.BASE_URL || './'}assets/identity-v03/history-reflection.png`)
@@ -274,41 +274,69 @@ export class FirstCampus1F {
     if(reflectionTexture)reflectionTexture.colorSpace=THREE.SRGBColorSpace;
     const reflectionFrame=new THREE.Group();
     reflectionFrame.name='IdentityGuardReflectionPhoto_Frame';
-    reflectionFrame.position.set(-.40,1.50,-.29);
-    reflectionFrame.rotation.x=-.10;
+    reflectionFrame.position.set(-10.72,1.92,7.76);
+    reflectionFrame.rotation.y=Math.PI;
     const reflectionBacking=new THREE.Mesh(
-      new THREE.BoxGeometry(.78,.54,.035),
+      new THREE.BoxGeometry(2.70,1.80,.07),
       new THREE.MeshStandardMaterial({color:0x30271d,roughness:.8})
     );
     reflectionFrame.add(reflectionBacking);
     const reflectionPhoto=new THREE.Mesh(
-      new THREE.PlaneGeometry(.72,.48),
+      new THREE.PlaneGeometry(2.52,1.62),
       reflectionTexture
         ? new THREE.MeshBasicMaterial({map:reflectionTexture,toneMapped:false})
         : new THREE.MeshBasicMaterial({color:0x615b50})
     );
-    reflectionPhoto.position.z=.019;
+    reflectionPhoto.position.z=.041;
     reflectionPhoto.name='IdentityGuardReflectionPhoto';
     reflectionPhoto.userData={
       interactable:true,
       id:'IDENTITY_GUARD_REFLECTION_PHOTO',
       type:'identity_photo',
-      label:'查看警衛台上的事故前設備照片'
+      label:'查看牆上的事故前設備照片'
     };
     reflectionFrame.add(reflectionPhoto);
-    guardPost.add(reflectionFrame);
+    this.zoneGroup.add(reflectionFrame);
     this.interactables.push(reflectionPhoto);
+    const photoLamp=new THREE.PointLight(0xffdfad,.22,3.8,2);
+    photoLamp.position.set(-10.72,2.75,6.95);
+    this.zoneGroup.add(photoLamp);
     const cctv=monitor(guardPost,this.gf.materials,-.48,1.17,-.18,0);cctv.name='OldGuardPost_CCTVMonitor';
     solid(guardPost,this.gf.materials.metal,[.50,1.15,-.1],[.30,.12,.22]);
     solid(guardPost,this.gf.materials.lightWarm,[.06,1.155,.08],[.36,.018,.24]).name='OldGuardPost_NightLogbook';
+    // Use the same visual language as the 316 / duty-room extension phones:
+    // dark base, keypad, separate handset and coiled cord. The hitbox is normally
+    // disabled and becomes active only when the Zhou route actually rings it.
     const deskPhone=new THREE.Group();deskPhone.name='OldGuardPost_DeskPhone';deskPhone.position.set(.72,1.15,.20);guardPost.add(deskPhone);
     solid(deskPhone,this.gf.materials.wallDark,[0,.045,0],[.30,.07,.20],.015);
-    solid(deskPhone,this.gf.materials.metal,[0,.092,-.025],[.24,.018,.08],.006);
+    solid(deskPhone,this.gf.materials.bedSheet,[0,.092,-.055],[.25,.035,.055],.006);
+    for(let row=0;row<3;row++)for(let col=0;col<3;col++){
+      solid(deskPhone,this.gf.materials.metal,[-.065+col*.065,.088,.025+row*.035],[.025,.008,.016],.002);
+    }
+    const guardHandset=new THREE.Mesh(new THREE.CapsuleGeometry(.025,.19,4,10),this.gf.materials.wallDark);
+    guardHandset.name='OldGuardPost_DeskPhone_Handset';
+    guardHandset.rotation.z=Math.PI/2;
+    guardHandset.position.set(0,.17,-.055);
+    deskPhone.add(guardHandset);
     const phoneCord=new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-.11,.08,.03),new THREE.Vector3(-.18,.06,.12),
-      new THREE.Vector3(-.10,.03,.20),new THREE.Vector3(-.17,.01,.27)
+      new THREE.Vector3(-.11,.11,.03),new THREE.Vector3(-.18,.07,.12),
+      new THREE.Vector3(-.10,.035,.20),new THREE.Vector3(-.17,.015,.27)
     ]);
     deskPhone.add(new THREE.Mesh(new THREE.TubeGeometry(phoneCord,24,.004,6,false),this.gf.materials.wallDark));
+    const guardPhoneHit=new THREE.Mesh(
+      new THREE.BoxGeometry(.56,.38,.46),
+      new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+    );
+    guardPhoneHit.position.set(0,.13,0);
+    guardPhoneHit.name='OldGuardPost_DeskPhone_Hit';
+    guardPhoneHit.userData={
+      interactable:false,
+      id:'IDENTITY_GUARD_PHONE',
+      type:'identity_guard_phone',
+      label:'接聽警衛台電話'
+    };
+    deskPhone.add(guardPhoneHit);
+    this.interactables.push(guardPhoneHit);
     const keyRing=new THREE.Mesh(new THREE.TorusGeometry(.075,.009,8,24),this.gf.materials.stainless);
     keyRing.name='OldGuardPost_KeyRing';keyRing.rotation.x=Math.PI/2;keyRing.position.set(.76,.03,-.22);guardPost.add(keyRing);
     for(let i=0;i<3;i++){
