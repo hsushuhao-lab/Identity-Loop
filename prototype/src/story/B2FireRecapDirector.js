@@ -27,7 +27,7 @@ const B2_FIRE_BEATS=Object.freeze([
   Object.freeze({
     stamp:'火災封存底稿',
     title:'八個人被困在不同位置',
-    body:'[身分欄遭除籍塗銷]／MED-87••••／第一線住院醫師：4F 409-A 鐵床（約束中）；李承禮／MED-820316／夜間總醫師：1F B-Panel；周啟文／MED-880217／第二線住院醫師：1F–3F 逃生梯；陳柏勳／MED-890605／第二院區支援醫師：空中天橋；王世榮／SEC-760117／夜間警衛：1F 警衛台；林婉真／NUR-900033／夜班護理師：4F 護理站；謝玉琴／ADM-851104／行政／文史人員：3F 文史室；劉志遠／ENG-860214／工務機電技師：B2 排煙道。',
+    body:'第一線住院醫師：4F 409-A 鐵床（約束中）；夜間總醫師：1F B-Panel；第二線住院醫師：1F–3F 逃生梯；第二院區支援醫師：空中天橋；夜間警衛：1F 警衛台；夜班護理師：4F 護理站；行政／文史人員：3F 文史室；工務機電技師：B2 排煙道。',
     evidence:'八個位置屬於同一場事故；其中 409-A 那名第一線住院醫師的姓名欄已被系統覆寫。MED-87•••• 與 316 Legacy Index 相符，但完整姓名仍需回 3F 文史館核對。',
     mode:'map',cue:'paper'
   }),
@@ -46,6 +46,32 @@ const B2_FIRE_BEATS=Object.freeze([
     mode:'overwrite',cue:'beep'
   })
 ]);
+
+const B2_VICTIM_MAP=Object.freeze([
+  Object.freeze({identity:'ZHANG',name:'張守恆',employeeId:'MED-870409',maskedId:'MED-87••••',role:'第一線住院醫師',position:'4F 409-A 鐵床（約束中）'}),
+  Object.freeze({identity:'LI',name:'李承禮',employeeId:'MED-820316',maskedId:'MED-82••••',role:'夜間總醫師',position:'1F B-Panel'}),
+  Object.freeze({identity:'ZHOU',name:'周啟文',employeeId:'MED-880217',maskedId:'MED-88••••',role:'第二線住院醫師',position:'1F–3F 逃生梯'}),
+  Object.freeze({identity:'CHEN',name:'陳柏勳',employeeId:'MED-890605',maskedId:'MED-89••••',role:'第二院區支援醫師',position:'空中天橋'}),
+  Object.freeze({identity:null,name:'王世榮',employeeId:'SEC-760117',role:'夜間警衛',position:'1F 警衛台'}),
+  Object.freeze({identity:null,name:'林婉真',employeeId:'NUR-900033',role:'夜班護理師',position:'4F 護理站'}),
+  Object.freeze({identity:null,name:'謝玉琴',employeeId:'ADM-851104',role:'行政／文史人員',position:'3F 文史室'}),
+  Object.freeze({identity:null,name:'劉志遠',employeeId:'ENG-860214',role:'工務機電技師',position:'B2 排煙道'})
+]);
+
+function buildVictimMap(hiddenIdentity){
+  return B2_VICTIM_MAP.map(item=>{
+    if(item.identity&&item.identity===hiddenIdentity){
+      return `[身分欄遭除籍塗銷]／${item.maskedId}／${item.role}：${item.position}`;
+    }
+    return `${item.name}／${item.employeeId}／${item.role}：${item.position}`;
+  }).join('；')+'。';
+}
+
+function buildVictimEvidence(hiddenIdentity){
+  const hidden=B2_VICTIM_MAP.find(item=>item.identity===hiddenIdentity);
+  if(!hidden)return '八個位置屬於同一場事故；封存底稿仍不足以判定目前值班者的身分。';
+  return `八個位置屬於同一場事故；其中「${hidden.role}」的姓名欄被系統覆寫，只剩 ${hidden.maskedId}。完整姓名仍需回 3F 文史館核對。`;
+}
 
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 
@@ -170,12 +196,16 @@ export class B2FireRecapDirector{
     await wait(220);
   }
 
-  async play({onComplete}={}){
+  async play({onComplete,hiddenIdentity=null}={}){
     if(this.active)return false;
     this.active=true;
     document.exitPointerLock?.();
     this.root.classList.add('active');
-    for(let i=0;i<B2_FIRE_BEATS.length;i++)await this.#showBeat(B2_FIRE_BEATS[i],i,B2_FIRE_BEATS.length);
+    const beats=B2_FIRE_BEATS.map(beat=>beat.mode==='map'&&hiddenIdentity
+      ? {...beat,body:buildVictimMap(hiddenIdentity),evidence:buildVictimEvidence(hiddenIdentity)}
+      : beat
+    );
+    for(let i=0;i<beats.length;i++)await this.#showBeat(beats[i],i,beats.length);
     this.root.classList.remove('active');
     this.active=false;
     onComplete?.();
