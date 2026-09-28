@@ -339,6 +339,33 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playTrolleyWheelPass() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const wheel=(t,freq,gainValue)=>{
+        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+        osc.type='sawtooth';osc.frequency.setValueAtTime(freq,t);osc.frequency.linearRampToValueAtTime(freq*.72,t+.55);
+        filter.type='lowpass';filter.frequency.value=520;
+        gain.gain.setValueAtTime(.001,t);
+        gain.gain.linearRampToValueAtTime(gainValue,t+.05);
+        gain.gain.exponentialRampToValueAtTime(.001,t+.62);
+        osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);
+        osc.start(t);osc.stop(t+.65);
+      };
+      wheel(now,58,.055);
+      wheel(now+.34,52,.05);
+      wheel(now+.72,61,.045);
+      const clack=(t)=>{
+        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain();
+        osc.type='triangle';osc.frequency.setValueAtTime(170,t);osc.frequency.exponentialRampToValueAtTime(60,t+.08);
+        gain.gain.setValueAtTime(.09,t);gain.gain.exponentialRampToValueAtTime(.001,t+.11);
+        osc.connect(gain);gain.connect(this.ctx.destination);osc.start(t);osc.stop(t+.12);
+      };
+      clack(now+.18);clack(now+.52);clack(now+.86);
+    }catch(e){}
+  }
+
   playElevatorCableScrape() {
     if(!this.ctx||this.isMuted)return;
     try{
