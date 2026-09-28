@@ -109,6 +109,7 @@ export class IdentityRouteDirector {
     this.beatIndex = 0;
     this.revision += 1;
     this.awaitingZone = null;
+    this.m1EntryTriggered = false;
 
     if (route.time === '16:50') {
       this.gameState.gameTime = route.time;
@@ -165,6 +166,25 @@ export class IdentityRouteDirector {
       this.worldRouter.activeZoneId === this.awaitingZone
     ) {
       void this.onArriveTargetZone().catch(error => console.error('[IdentityRouteDirector] arrival binding failed', error));
+      return;
+    }
+
+    // M1 handoff is spatial, not a desk checklist. The player begins outside
+    // 316, gets the spare key from the real patrol checkpoint, opens the real
+    // office door, and completes handoff only after physically crossing inside.
+    if (
+      this.step === 'M1' &&
+      !this.m1EntryTriggered &&
+      !this.busy &&
+      this.controller.enabled &&
+      this.worldRouter.activeZoneId === 'first_campus_3f' &&
+      this.gameState.getFlag('OPENED_316')
+    ) {
+      const p=this.controller.position;
+      if(p.x>3.2&&p.x<10.8&&p.z>2.8&&p.z<8.2){
+        this.m1EntryTriggered=true;
+        this.inspect();
+      }
     }
   }
 
@@ -177,11 +197,9 @@ export class IdentityRouteDirector {
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
     if (step === 'M1') {
-      // The player physically enters 316 using the existing door/key flow.
-      // Story beats live on the real duty log and HIS workstation.
-      if (index === 0) return { id: 'DUTY_LOG', prompt: identity === 'ZHOU' ? '查看桌上留下的值班簿' : '查看 316 值班簿' };
-      if (index === 1) return { type: 'workstation', prompt: '使用 316 HIS 工作站核對交班' };
-      if (identity === 'ZHANG' && index === 2) return { type: 'office_phone_316', prompt: '接起 316 電話' };
+      // No artificial M1 interaction target. The player must use the real 3F
+      // checkpoint key and 316 door; crossing into the office completes handoff.
+      return { officeEntry: true };
     }
 
     if (step === 'M2') {
@@ -315,6 +333,11 @@ export class IdentityRouteDirector {
 
     this.awaitingZone = null;
     const binding = this.bindingFor();
+    if (binding.officeEntry) {
+      this.renderObjective();
+      return;
+    }
+
     const existing = this.findExistingTarget(binding);
     if (existing) {
       const data = existing.userData || existing;
@@ -503,9 +526,16 @@ export class IdentityRouteDirector {
       phantom_6f: '異常樓層',
       b2_archive: 'B2 封存層'
     };
-    const objective = this.awaitingZone
-      ? `前往${zoneLabels[this.awaitingZone] || '下一個區域'}｜${ROUTE_STEPS[this.step].label}`
-      : (beat.review || beat.label);
+    let objective;
+    if(this.step==='M1'&&!this.awaitingZone){
+      if(!this.gameState.getFlag('FOUND_316_SPARE_KEY')) objective='前往三樓警衛查哨點，取得 316 備援鑰匙';
+      else if(!this.gameState.getFlag('OPENED_316')) objective='回到 316 門口，用備援鑰匙開門';
+      else objective='走進 316 辦公室，完成交接班';
+    }else{
+      objective = this.awaitingZone
+        ? `前往${zoneLabels[this.awaitingZone] || '下一個區域'}｜${ROUTE_STEPS[this.step].label}`
+        : (beat.review || beat.label);
+    }
     this.uiManager.renderTaskBoard('目前任務', [
       {
         id: 'identity-route-objective',
