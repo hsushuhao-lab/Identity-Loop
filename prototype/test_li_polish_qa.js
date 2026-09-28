@@ -42,7 +42,7 @@ assert.doesNotMatch(main,/轉院單/);
 assert.doesNotMatch(ward,/轉院單/);
 assert.match(scenes,/醫囑單/);
 assert.match(director,/409-A 轉送醫囑單/);
-assert.match(director,/簽名確認 409-A 醫囑/);
+assert.match(director,/簽名核准 409-A 轉送醫囑/);
 assert.match(scenes,/lightFlicker: identity==='LI'/);
 assert.match(director,/playCurrentZoneLightFlicker/);
 assert.match(director,/LI_SECOND_CAMPUS_LIGHT_FLICKER_SEEN/);
