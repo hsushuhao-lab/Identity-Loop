@@ -1298,6 +1298,12 @@ export class IdentityRouteDirector {
   qaInteractCurrentBeat() {
     if (this.busy || this.manager.runSave.runEnded || this.uiManager.dialogueSequence) return false;
     const binding = this.bindingFor();
+    if(binding.evidenceSweep){
+      this.gameState.setFlag('B2_ADMIN_SOURCE',true);
+      this.gameState.setFlag('B2_HISTORY_SOURCE',true);
+      this.inspect();
+      return true;
+    }
     if(binding.officeEntry){
       this.gameState.setFlag('FOUND_316_SPARE_KEY',true);
       this.gameState.setFlag('OPENED_316',true);
