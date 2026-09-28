@@ -601,12 +601,13 @@ export class IdentityRouteDirector {
     };
   }
 
-  qaArriveAtAwaitingZone() {
+  async qaArriveAtAwaitingZone() {
     if (!this.awaitingZone || this.busy) return false;
     const beat = this.beats[this.beatIndex];
     const route = ROUTE_STEPS[this.step];
     const targetZone = this.awaitingZone;
     this.worldRouter.loadZone(targetZone, beat?.spawn || route?.spawn);
+    await this.onArriveTargetZone();
     return true;
   }
 
