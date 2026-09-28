@@ -1,5 +1,6 @@
 // FirstCampus3F.js - Milestone M0: First Campus 3F Doctor Administrative Area & Room 316
 import * as THREE from 'three';
+import { worldNarrative } from '../../story/IdentityPrivacy.js';
 import { gameState } from '../../core/GameState.js';
 import { persistentMemory } from '../../core/PersistentMemory.js';
 import { createAnnieArt } from '../../art/AnnieArt.js';
@@ -110,7 +111,7 @@ export class FirstCampus3F {
       const col=i%3,row=Math.floor(i/3),x=38+col*385,y=106+row*180;
       rctx.fillStyle='#c9d1ca';rctx.beginPath();rctx.arc(x+58,y+52,38,0,Math.PI*2);rctx.fill();
       rctx.fillStyle='#6f7c74';rctx.beginPath();rctx.arc(x+58,y+44,15,0,Math.PI*2);rctx.fill();rctx.fillRect(x+37,y+62,42,23);
-      rctx.fillStyle='#26372f';rctx.font='bold 25px sans-serif';rctx.fillText(name,x+112,y+44);
+      rctx.fillStyle='#26372f';rctx.font='bold 25px sans-serif';rctx.fillText(worldNarrative(name),x+112,y+44);
       rctx.font='19px sans-serif';rctx.fillStyle='#657168';rctx.fillText(role,x+112,y+76);
       rctx.strokeStyle='#b7beb8';rctx.strokeRect(x,y,340,126);
     });

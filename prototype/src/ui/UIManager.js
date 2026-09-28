@@ -1,5 +1,6 @@
 // UIManager.js - Handles HUD, HIS computer terminal, Duty Log, and Elevator transition
 import { playElevatorGlimpse } from '../story/ElevatorGlimpseScene.js';
+import {isIdentityRouteMode,anonymousNarrative} from '../story/IdentityPrivacy.js';
 import { PatientizationScene } from '../story/PatientizationScene.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { persistentMemory, TRUE_NAME_CANON } from '../core/PersistentMemory.js';
@@ -233,6 +234,7 @@ export class UIManager {
       }
       if(e.code==='Tab'){
         e.preventDefault();
+        if(isIdentityRouteMode()){document.querySelector('#identity-loop-panel button')?.focus();return;}
         if(this.journalModal?.classList.contains('active'))this.closeJournal();
         else this.openJournal();
         return;
@@ -294,12 +296,13 @@ export class UIManager {
       sequence.onComplete?.();
       return;
     }
-    this.subtitleSpeakerEl.textContent = line.speaker;
-    this.subtitleTextEl.textContent = line.text + '  [E] 繼續';
+    this.subtitleSpeakerEl.textContent = isIdentityRouteMode()?anonymousNarrative(line.speaker):line.speaker;
+    this.subtitleTextEl.textContent = (isIdentityRouteMode()?anonymousNarrative(line.text):line.text) + '  [E] 繼續';
     this.subtitleEl.classList.add('visible');
   }
 
   showSubtitle(speaker, text, duration = 6500) {
+    if(isIdentityRouteMode()){speaker=anonymousNarrative(speaker);text=anonymousNarrative(text);}
     if (this.dialogueSequence) return;
     this.subtitleSpeakerEl.textContent = speaker;
     this.subtitleTextEl.textContent = text;
@@ -312,6 +315,7 @@ export class UIManager {
   }
 
   showInitialDialogue() {
+    if(isIdentityRouteMode())return;
     setTimeout(() => {
       if(persistentMemory.data.loopCount>0){
         this.showSubtitle('值班醫師','「……又是這裡。316、1700、3082。我記得。」',3600);
@@ -831,13 +835,13 @@ export class UIManager {
 
   showEndingCG(name){const overlay=document.getElementById('ending-cg-screen');if(!overlay)return;overlay.querySelector('[data-ending-name]')?.replaceChildren(document.createTextNode(name));overlay.classList.add('active');setTimeout(()=>overlay.classList.remove('active'),5000);}
 
-  showFinalSuccess(name){
+  showFinalSuccess(name,employeeId='MED-870409'){
     document.getElementById('ending-cg-screen')?.classList.remove('active');
     this.finalHandoffModal?.classList.remove('active');
     const win=this.finalSuccessModal?.querySelector('.anomaly-window');
     const title=win?.querySelector('h2');if(title)title.textContent='PERFECT ENDING — RECORD RESTORED';
     const paragraphs=win?.querySelectorAll('p');
-    if(paragraphs?.[0])paragraphs[0].textContent=name+'（MED-870409）｜IDENTITY RESTORED｜原始夜班紀錄已恢復';
+    if(paragraphs?.[0])paragraphs[0].textContent=name+'（'+employeeId+'）｜IDENTITY RESTORED｜原始夜班紀錄已恢復';
     if(paragraphs?.[1])paragraphs[1].textContent='409-A 錯誤病人紀錄：INVALIDATED｜身分覆寫：REVOKED｜八名罹難者姓名：RESTORED';
     const last=this.finalSuccessModal?.querySelector('.anomaly-last');
     if(last)last.textContent='316 舊終端最後留下：「RECORD WRITE COMPLETE｜這一次，所有名字都回到正確的位置。」';
@@ -1060,7 +1064,7 @@ export class UIManager {
   }
 
   updateTime() {
-    if (this.timeEl) this.timeEl.textContent = `${this.gameState.getDisplayTime?.()||this.gameState.gameTime} ｜ 第一線值班：值班醫師｜姓名待核`;
+    if (this.timeEl) this.timeEl.textContent = `${this.gameState.getDisplayTime?.()||this.gameState.gameTime} ｜ ${isIdentityRouteMode()?'夜班人員｜身分待核':'第一線值班：值班醫師｜姓名待核'}`;
   }
 
   renderTaskBoard(header, items) {
@@ -1087,6 +1091,7 @@ export class UIManager {
   }
 
   updateTasks() {
+    if(isIdentityRouteMode())return;
     const done = (id) => this.gameState.isTaskComplete(id);
     const sequential = (defs) => {
       let unlocked = true;

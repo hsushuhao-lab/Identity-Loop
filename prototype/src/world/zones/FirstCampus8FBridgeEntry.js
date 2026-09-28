@@ -1,6 +1,7 @@
 import { AccessDoor } from '../shared/AccessDoor.js';
 // FirstCampus8FBridgeEntry.js - Milestone M6: First Campus 8F Skybridge Transition Vestibule
 import * as THREE from 'three';
+import { worldNarrative } from '../../story/IdentityPrivacy.js';
 import { artRoot, solid, asset, wallTrim } from '../../art/ArtDetails.js';
 import { buildCampusBackdrop } from '../../art/CampusBackdrop.js';
 import { disposeZoneArt } from '../../art/ArtResources.js';
@@ -125,7 +126,7 @@ export class FirstCampus8FBridgeEntry {
       ctx.fillStyle = '#0f0e0c'; ctx.fillRect(16, 236, 224, 68);
       ctx.strokeStyle = '#7c6d48'; ctx.lineWidth = 1.8; ctx.strokeRect(18, 238, 220, 64);
       ctx.fillStyle = '#cfc29f'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(title, 128, 260);
+      ctx.fillText(worldNarrative(title), 128, 260);
       ctx.font = '12px sans-serif'; ctx.fillStyle = '#99917d';
       ctx.fillText(role, 128, 277); ctx.fillText(period, 128, 292);
       const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;

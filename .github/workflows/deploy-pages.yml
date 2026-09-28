@@ -46,6 +46,7 @@ jobs:
         if: steps.freshness.outputs.current == 'true'
         working-directory: prototype
         run: |
+          npm run test:identity
           node test_privacy_3f_fast_qa.js
           node test_3f_archive_qa.js
           node test_cross_floor_entanglement_qa.js

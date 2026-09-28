@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { worldNarrative } from '../../story/IdentityPrivacy.js';
 import { solid, asset, monitor, counterFront } from '../../art/ArtDetails.js';
 import { AccessDoor } from './AccessDoor.js';
 import { KeyedKnobDoor } from './KeyedKnobDoor.js';
@@ -266,7 +267,7 @@ export function nursingStationV5(zone,{x,z=-4.3,id}){
     rows.forEach((text,index)=>{
       const y=160+index*96;
       if(index===1){ctx.fillStyle='#e4e9df';ctx.fillRect(22,y-39,980,72);}
-      ctx.fillStyle=index===2?'#754d39':'#28332d';ctx.fillText(text,42,y,940);
+      ctx.fillStyle=index===2?'#754d39':'#28332d';ctx.fillText(worldNarrative(text),42,y,940);
       ctx.strokeStyle='#bdc2b5';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(32,y+44);ctx.lineTo(992,y+44);ctx.stroke();
     });
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;

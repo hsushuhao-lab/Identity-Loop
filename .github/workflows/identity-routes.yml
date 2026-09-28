@@ -1,0 +1,43 @@
+name: Identity v0.3 Public Routes QA
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: identity-routes
+  cancel-in-progress: true
+jobs:
+  four-routes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: prototype/package-lock.json
+      - run: npm ci
+        working-directory: prototype
+      - run: npm run test:identity
+        working-directory: prototype
+      - run: node scripts/write-build-info.mjs && npm run build
+        working-directory: prototype
+      - run: npx playwright install --with-deps chromium
+        working-directory: prototype
+      - name: Local four routes and name-leak gate
+        run: node scripts/test-identity-routes-browser.mjs qa-results/identity-v03-local
+        working-directory: prototype
+      - name: Verify published main SHA
+        run: node scripts/verify-live-build.mjs https://hsushuhao-lab.github.io/Identy-Loop/
+        working-directory: prototype
+      - name: Public four routes and mobile wrong ending
+        run: node scripts/test-identity-routes-browser.mjs qa-results/identity-v03-public https://hsushuhao-lab.github.io/Identy-Loop/
+        working-directory: prototype
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: identity-v03-browser-evidence
+          path: prototype/qa-results/

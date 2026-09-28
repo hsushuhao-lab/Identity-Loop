@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {worldNarrative} from '../story/IdentityPrivacy.js';
 
 export const ANNIE_STATES = Object.freeze({
   STORAGE_STATIC: 'STORAGE_STATIC',
@@ -90,7 +91,7 @@ function makeInscriptionTexture() {
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.font = 'bold 108px sans-serif';
-  context.fillText('祝 守恆 醫師', 384, 126);
+  context.fillText(worldNarrative('祝 守恆 醫師'), 384, 126);
   context.font = 'bold 88px sans-serif';
   context.fillText('1997 執業誌慶', 384, 270);
   const texture = new THREE.CanvasTexture(canvas);

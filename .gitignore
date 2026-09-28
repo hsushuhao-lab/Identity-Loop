@@ -9,6 +9,7 @@ prototype/qa-results/
 
 # Local reproducible visual QA working files
 .visual-work/
+.omo/
 prototype/.model-baseline/
 
 # Generated / obsolete root web output — production deploy comes from prototype/dist

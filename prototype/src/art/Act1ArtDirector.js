@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { worldNarrative } from '../story/IdentityPrivacy.js';
 
 function makeCanvasLabel(lines, options = {}) {
   const width = options.width || 1024;
@@ -25,7 +26,7 @@ function makeCanvasLabel(lines, options = {}) {
   lines.forEach((line, index) => {
     ctx.fillStyle = line.color || '#24362e';
     ctx.font = line.font || (index === 0 ? 'bold 48px sans-serif' : '30px sans-serif');
-    ctx.fillText(line.text, width / 2, startY + index * lineGap);
+    ctx.fillText(worldNarrative(line.text), width / 2, startY + index * lineGap);
   });
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -71,7 +72,7 @@ function sanitizeAct1UI() {
   const stickyBody = document.querySelector('.his-sticky-note .sticky-body');
   if (stickyBody) {
     stickyBody.innerHTML = [
-      '李醫師，值班室鑰匙在 316 辦公桌旁。<br/>',
+      worldNarrative('李醫師，值班室鑰匙在 316 辦公桌旁。<br/>'),
       '交班完記得先上去放行李。<br/>',
       '<strong>晚餐約 18:30 送達護理站。</strong>'
     ].join('');
@@ -82,7 +83,7 @@ function sanitizeAct1UI() {
     const cells = row.querySelectorAll('td');
     if (cells.length && cells[0].textContent.trim() === '4A33') {
       cells[0].textContent = '4A31';
-      cells[1].textContent = '王○○';
+      cells[1].textContent = worldNarrative('王○○');
       cells[2].textContent = '女 / 45';
       cells[3].textContent = '情緒症狀穩定期';
       cells[4].textContent = '常規夜間巡視與交班確認。';

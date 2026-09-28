@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {worldNarrative} from '../../story/IdentityPrivacy.js';
 import { solid } from '../../art/ArtDetails.js';
 import { disposeZoneArt } from '../../art/ArtResources.js';
 import { SignAnchor } from '../shared/SignAnchor.js';
@@ -145,7 +146,7 @@ export class Phantom6F {
     const engravingCanvas=document.createElement('canvas');engravingCanvas.width=768;engravingCanvas.height=384;
     const engravingContext=engravingCanvas.getContext('2d');engravingContext.fillStyle='#817969';engravingContext.fillRect(0,0,768,384);
     engravingContext.fillStyle='#292721';engravingContext.font='bold 52px sans-serif';engravingContext.textAlign='center';engravingContext.textBaseline='middle';
-    engravingContext.fillText('祝 守恆 醫師',384,86);engravingContext.fillText('1997',384,192);engravingContext.fillText('執業誌慶',384,298);
+    engravingContext.fillText(worldNarrative('祝 守恆 醫師'),384,86);engravingContext.fillText('1997',384,192);engravingContext.fillText('執業誌慶',384,298);
     const engravingTexture=new THREE.CanvasTexture(engravingCanvas);engravingTexture.colorSpace=THREE.SRGBColorSpace;
     const engraving=new THREE.Mesh(new THREE.PlaneGeometry(.17,.12),new THREE.MeshBasicMaterial({map:engravingTexture,toneMapped:false,side:THREE.DoubleSide}));
     engraving.name='Floor6_Stethoscope_Engraving';engraving.userData.inscription=stethoscope.userData.inscription;engraving.position.set(.18,.02,.257);stethoscope.add(engraving);

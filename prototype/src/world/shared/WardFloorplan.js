@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { worldNarrative } from '../../story/IdentityPrivacy.js';
 import { solid, asset } from '../../art/ArtDetails.js';
 import { disposeZoneArt } from '../../art/ArtResources.js';
 import { PlanWalls, ordinaryRoom, nursingStationV5, workstation } from './PlanArchitecture.js';
@@ -377,7 +378,7 @@ export class WardFloorplan {
     const cardCanvas=document.createElement('canvas');cardCanvas.width=620;cardCanvas.height=360;
     const ctx=cardCanvas.getContext('2d');ctx.fillStyle='#f2eee3';ctx.fillRect(0,0,620,360);
     ctx.fillStyle='#40584c';ctx.fillRect(0,0,620,60);ctx.fillStyle='#fff';ctx.font='bold 28px sans-serif';ctx.fillText('第二院區｜臨時留置床',24,40);
-    ctx.fillStyle='#2f3934';ctx.font='24px sans-serif';ctx.fillText('主訴：胸悶、心悸',34,118);ctx.fillText('姓名：陳怡君',34,170);
+    ctx.fillStyle='#2f3934';ctx.font='24px sans-serif';ctx.fillText('主訴：胸悶、心悸',34,118);ctx.fillText(worldNarrative('姓名：陳怡君'),34,170);
     ctx.font='20px sans-serif';ctx.fillText('評估：焦慮伴隨換氣過度',34,230);
     ctx.font='18px sans-serif';ctx.fillStyle='#6b6e69';ctx.fillText('生命徵象穩定，心電圖無急性變化',34,286);
     const tex=new THREE.CanvasTexture(cardCanvas);tex.colorSpace=THREE.SRGBColorSpace;

@@ -1,5 +1,5 @@
 export const B2_FIRE_MEMORY=Object.freeze([
-  'Liu engineering warning',
+  '工務警告',
   'B-Panel danger',
   'security key issue',
   '409-A transfer workflow',

@@ -4,6 +4,8 @@ import {mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+import {IDENTITY_PROFILES,IDENTITY_STORAGE_KEY} from '../src/core/IdentityManager.js';
+import {getGoodEnding} from '../src/story/IdentityLoopEndings.js';
 
 const out=process.argv[2]||'qa-results/story-playthrough';
 const supplied=process.argv[3]||null;
@@ -477,29 +479,32 @@ try{
   await waitForPageCondition(page,()=>document.getElementById('memory-modal')?.classList.contains('active'),30000);
   await domClick('#btn-close-memory');
   await interact({id:'B2_ARCHIVE_TERMINAL'});
-  await waitForPageCondition(page,()=>document.getElementById('identity-matrix-modal')?.classList.contains('active'),30000);
-  await domClick('#identity-candidate-ZHANG_SHOUHENG');
   await waitForPageCondition(page,()=>document.getElementById('b2-fire-recap')?.classList.contains('active'),30000);
-  await waitForPageCondition(page,()=>window.__storyQA.gameState.getFlag('M7_B2_RESOLVED')===true,30000);
+  assert.equal(await page.locator('#identity-matrix-modal.active').count(),0,'first B2 contact must play the recap without a Linear identity matrix');
+  assert.equal(await page.locator('#identity-loop-panel.archive-open').count(),0,'the archive must wait for the second terminal interaction');
   for(let i=0;i<6;i++){
     await page.waitForTimeout(360);
     await page.keyboard.press('E');
   }
   await waitForPageCondition(page,()=>window.__storyQA.gameState.getFlag('B2_FIRE_RECAP_SEEN')===true,30000);
   s=await snap();
-  assert.equal(s.flags.M7_B2_RESOLVED,true);
+  assert.equal(s.flags.M7_B2_RESOLVED,false,'V2 must not resolve the Linear canonical identity');
   assert.equal(s.flags.B2_FIRE_RECAP_SEEN,true);
   assert.equal(s.flags.RECORD_OVERWRITE_ACTIVE,true);
   assert.equal(s.flags.M8_IDENTITY_BATTLE_ACTIVE,true);
-  assert.equal(s.memory.trueNameResolved,true);
-  assert.equal(s.memory.trueName,'張守恆');
-  assert.equal(s.memory.trueNameFragments.frag_employeeFull,'MED-870409');
-  assert.match(await taskText(),/UNKNOWN SESSION[\s\S]*封存防火門|封存防火門[\s\S]*316/,'B2 identity success must converge into the fire recap and then the 316 route');
+  assert.equal(s.memory.trueNameResolved,false);
+  await interact({id:'B2_ARCHIVE_TERMINAL'});
+  await page.waitForSelector('#identity-loop-panel.archive-open');
+  assert.match(await page.locator('#identity-loop-panel [data-identity-detail]').innerText(),/CURRENT SELF = CORRUPTED/);
+  assert.deepEqual(await page.locator('#identity-loop-panel [data-identity-detail] li').allTextContents(),Object.values(IDENTITY_PROFILES).map(profile=>`${profile.name}｜${profile.employeeId}｜${profile.role}`),'B2 must expose all four objective candidate records');
+  assert.equal((await snap()).memory.trueNameResolved,false,'reading the archive must not determine the current self');
+  assert.equal(await page.locator('#identity-matrix-modal.active').count(),0);
+  assert.match(await taskText(),/UNKNOWN SESSION[\s\S]*封存防火門|封存防火門[\s\S]*316/,'B2 recap must converge into the 316 route');
   await interact({id:'B2_ONE_WAY_EXIT'});
   await waitForPageCondition(page,()=>window.__storyQA.worldRouter.activeZoneId==='first_campus_3f',30000);
   s=await snap();assert.equal(s.flags.LAST_CALL_SEEN,true);assert.equal(s.time,'03:30');
   assert.match(await taskText(),/返回 316/,'last call must push the player back to 3F 316 for the final handoff');
-  await mark('M7 B2 reveals true name; M8 identity battle active');
+  await mark('M7 B2 four-candidate archive leaves current self corrupted; M8 identity battle active');
 
   // M9: return to 316 and complete the real handoff.
   await load('first_campus_3f');
@@ -507,25 +512,69 @@ try{
   await interact({id:'E_HANDOFF'});
   await waitForPageCondition(page,()=>!!window.__storyQA.uiManager.dialogueSequence,60000);
   await drainDialogue();
-  await waitForPageCondition(page,()=>document.getElementById('final-handoff-modal')?.classList.contains('active'),60000);s=await snap();
+  await page.waitForSelector('#identity-loop-panel.m9-open',{timeout:60000});
+  assert.equal(await page.locator('#final-handoff-modal.active').count(),0,'V2 must not open the Linear employee-ID form');
+  const choices=page.locator('#identity-loop-panel [data-identity-choices] .identity-choice');
+  assert.deepEqual(await choices.allTextContents(),Object.values(IDENTITY_PROFILES).map(profile=>`${profile.name}｜${profile.employeeId}`),'M9 must offer exactly the four identity profiles');
+  const currentIdentity=await q(()=>window.__storyQA.identityManager.currentIdentity);
+  const profile=IDENTITY_PROFILES[currentIdentity];
+  assert(profile,'the run must have a valid identity seed');
+  const beforeGoodEnds=await q(()=>[...window.__storyQA.identityManager.metaSave.completedGoodEnds]);
   await shot('m9-dual-identity-form',null,null,'DutyPhone_316_Handset',[7.5,1.7,5.7],[5.45,.95,5.72]);
-  await page.locator('#final-employee-id').fill('0409');
-  await domClick('#btn-submit-final-handoff');
-  await waitForPageCondition(page,()=>document.getElementById('final-success-recap')?.classList.contains('active'),60000);
-
-  s=await snap();assert.equal(s.flags.GAME_COMPLETE,true);assert.equal(s.memory.gameComplete,true);assert.equal(s.memory.finalDisposition,'success_pending');
-  for(let i=0;i<8;i++){
-    await page.waitForTimeout(360);
-    await page.keyboard.press('E');
-  }
-  await waitForPageCondition(page,()=>document.querySelector('#final-success-recap .fsr-choice.visible'),30000);
-  await domClick('#final-success-recap .fsr-buttons .perfect');
+  await choices.filter({hasText:`${profile.name}｜${profile.employeeId}`}).click();
   await waitForPageCondition(page,()=>document.getElementById('final-success-modal')?.classList.contains('active'),30000);
-
+  assert.equal(await page.locator('#identity-loop-panel.ending-open [data-identity-detail] h3').innerText(),getGoodEnding(currentIdentity).title);
+  const completed=await q(()=>window.__storyQA.identityManager.snapshot());
+  assert.equal(completed.runSave.m9CommittedChoice,currentIdentity);
+  assert.equal(completed.runSave.runEnded,true);
+  assert.deepEqual(completed.metaSave.completedGoodEnds,[...new Set([...beforeGoodEnds,currentIdentity])]);
+  assert.deepEqual(await q(key=>JSON.parse(localStorage.getItem(key)),IDENTITY_STORAGE_KEY),completed,'GOOD_END must be persisted to storage');
+  assert.deepEqual(await q(identity=>window.__storyQA.identityLoopPanel.commit(identity),currentIdentity),{ok:false,reason:'ALREADY_COMMITTED'});
+  assert.deepEqual(await q(()=>window.__storyQA.identityManager.snapshot()),completed,'duplicate commit must not mutate the completed run');
+  assert.deepEqual(await q(key=>JSON.parse(localStorage.getItem(key)),IDENTITY_STORAGE_KEY),completed,'duplicate commit must not mutate persisted progress');
   s=await snap();assert.equal(s.flags.GAME_COMPLETE,true);assert.equal(s.memory.gameComplete,true);assert.equal(s.memory.finalDisposition,'perfect');
+  assert.equal(s.flags.M8_IDENTITY_BATTLE_ACTIVE,false);
   await shot('m9-successful-dawn-ending',null,null,'DutyPhone_316_Handset',[7.5,1.7,5.7],[5.45,.95,5.72]);
   assert.match(await taskText(),/紀錄覆寫完成[\s\S]*原始夜班紀錄已恢復/,'completed game must close the task chain as restored records');
-  await mark('M9 TRUE NAME authorization accepted; perfect ending recap completed');
+  await mark('M9 GOOD_END persisted; game complete; duplicate commit rejected',{currentIdentity,completedGoodEnds:completed.metaSave.completedGoodEnds});
+
+  // A separate browser context reaches M9 through the real workstation with a wrong identity.
+  const goodPage=page;
+  page=await browser.newPage({viewport:{width:1440,height:900}});
+  page.on('pageerror',e=>report.errors.push('wrong-identity pageerror: '+e.message));
+  page.on('console',m=>{if(m.type()==='error')report.errors.push('wrong-identity console: '+m.text());});
+  page.on('response',r=>{if(r.status()>=400)report.errors.push(r.status()+' '+r.url());});
+  await page.goto(url,{waitUntil:'load',timeout:180000});
+  await waitForPageCondition(page,()=>window.__storyQA?.worldRouter?.activeZoneInstance,180000);
+  await load('first_campus_3f');
+  await flag('OPENED_316',true);await flag('B2_FIRE_RECAP_SEEN',true);await flag('M8_IDENTITY_BATTLE_ACTIVE',true);
+  await interact({id:'E_HANDOFF'});
+  await waitForPageCondition(page,()=>!!window.__storyQA.uiManager.dialogueSequence,60000);
+  await drainDialogue();
+  await page.waitForSelector('#identity-loop-panel.m9-open',{timeout:60000});
+  const wrongBefore=await q(()=>window.__storyQA.identityManager.snapshot());
+  assert.deepEqual(wrongBefore.metaSave.completedGoodEnds,[],'the wrong-identity page must have isolated storage');
+  const wrongIdentity=Object.keys(IDENTITY_PROFILES).find(identity=>identity!==wrongBefore.runSave.currentIdentity);
+  const wrongProfile=IDENTITY_PROFILES[wrongIdentity];
+  const wrongChoices=page.locator('#identity-loop-panel [data-identity-choices] .identity-choice');
+  assert.equal(await wrongChoices.count(),4);
+  await wrongChoices.filter({hasText:`${wrongProfile.name}｜${wrongProfile.employeeId}`}).click();
+  await page.waitForSelector('#final-patientization-history.active',{timeout:60000});
+  assert.equal(await page.locator('#identity-loop-panel [data-identity-detail] h3').innerText(),'WRONG MEMORY');
+  const wrongAfter=await q(()=>window.__storyQA.identityManager.snapshot());
+  assert.equal(wrongAfter.runSave.m9CommittedChoice,wrongIdentity);
+  assert.equal(wrongAfter.runSave.runEnded,true);
+  assert.deepEqual(wrongAfter.metaSave.completedGoodEnds,[],'a wrong identity must not award a GOOD_END');
+  assert.deepEqual(await q(key=>JSON.parse(localStorage.getItem(key)),IDENTITY_STORAGE_KEY),wrongAfter);
+  assert.deepEqual(await q(identity=>window.__storyQA.identityLoopPanel.commit(identity),wrongBefore.runSave.currentIdentity),{ok:false,reason:'ALREADY_COMMITTED'});
+  assert.deepEqual(await q(()=>window.__storyQA.identityManager.snapshot()),wrongAfter);
+  s=await snap();assert.equal(s.flags.FINAL_PATIENTIZATION_ACTIVE,true);assert.equal(s.flags.GAME_COMPLETE,false);assert.equal(s.memory.gameComplete,false);
+  await mkdir(out+'/wrong-identity',{recursive:true});
+  const wrongImage=await page.screenshot({path:out+'/wrong-identity/patientization.png',fullPage:false,timeout:90000});
+  assert(wrongImage.length>1024,'Wrong-identity patientization screenshot must not be empty');
+  report.wrongIdentity={entry:'E_HANDOFF workstation',currentIdentity:wrongBefore.runSave.currentIdentity,selectedIdentity:wrongIdentity,state:wrongAfter,patientizationActive:s.flags.FINAL_PATIENTIZATION_ACTIVE,gameComplete:s.flags.GAME_COMPLETE,file:'wrong-identity/patientization.png',bytes:wrongImage.length,sha256:createHash('sha256').update(wrongImage).digest('hex')};
+  await mark('M9 wrong identity through workstation triggers patientization without GOOD_END');
+  await page.close();page=goodPage;
 
   assert.equal(report.errors.length,0,JSON.stringify(report.errors,null,2));
   assert.deepEqual(report.screenshots.map(shot=>shot.file),requiredShots,'Story QA must produce the exact ordered 27-image manifest');

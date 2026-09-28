@@ -11,6 +11,16 @@ import { prepareZoneWithRetry } from './art/ZoneReadiness.js';
 import { zoneAssetManifest, preloadZoneEssential, preloadZoneOptional } from './art/ZoneAssetManifest.js';
 import { preloadAssetNames } from './art/AssetRegistry.js';
 import { preloadArtPass2 } from './art/ArtPass2Assets.js';
+import { IdentityRouteDirector } from './story/IdentityRouteDirector.js';
+import { ROUTE_STEPS } from './story/IdentityRoutes.js';
+import { anonymousNarrative } from './story/IdentityPrivacy.js';
+
+const identityLoopMode=new URLSearchParams(location.search).get('mode')!=='linear';
+const identityManager=new IdentityManager();
+const forcedIdentity=new URLSearchParams(location.search).get('identity');
+if(identityLoopMode&&forcedIdentity&&new URLSearchParams(location.search).get('qa')==='story')identityManager.startNewRun({forceIdentity:forcedIdentity,restart:true});
+if(identityLoopMode)identityManager.restoreOrStartRun();
+document.body.classList.toggle('identity-route-mode',identityLoopMode);
 
 soundManager.installUnlockHandlers();
 gameState.addListener((event,data)=>{
@@ -21,7 +31,7 @@ gameState.addListener((event,data)=>{
 });
 RectAreaLightUniformsLib.init();
 const requestedOpeningZone = new URLSearchParams(location.search).get('zone');
-const openingZoneId = zoneAssetManifest[requestedOpeningZone] ? requestedOpeningZone : 'first_campus_3f';
+const openingZoneId = identityLoopMode ? (ROUTE_STEPS[identityManager.currentRouteStep]?.zoneId||'first_campus_3f') : (zoneAssetManifest[requestedOpeningZone] ? requestedOpeningZone : 'first_campus_3f');
 const loadingMask=document.getElementById('asset-loading-mask');
 const loadingMessage=document.getElementById('asset-loading-message');
 const loadingRetry=document.getElementById('asset-loading-retry');
@@ -66,7 +76,6 @@ import { B2FireRecapDirector } from './story/B2FireRecapDirector.js';
 import { IdentityManager, IDENTITY_PROFILES } from './core/IdentityManager.js';
 import { IdentityLoopPanel } from './ui/IdentityLoopPanel.js';
 
-const identityLoopMode=new URLSearchParams(location.search).get('mode')!=='linear';
 
 // Setup Three.js Scene & Renderer
 const container = document.getElementById('canvas-container');
@@ -150,21 +159,18 @@ uiManager = new UIManager(
   }
 );
 
-const identityManager=new IdentityManager();
-const identityLoopPanel=new IdentityLoopPanel(identityManager,{debug:new URLSearchParams(location.search).get('qa')==='story'||new URLSearchParams(location.search).get('debug')==='1'});
-const forcedIdentity=new URLSearchParams(location.search).get('identity');
-if(identityLoopMode&&forcedIdentity&&new URLSearchParams(location.search).get('qa')==='story')identityManager.startNewRun({forceIdentity:forcedIdentity,restart:true});
+const identityLoopPanel=new IdentityLoopPanel(identityManager,{debug:new URLSearchParams(location.search).get('qa')==='story'||new URLSearchParams(location.search).get('debug')==='1',onNewRun:restartFreshExperience});
 if(identityLoopMode)identityLoopPanel.start();
-gameState.addListener((event,data)=>{
-  if(!identityLoopMode||event!=='flag_changed'||data.val!==true)return;
-  const milestones={
-    M4_CHEST_RESOLVED:'M4',M5_BRIDGE_COMMITTED:'M5',M6_FLOOR6_RESOLVED:'M6',M7_B2_OPEN:'M7',
-    B2_TERMINAL_CONTACTED:'B2',B2_EXITED_PERMANENTLY:'M8',M8_IDENTITY_BATTLE_ACTIVE:'M8',LAST_CALL_SEEN:'M9'
-  };
-  if(milestones[data.flag])identityLoopPanel.syncMilestone(milestones[data.flag]);
-  const evidence={M4_CHEST_RESOLVED:'M4_PREFILLED_TRANSFER',M5_BRIDGE_COMMITTED:'M5_SKYBRIDGE',M6_FLOOR6_RESOLVED:'M6_MEMORY_ANCHOR',B2_TERMINAL_CONTACTED:'B2_CURRENT_SELF_CORRUPTED'};
-  if(evidence[data.flag])identityLoopPanel.recordEvidence(evidence[data.flag]);
-});
+const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,panel:identityLoopPanel,worldRouter,controller,gameState,uiManager,prepareZone:prepareZoneWithRetry,onEnding:result=>{
+  if(result.type==='GOOD_END'){
+    gameState.setFlag('GAME_COMPLETE',true);
+    gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',false);
+    persistentMemory.completePerfectEnding();
+    controller.enabled=false;
+  }else{
+    triggerFinalPatientizationFailure(()=>identityLoopPanel.newRun());
+  }
+}});
 
 const actPresentationDirector=new ActPresentationDirector({
   gameState,
@@ -513,7 +519,13 @@ function revealFinal316Handoff({deferred=false}={}) {
       identityLoopPanel.openM9({onCommit:result=>{
         if(result.type==='GOOD_END'){
           const profile=IDENTITY_PROFILES[result.identity];
-          uiManager.showFinalSuccess(profile.name);
+          gameState.setFlag('FINAL_SUCCESS_RECAP_MANAGED',true);
+          gameState.setFlag('GAME_COMPLETE',true);
+          gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',false);
+          persistentMemory.resolveLegend('lastCall');
+          persistentMemory.completePerfectEnding();
+          uiManager.updateTasks();
+          uiManager.showFinalSuccess(profile.name,profile.employeeId);
           return;
         }
         triggerFinalPatientizationFailure(()=>{identityLoopPanel.newRun();controller.enabled=true;});
@@ -559,7 +571,7 @@ function revealFinal316Handoff({deferred=false}={}) {
     durationMs:5000,
     keyframes:[{at:.28,yaw:-.045,pitch:-.01},{at:.72,yaw:.025,pitch:0},{at:1,yaw:0,pitch:0}],
     cues:[{at:0,run:()=>drawRecap(true)},{at:.18,run:reveal},{at:.40,run:()=>drawRecap(false)},{at:.56,run:()=>soundManager.playComputerBeep()}],
-    onComplete:()=>{restoreScreen();controller.enabled=false;uiManager.showDialogue([{speaker:'316 舊終端',text:'紀錄覆寫中。請核對原始名錄與你留下的證據。'},{speaker:'316 舊終端',text:'只輸入員編末四碼，保留前導零。錯誤權限將使覆寫完成。'}],openForm);}
+    onComplete:()=>{restoreScreen();controller.enabled=false;uiManager.showDialogue([{speaker:'316 舊終端',text:'紀錄覆寫中。請核對原始名錄與你留下的證據。'},{speaker:'316 舊終端',text:identityLoopMode?'從四份身分中選擇自己的夜班記憶。正式提交只有一次。':'只輸入員編末四碼，保留前導零。錯誤權限將使覆寫完成。'}],openForm);}
   }).then(played=>{if(!played){restoreScreen();openForm();}})
     .catch(error=>{restoreScreen();console.error('[cinematic] final identity reveal failed',error);openForm();});
 }
@@ -587,7 +599,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
     });
   };
   window.__storyQA={
-    gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,
+    gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,identityRouteDirector,
     prefetch:prefetchDestinationAssets,
     load:(zone,spawn)=>{worldRouter.loadZone(zone,spawn);worldRouter.activeZoneInstance?.syncStoryState?.();},
     enter:(zone,spawn)=>{
@@ -653,7 +665,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
 // Setup Raycast Hover & Interaction
 controller.onHoverChange = (interactable) => {
   if (interactable) {
-    uiManager.showPrompt(`[E] ${interactable.label}  ·  雙擊走近`);
+    uiManager.showPrompt(`[E] ${identityLoopMode?anonymousNarrative(interactable.label):interactable.label}  ·  雙擊走近`);
   } else {
     uiManager.showPrompt(null);
   }
@@ -711,6 +723,7 @@ function completeSecondCampus5FWardReport(){
 }
 
 controller.onInteract = async (interactable) => {
+  if(identityLoopMode){identityRouteDirector.handleInteract(interactable);return;}
   console.log('Interacting with:', interactable);
 
   if (interactable.type === 'access_door') {
@@ -1773,6 +1786,7 @@ function animate() {
 
   controller.update(delta);
   worldRouter.update(delta);
+  if(identityLoopMode){composer.render();return;}
   if(worldRouter.activeZoneId==='first_campus_2f' && controller.enabled && !cinematicDirector.activeId &&
     gameState.getFlag('GHOST_REGISTRATION_AVAILABLE') && !gameState.getFlag('LEGEND_ER0033_RESOLVED') && !gameState.getFlag('CG_00_33_GHOST_REGISTRATION_PLAYED') &&
     controller.position.x>10.5 && controller.position.x<15.5 && controller.position.z>-9.7 && controller.position.z<-4.5){
@@ -1831,7 +1845,9 @@ const zoneParam = urlParams.get('zone');
 const spawnParam = urlParams.get('spawn');
 const camPreset = urlParams.get('cam');
 
-if (zoneParam || spawnParam) {
+if(identityLoopMode){
+  await identityRouteDirector.start();
+} else if (zoneParam || spawnParam) {
   worldRouter.loadZone(zoneParam || 'first_campus_3f', spawnParam);
   if (urlParams.has('x') && urlParams.has('z')) {
     controller.teleport(

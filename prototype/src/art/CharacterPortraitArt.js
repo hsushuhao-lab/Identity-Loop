@@ -2,6 +2,7 @@
 // No external image/model payloads: identity is carried by silhouette, wardrobe, prop and gesture.
 
 import { getCharacterProfile } from '../story/CharacterBible.js';
+import { isIdentityRouteMode } from '../story/IdentityPrivacy.js';
 
 const palette = {
   photo:{skin:'#9c8068',skinShadow:'#735d4d',hair:'#292824',coat:'#d8d0bc',coatShadow:'#aaa18f',line:'#3a3027',paper:'#c6b58f'},
@@ -148,6 +149,7 @@ function drawProp(ctx,profile,x,topY,s,p){
 }
 
 export function drawCharacterFigure(ctx,name,x,baseY,scale=1,{cctv=false,label=false,obscure=false,showProp=true}={}){
+  label = label && !isIdentityRouteMode();
   if(name==='Annie'){
     const p=cctv?palette.cctv:palette.photo,s=scale;
     // Old CPR mannequin: blank vinyl face, wig, yellowed coat, rigid teaching-joint silhouette.

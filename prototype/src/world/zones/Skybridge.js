@@ -1,6 +1,7 @@
 import { AccessDoor } from '../shared/AccessDoor.js';
 // Skybridge.js - Milestone M7: Enclosed Long Structural Connector Bridge
 import * as THREE from 'three';
+import { worldNarrative } from '../../story/IdentityPrivacy.js';
 import { artRoot, solid, wallTrim } from '../../art/ArtDetails.js';
 import { buildCampusBackdrop } from '../../art/CampusBackdrop.js';
 import { buildDistantNightLandscape } from '../../art/LandscapeArt.js';
@@ -183,7 +184,7 @@ export class Skybridge {
       ctx.fillStyle = '#0e0d0b'; ctx.fillRect(16, 236, 224, 68);
       ctx.strokeStyle = '#736543'; ctx.lineWidth = 1.8; ctx.strokeRect(18, 238, 220, 64);
       ctx.fillStyle = '#cfc29f'; ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(title, 128, 260);
+      ctx.fillText(worldNarrative(title), 128, 260);
       ctx.font = '12px sans-serif'; ctx.fillStyle = '#968e7b';
       ctx.fillText(role, 128, 277); ctx.fillText(period, 128, 292);
       const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
