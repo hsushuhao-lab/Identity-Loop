@@ -53,4 +53,18 @@ assert.match(panel,/playTerminalFanHold\(1\.2\)/);
 assert.match(sound,/playTerminalKey\(\)/);
 assert.match(sound,/playTerminalFanHold\(duration=1\.2\)/);
 
+
+const er=readFileSync('./src/world/zones/FirstCampus2FER.js','utf8');
+const second2=readFileSync('./src/world/zones/SecondCampus2F.js','utf8');
+assert.doesNotMatch(ward,/Identity4F_Intercom/);
+assert.match(ward,/Identity4F_NurseStationComputer/);
+assert.match(ward,/使用護理站電腦聯絡晚班護理師/);
+assert.match(er,/ER_DOCTOR_CHARTING/);
+assert.match(floor3,/Annie_2117_GuardCheckpoint_Seated/);
+assert.match(second2,/LI_GUARD_LOUNGE_CCTV_CLUE/);
+assert.match(scenes,/嘻嘻，你又回來了/);
+assert.match(director,/ADMIN_OFFICE_ENTERED/);
+assert.match(director,/ARCHIVE_ROOM_ENTERED/);
+assert.match(main,/ARCHIVE_ROOM_ENTERED/);
+
 console.log('PASS LI_POLISH: fair system temptation, procedural body memory, environmental drift, medical-order wording, and M9 terminal polish');
