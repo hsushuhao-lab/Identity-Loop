@@ -495,13 +495,20 @@ export class IdentityRouteDirector {
           : '按下 5F 護理站對講機完成聯絡報到'
       };
       if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
-      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 504B 預填醫囑單' };
+      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 409-A 轉送醫囑單' };
       if (index === 3) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
           ? '回 5F 護理站對講機聯絡護理師並歸還會診備用鑰匙'
           : '回 5F 護理站對講機回報 504B 處置'
       };
+      if(identity==='CHEN'){
+        if(index===4) return { id:'CHEN_5042_LOCKBOX', prompt:'進入 5F 值班室，查看桌下私人金屬保險箱' };
+        if(index===5) return { id:'CHEN_GREY_BADGE', prompt:'檢查保險箱內的灰滾邊跨院支援識別證' };
+        if(index===6) return { id:'CHEN_5F_DUTY_PHONE', prompt:'接聽正在響的 5F 值班室電話' };
+        if(index===7) return { id:'CHEN_WHEELCHAIR', prompt:'推開擋住通往電梯路線的舊輪椅' };
+        if(index===8) return { auto:true };
+      }
       if(index===4) return { auto:true };
     }
 
@@ -588,6 +595,13 @@ export class IdentityRouteDirector {
         passthrough:true,
         completeFlag:'HISTORY_PERSONNEL_PROFILES_REVIEWED'
       };
+    }
+
+    if(step==='CHEN_M8_DISPATCH'){
+      if(index===0) return { id:'CHEN_DISPATCH_BOARD', prompt:'核對 1998 跨院救護調度白板' };
+      if(index===1) return { id:'CHEN_DISPATCH_LOCKER_READER', prompt:'用灰滾邊證件刷開調度鎖櫃' };
+      if(index===2) return { id:'CHEN_DRIVER_LOG', prompt:'翻閱車次 094 救護車司機交接簽名冊' };
+      return { id:'CHEN_DISPATCH_SERVICE_LIFT', prompt:'搭乘後勤工務電梯返回 3F 316' };
     }
 
     if (step === 'M8') return { auto: true };
@@ -697,6 +711,13 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHANG_ER_FROM_CCTV');
       this.gameState.setFlag('PHONE_ANSWERED',false);
       this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+    }
+    if(this.step==='M4'&&this.manager.currentIdentity==='CHEN'&&this.beatIndex===6){
+      this.gameState.setFlag('PHONE_CALL_KIND','CHEN_5F_GUARD_ANOMALY');
+      this.gameState.setFlag('PHONE_ANSWERED',false);
+      this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.startPhoneRing();});
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
     }
     const liPhoneBeat=
       (this.step==='LI_DUTY_CALL_2000'&&this.beatIndex===1) ||
@@ -971,6 +992,7 @@ export class IdentityRouteDirector {
       (this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1) ||
       (this.step==='M1'&&['ZHANG','LI'].includes(this.manager.currentIdentity)&&this.beatIndex===6) ||
       (this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1) ||
+      (this.step==='M4'&&this.manager.currentIdentity==='CHEN'&&this.beatIndex===6) ||
       (this.step==='LI_DUTY_CALL_2000'&&this.beatIndex===1) ||
       (this.step==='LI_RETURN_DUTY_2117'&&this.beatIndex===1) ||
       (this.step==='LI_RETURN_DUTY_0033'&&this.beatIndex===1) ||
