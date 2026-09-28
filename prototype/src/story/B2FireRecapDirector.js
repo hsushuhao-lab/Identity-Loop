@@ -219,4 +219,4 @@ export class B2FireRecapDirector{
   }
 }
 
-export {B2_FIRE_BEATS};
+export {B2_FIRE_BEATS,buildVictimMap};
