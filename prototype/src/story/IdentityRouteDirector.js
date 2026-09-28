@@ -233,12 +233,14 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M2') {
-      if (index === 0) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: '和護理站護理師說話' };
+      if (index === 0) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: identity==='ZHANG'?'向護理站借查房備用鑰匙':'和護理站護理師說話' };
       if (index === 1) return { id: 'IDENTITY_403_PATIENT', prompt: '詢問 403 病人今晚狀況' };
       if (index === 2) return { id: '408C_BED_PLAQUE', prompt: '查看 408C 並詢問敲牆聲' };
       if (index === 3) return { id: 'BED33_409_SEALED', prompt: '靠近 409 確認敲擊來源' };
-      if (index === 4) return { id: 'BED33_ASSIGNMENT', prompt: '查看 409-A／Bed 33 臨時床位單' };
-      if (identity === 'ZHANG' && index === 5) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: '回護理站向護理師確認' };
+      if (index === 4) return { id: 'BED33_BOARD', prompt: '核對 4F 晚間床位板' };
+      if (index === 5) return { id: 'BED33_HIS_409', prompt: '核對 409 HIS 狀態列印' };
+      if (index === 6) return { id: 'BED33_ASSIGNMENT', prompt: '核對 409-A／Bed 33 臨時住院單' };
+      if (identity === 'ZHANG' && index === 7) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: '把護理站備用鑰匙歸還' };
     }
 
     if (step === 'M3') {
@@ -365,6 +367,12 @@ export class IdentityRouteDirector {
     }
 
     this.awaitingZone = null;
+
+    if(this.worldRouter.activeZoneId==='first_campus_4f'){
+      this.worldRouter.activeZoneInstance?.setIdentityWardSpareKeyBorrowed?.(
+        this.gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED')
+      );
+    }
 
     if(this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1){
       this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHOU_ER');
@@ -607,6 +615,12 @@ export class IdentityRouteDirector {
 
     try {
       if (beat.flag) this.gameState.setFlag(beat.flag, true);
+      if (beat.clearFlag) this.gameState.setFlag(beat.clearFlag, false);
+      if (beat.flag==='ZHANG_4F_SPARE_KEY_BORROWED' || beat.clearFlag==='ZHANG_4F_SPARE_KEY_BORROWED') {
+        this.worldRouter.activeZoneInstance?.setIdentityWardSpareKeyBorrowed?.(
+          this.gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED')
+        );
+      }
 
       // Compatibility flags let the original physical doors/elevators remain the
       // actual traversal mechanism while V2 owns the narrative state.
