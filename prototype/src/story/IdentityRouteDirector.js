@@ -53,7 +53,8 @@ const IDENTITY_STORY_CRITICAL_TYPES = new Set([
   'credential_drawer_316',
   'locker_316',
   'bed33_409_sealed',
-  'bed33_assignment'
+  'bed33_assignment',
+  'identity_cctv_phone'
 ]);
 
 /**
@@ -154,6 +155,10 @@ export class IdentityRouteDirector {
 
     if(this.manager.runSave.completedStoryModules.includes('M1')){
       this.ensureIdentityDutyAccess();
+    }
+
+    if(this.step==='ZHANG_3F_ARCHIVE'){
+      this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
     }
 
     if (this.step === 'M6') {
@@ -292,6 +297,10 @@ export class IdentityRouteDirector {
       if(identity==='ZHANG'&&index===6) return { id:'316_PHONE', prompt:'接聽正在響的 316 電話' };
     }
 
+    if(step==='ZHANG_OUTBOUND_8F'){
+      return { auto:true };
+    }
+
     if (step === 'M2') {
       if (index === 0) return {
         id: 'IDENTITY_4F_NURSE_STATION',
@@ -338,10 +347,10 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M5') {
-      if(index===0) return { id:'SECOND_2F_CCTV_SELF', prompt:'查看第二院區監視畫面' };
+      if(index===0) return { id:'SECOND_2F_CCTV_DESK', prompt:'使用桌上監控電腦查看即時異常' };
       if(identity==='ZHANG'){
         if(index===1) return { id:'IDENTITY_SECOND_2F_CCTV_PHONE', prompt:'接聽正在響的監控室電話' };
-        if(index===2) return { id:'BRIDGE_LOOP_EVENT', prompt:'經天橋返回第一院區，留意白袍人影' };
+        if(index===2) return { id:'BRIDGE_LOOP_EVENT', prompt:'經天橋返回第一院區；保持視線向前' };
       }
       if(index===1) return { id:'BRIDGE_LOOP_EVENT', prompt:'走到天橋中段，確認異常回聲與白袍人影' };
     }
@@ -359,11 +368,25 @@ export class IdentityRouteDirector {
     if (step === 'ZHOU_2117_RETURN') return { id: 'GUARD_SIGN_2117', prompt: '查看 21:17 查哨板' };
 
     if (step === 'M6') {
+      if(identity==='ZHANG'){
+        if(index===0) return { auto:true };
+        return {
+          id:'FLOOR6_SAFE_RETURN',
+          prompt:'回到電梯前，離開 6F 前往一樓警衛台',
+          passthrough:true,
+          completeFlag:'SECURITY_RECORD_OBJECTIVE'
+        };
+      }
       if (index === 0) return { auto: true };
       if (index === 1) return { id: 'FLOOR6_STETHOSCOPE_SEARCH', prompt: '靠近焦黑器材與記憶錨點' };
     }
 
     if (step === 'M7') {
+      if(identity==='ZHANG'){
+        if(index===0) return { id:'IDENTITY_GUARD_REFLECTION_PHOTO', prompt:'查看警衛台後方牆上的舊照片' };
+        if(index===1) return { id:'OLD_GUARD_POST', prompt:'檢查警衛台並取得 B-Panel 十字鑰匙' };
+        return { id:'1F_HIDDEN_SERVICE_DOOR', prompt:index===2?'查看警衛台後的 B-Panel 舊門框':'操作 B-Panel 備援控制' };
+      }
       if (index === 0) return { id: 'OLD_GUARD_POST', prompt: '檢查一樓舊警衛台與十字鑰匙' };
       return { id: '1F_HIDDEN_SERVICE_DOOR', prompt: index === 1 ? '查看警衛台後的 B-Panel 舊門框' : '操作 B-Panel 備援控制' };
     }
@@ -371,6 +394,11 @@ export class IdentityRouteDirector {
     if (step === 'B2') {
       if (index === 0) return { auto: true };
       if (index === 1) return { id: 'B2_ARCHIVE_TERMINAL', prompt: '啟動 B2 封存驗證終端' };
+    }
+
+    if(step==='ZHANG_3F_ARCHIVE'){
+      if(index===0) return { id:'ARCHIVE_HISTORY_PHOTO_WALL', prompt:'查看文史館院史影像牆' };
+      return { id:'ARCHIVE_PERSONNEL_1998', prompt:'翻閱 1998 夜班核心人員名錄' };
     }
 
     if (step === 'M8') return { auto: true };
@@ -636,6 +664,91 @@ export class IdentityRouteDirector {
     });
   }
 
+  playAutoMemorySequence(sequence,onComplete,{interval=900,hold=850}={}){
+    let timer=null;
+    let closing=false;
+    const finish=()=>{
+      if(closing)return;
+      closing=true;
+      if(timer)clearInterval(timer);
+      setTimeout(()=>{
+        if(this.uiManager.memorySequence===sequence)this.uiManager.closeMemorySequence(false);
+        else onComplete?.();
+      },hold);
+    };
+    this.uiManager.openMemorySequence(sequence,()=>{if(timer)clearInterval(timer);onComplete?.();});
+    timer=setInterval(()=>{
+      if(this.uiManager.memorySequence!==sequence){clearInterval(timer);return;}
+      if(this.uiManager.memoryFrameIndex<sequence.frames.length-1)this.uiManager.stepMemory(1);
+      else finish();
+    },interval);
+  }
+
+  playForcedBridgeReveal(onComplete){
+    const bridge=this.worldRouter.activeZoneInstance;
+    const annie=bridge?.bridgeDoppelganger;
+    const startYaw=this.controller.yaw;
+    const startX=annie?.position.x ?? 46;
+    const startZ=annie?.position.z ?? 0;
+    if(annie){
+      annie.visible=false;
+      annie.position.set(Math.max(35,startX),0,.65);
+    }
+    this.controller.enabled=false;
+    const start=performance.now();
+    const duration=1550;
+    const tick=(now)=>{
+      const t=Math.min(1,(now-start)/duration);
+      const turn=t<.48?Math.sin((t/.48)*Math.PI/2)*.72:Math.cos(((t-.48)/.52)*Math.PI/2)*.72;
+      this.controller.yaw=startYaw-turn;
+      this.controller.updateCameraRotation?.();
+      if(annie&&t>.28){
+        annie.visible=true;
+        const p=Math.min(1,(t-.28)/.42);
+        annie.position.x=Math.max(32.8,startX-(startX-33.5)*p);
+        annie.position.z=.65-.45*p;
+      }
+      if(bridge?.bridgeAnomalyLight)bridge.bridgeAnomalyLight.intensity=t>.28&&t<.82?.9:.18;
+      if(t<1){
+        requestAnimationFrame(tick);
+      }else{
+        this.controller.yaw=startYaw;
+        this.controller.updateCameraRotation?.();
+        if(annie){annie.position.x=Math.max(33.5,annie.position.x);annie.position.z=startZ;}
+        onComplete?.();
+      }
+    };
+    requestAnimationFrame(tick);
+  }
+
+  openBridgeChoice(){
+    this.uiManager.openStoryChoice({
+      title:'空中天橋',
+      body:'剛才那個白袍人影就在身後。\n\n理智告訴你不能回頭，但你非常想確認她到底是誰。',
+      primaryText:'忍住，不回頭',
+      secondaryText:'回頭確認',
+      onPrimary:()=>{
+        this.uiManager.closeStoryChoice(false);
+        this.gameState.setFlag('M5_BRIDGE_RESOLVED',true);
+        this.gameState.setFlag('M5_BRIDGE_COMMITTED',true);
+        this.gameState.setFlag('M5_ROUTE_CHOICE_RESOLVED',true);
+        this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',true);
+        this.worldRouter.activeZoneInstance?.armManualNoLookbackRule?.();
+        this.uiManager.showDialogue([
+          {speaker:'內心',text:'「不能回頭。先走出去。」'}
+        ],()=>{ void this.completeBeat(); });
+      },
+      onSecondary:()=>{
+        this.uiManager.closeStoryChoice(false);
+        this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
+        this.uiManager.showDialogue([
+          {speaker:'內心',text:'我還是回頭了。下一秒，視野像被整個拖倒。'},
+          {speaker:'現場',text:'白色腕帶扣上手腕：409-A。'}
+        ],()=>this.onEnding({type:'BAD_END',reason:'BRIDGE_LOOKBACK_PATIENTIZATION'}));
+      }
+    });
+  }
+
   inspect() {
     if (this.busy || this.manager.runSave.runEnded) return;
     const beat = this.beats[this.beatIndex];
@@ -658,34 +771,74 @@ export class IdentityRouteDirector {
     this.controller.enabled = false;
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
-      if(beat.bridgeChoice){
+      if(beat.glimpse6f){
+        const sequence={
+          id:'ZHANG_6F_GLIMPSE',
+          title:'3F → 8F 電梯｜6F 一閃',
+          mode:'CCTV',
+          source:'ELEVATOR MEMORY / TRANSIENT FRAME',
+          frames:[
+            {stamp:'05 → 06',title:'樓層顯示停頓',caption:'數字「6」比其他樓層多停了不到一秒。',narration:'電梯沒有正式停靠，門縫卻像被撬開一線。'},
+            {stamp:'06 / 0.4 SEC',title:'臨床技能中心',caption:'褪色門牌、CPR 人偶、教學床架。',narration:'這不是病房。像是一間早就停用的臨床技能訓練中心。'},
+            {stamp:'06 / 0.7 SEC',title:'白袍背影',caption:'畫面最深處有一個背對電梯的人影。',narration:'還沒看清楚，門就重新合上。'},
+            {stamp:'07 → 08',title:'電梯恢復',caption:'樓層顯示恢復正常。',narration:'八樓到了。剛才那一幕像從沒發生。'}
+          ]
+        };
+        this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:720,hold:650});
+        return;
+      }
+      if(beat.accidentCg){
+        const sequence={
+          id:'ZHANG_6F_ACCIDENT_MEMORY',
+          title:'6F｜1998 事故回放＋自傳體記憶',
+          mode:'CCTV',
+          source:'CORRUPTED MEMORY / FIRST-PERSON RECONSTRUCTION',
+          frames:[
+            {stamp:'1998 / 02:16',title:'B-Panel 過熱',caption:'電氣火花、排煙異常、走廊警鈴。',narration:'有人大喊不要照舊手冊拉下三個開關。'},
+            {stamp:'02:17',title:'防火門落下',caption:'煙開始沿走廊擴散。',narration:'第一人稱視角在門的另一側。手上不是控制盤，而是病歷與藍色印泥。'},
+            {stamp:'02:17:20',title:'409',caption:'規律敲擊：4 下、停、9 下。',narration:'我記得自己一直要求先確認裡面的人是誰。'},
+            {stamp:'02:18',title:'技能中心',caption:'CPR 人偶、焦黑教學床、白袍人影。',narration:'黑咖啡、捲袖、藍印泥。這不是別人的記憶，我是從那雙手裡往外看。'},
+            {stamp:'MEMORY END',title:'不要再覆寫',caption:'畫面被大量雪花吞沒。',narration:'名字仍然想不起來，但這段事故視角確實屬於我。'}
+          ]
+        };
+        this.gameState.setFlag('FLOOR6_STETHOSCOPE_FOUND',true);
+        this.gameState.setFlag('FLOOR6_STETHOSCOPE_INSPECTED',true);
+        this.gameState.setFlag('SIX_FLOOR_HISTORY_CONFIRMED',true);
+        this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:950,hold:900});
+        return;
+      }
+      if(beat.erRegistrationChoice){
         this.uiManager.openStoryChoice({
-          title:'空中天橋｜安妮',
-          body:'玻璃倒影裡的白袍女人停在你身後。她低聲叫你回頭。\n\n回頭確認她是誰，還是忍住不回頭繼續走？',
-          primaryText:'不要回頭，繼續走',
-          secondaryText:'回頭',
+          title:'2F 急診｜身分待確認',
+          body:'HIS 找不到這名男子的有效掛號。\n\n你要直接建立一筆「無名病人」新病歷，還是先核對他的工務吊牌與既有舊掛號？',
+          primaryText:'先核對身分，不新建病歷',
+          secondaryText:'建立無名新病歷',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
-            this.gameState.setFlag('M5_BRIDGE_RESOLVED',true);
-            this.gameState.setFlag('M5_BRIDGE_COMMITTED',true);
-            this.gameState.setFlag('M5_ROUTE_CHOICE_RESOLVED',true);
-            this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',true);
-            this.worldRouter.activeZoneInstance?.armManualNoLookbackRule?.();
-            this.uiManager.showDialogue([
-              {speaker:'值班醫師',text:'「不要回頭。一直走到天橋另一端。」'}
-            ],()=>{ void this.completeBeat(); });
+            this.gameState.setFlag('ER_IDENTITY_VERIFICATION_CHOSEN',true);
+            void this.completeBeat();
           },
           onSecondary:()=>{
             this.uiManager.closeStoryChoice(false);
-            this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
+            this.gameState.setFlag('ER_CREATED_UNVERIFIED_RECORD',true);
             this.uiManager.showDialogue([
-              {speaker:'安妮',text:'「抓到了。」'},
-              {speaker:'現場',text:'病床輪子的聲音從身後逼近。白色腕帶扣上手腕：409-A。'}
-            ],()=>{
-              this.onEnding({type:'BAD_END',reason:'BRIDGE_LOOKBACK_PATIENTIZATION'});
-            });
+              {speaker:'HIS',text:'TEMPORARY UNKNOWN PATIENT RECORD CREATED.'},
+              {speaker:'內心',text:'畫面上的姓名欄突然開始反向覆寫到我的值班身分。'}
+            ],()=>this.onEnding({type:'BAD_END',reason:'ER_UNVERIFIED_RECORD_PATIENTIZATION'}));
           }
         });
+        return;
+      }
+      if(beat.forcedBridgeReveal){
+        this.playForcedBridgeReveal(()=>{
+          this.uiManager.showDialogue([
+            {speaker:'內心',text:'「不能回頭……可是我真的很想確認後面是不是有人。」'}
+          ],()=>this.openBridgeChoice());
+        });
+        return;
+      }
+      if(beat.bridgeChoice){
+        this.openBridgeChoice();
         return;
       }
       if (beat.puzzle) {
@@ -731,7 +884,9 @@ export class IdentityRouteDirector {
       b2_archive: 'B2 封存層'
     };
     let objective;
-    if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex===0){
+    if(this.step==='M6'&&this.awaitingZone==='phantom_6f'){
+      objective='回 4F 值班室；搭乘一般電梯';
+    }else if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex===0){
       if(!this.gameState.getFlag('FOUND_316_SPARE_KEY')) objective='前往三樓警衛查哨點，取得 316 備援鑰匙';
       else if(!this.gameState.getFlag('OPENED_316')) objective='回到 316 門口，用備援鑰匙開門';
       else objective='走進 316 辦公室，開始正式交班';
@@ -799,6 +954,11 @@ export class IdentityRouteDirector {
 
       // Compatibility flags let the original physical doors/elevators remain the
       // actual traversal mechanism while V2 owns the narrative state.
+      if(this.step==='M6'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===0){
+        this.gameState.setFlag('FLOOR6_STETHOSCOPE_FOUND',true);
+        this.gameState.setFlag('FLOOR6_STETHOSCOPE_INSPECTED',true);
+        this.gameState.setFlag('SIX_FLOOR_HISTORY_CONFIRMED',true);
+      }
       if (this.step === 'M6' && this.beatIndex === this.beats.length - 1) {
         this.gameState.setFlag('FLOOR6_STETHOSCOPE_FOUND', true);
         this.gameState.setFlag('FLOOR6_STETHOSCOPE_INSPECTED', true);
@@ -813,6 +973,7 @@ export class IdentityRouteDirector {
         this.gameState.setFlag('B2_TERMINAL_CONTACTED', true);
         this.gameState.setFlag('B2_FIRE_RECAP_SEEN', true);
         this.gameState.setFlag('RECORD_OVERWRITE_ACTIVE', true);
+        if(this.manager.currentIdentity==='ZHANG')this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
       }
 
       this.manager.recordEvidence({
