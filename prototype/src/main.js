@@ -371,14 +371,16 @@ function establishCanonicalIdentity({at316=false}={}) {
 }
 
 function activateB2OverwriteRoute(){
+  const zhangIdentityRoute=identityLoopMode&&identityManager?.currentIdentity==='ZHANG';
   gameState.setFlag('B2_TERMINAL_CONTACTED',true);
   gameState.setFlag('B2_FIRE_RECAP_SEEN',true);
   gameState.setFlag('RECORD_OVERWRITE_ACTIVE',true);
-  gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',true);
-  gameState.setFlag('M8_CODE_BLACK_ANNOUNCED',true);
+  gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',!zhangIdentityRoute);
+  gameState.setFlag('M8_CODE_BLACK_ANNOUNCED',!zhangIdentityRoute);
   gameState.setFlag('LAST_CALL_SEEN',true);
   gameState.setFlag('B2_HISTORY_FALLBACK_ACTIVE',false);
-  gameState.setFlag('ARCHIVE_PERSONNEL_OBJECTIVE',false);
+  gameState.setFlag('ARCHIVE_PERSONNEL_OBJECTIVE',zhangIdentityRoute);
+  if(zhangIdentityRoute)gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
   persistentMemory.resolveLegend('lastCall');
   persistentMemory.addJournalNote(
     'B2_FIRE_RECAP',
@@ -394,9 +396,12 @@ function playB2FireRecap(){
   void b2FireRecapDirector.play({
     onComplete:()=>{
       activateB2OverwriteRoute();
+      const zhangIdentityRoute=identityLoopMode&&identityManager?.currentIdentity==='ZHANG';
       uiManager.showSubtitle(
         '封存終端',
-        '「UNKNOWN SESSION：紀錄覆寫進行中。有人正在把火災與人員資料再次塗掉。快離開 B2，回到 316，用正確權限阻止這一切。」',
+        zhangIdentityRoute
+          ? '「火災紀錄已讀取。先回 3F 文史館核對院史影像與 1998 夜班人員檔案，再回 316 完成最終交班。」'
+          : '「UNKNOWN SESSION：紀錄覆寫進行中。有人正在把火災與人員資料再次塗掉。快離開 B2，回到 316，用正確權限阻止這一切。」',
         7200
       );
       controller.enabled=true;
@@ -1120,6 +1125,7 @@ controller.onInteract = async (interactable) => {
     uiManager.showSubtitle('值班醫師','「這個電腦是護理師專用，請醫師用醫師診療室專用電腦。」',3600);
   } else if (interactable.type === 'archive_document') {
     controller.enabled = false;
+    if(interactable.id==='ARCHIVE_HISTORY_PHOTO_WALL')gameState.setFlag('ARCHIVE_HISTORY_WALL_REVIEWED',true);
     uiManager.openArchiveDocument({title:interactable.documentTitle,pages:interactable.pages,onComplete:interactable.id==='ARCHIVE_PERSONNEL_1998'?()=>{
       gameState.setFlag('HISTORY_PERSONNEL_PROFILES_REVIEWED',true);
       gameState.setFlag('ARCHIVE_PERSONNEL_OBJECTIVE',false);
