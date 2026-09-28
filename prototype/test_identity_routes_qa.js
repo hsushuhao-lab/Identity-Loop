@@ -107,6 +107,18 @@ assert.match(sceneSource,/核對 409 HIS 列印/);
 assert.match(sceneSource,/核對 409-A 臨時住院單/);
 assert.match(sceneSource,/clearFlag:'ZHANG_4F_SPARE_KEY_BORROWED'/);
 console.log('PASS Zhang pre-handoff round: borrow nursing spare key -> 403/408/409 -> board/HIS/temp admission form -> return key -> 316');
+
+assert.match(wardSource,/IdentitySecond5F_ConsultSpareKey/);
+assert.match(wardSource,/IDENTITY_SECOND_5F_NURSE_STATION/);
+assert.match(wardSource,/setIdentitySecondConsultKeyBorrowed/);
+assert.match(routeDirectorSource,/SECOND_5F_CONSULT_KEY_BORROWED/);
+assert.match(routeDirectorSource,/id: 'IDENTITY_SECOND_5F_NURSE_STATION'/);
+assert.ok(mainSourceFor316.includes("borrowedSecondConsultKey"));
+assert.ok(mainSourceFor316.includes("interactable.doorId==='room_504'"));
+assert.match(sceneSource,/向 5F 護理站借會診備用鑰匙/);
+assert.match(sceneSource,/歸還 5F 會診備用鑰匙/);
+assert.match(sceneSource,/clearFlag:\(identity==='ZHOU'\|\|identity==='CHEN'\)\?'SECOND_5F_CONSULT_KEY_BORROWED'/);
+console.log('PASS pre-handoff M4: Zhou/Chen borrow 504-only consult key, assess patient, review transfer, return key');
 for(const [identity,route] of Object.entries(expected))for(const milestone of ['M1','M2','M8','M9','B2']){
   const store=storage();
   store.setItem(IDENTITY_STORAGE_KEY,JSON.stringify({metaSave:{completedGoodEnds:['LI']},runSave:{currentIdentity:identity,currentMilestone:milestone,evidence:{old:{id:'old'}},b2Entered:true}}));
