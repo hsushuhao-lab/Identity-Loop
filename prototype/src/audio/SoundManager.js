@@ -384,6 +384,29 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playCartWheelRattle() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const pulse=(t,freq,gainValue)=>{
+        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+        osc.type='triangle';
+        osc.frequency.setValueAtTime(freq,t);
+        osc.frequency.exponentialRampToValueAtTime(Math.max(45,freq*.42),t+.16);
+        filter.type='bandpass';filter.frequency.value=520;filter.Q.value=.55;
+        gain.gain.setValueAtTime(.001,t);
+        gain.gain.linearRampToValueAtTime(gainValue,t+.025);
+        gain.gain.exponentialRampToValueAtTime(.001,t+.22);
+        osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);
+        osc.start(t);osc.stop(t+.24);
+      };
+      pulse(now,155,.055);
+      pulse(now+.19,128,.045);
+      pulse(now+.43,172,.05);
+      pulse(now+.66,112,.042);
+    }catch(e){}
+  }
+
   playClick() {
     if (!this.ctx || this.isMuted) return;
     try {
