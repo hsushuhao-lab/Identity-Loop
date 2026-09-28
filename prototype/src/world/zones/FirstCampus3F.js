@@ -462,6 +462,7 @@ export class FirstCampus3F {
   setIdentityDutyItemsVisible(visible){
     if(!this.keyMesh)return;
     const show=!!visible&&!gameState.isTaskComplete('KEY_PICKUP');
+    this.keyMesh.visible=show;
     this.keyMesh.userData.interactable=show;
     if(this.keyMesh.userData.targetGroup)this.keyMesh.userData.targetGroup.visible=show;
   }
