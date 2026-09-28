@@ -46,9 +46,19 @@ export function getIdentityRouteScene(step, identity) {
       ...(identity==='ZHANG' ? [event('316 電話', [
         {speaker:'電話',text:'鈴——鈴——鈴——'},
         {speaker:'內心',text:'「奇怪……大家不是都走了？怎麼這時候還有人打 316？」'},
-        {speaker:'第二院區護理站',text:'「值班醫師您好。第二院區 5F 護理站需要你過來一趟。」'},
-        {speaker:'值班醫師',text:'「收到，我現在過去。」'}
-      ], '接聽 316 電話，前往第二院區 5F 護理站')] : [])
+        {speaker:'第二院區護理站',text:'「值班醫師您好。醫師請你走八樓天橋過來第二院區，門禁已打開。」'},
+        {speaker:'值班醫師',text:'「八樓天橋？……好，我現在過去。」'}
+      ], '接聽 316 電話，搭電梯前往 8F 天橋')] : [])
+    ],
+    ZHANG_OUTBOUND_8F: [
+      event('電梯經過六樓', [
+        {speaker:'內心',text:'電梯從三樓往八樓上升。5F 之後，樓層顯示短暫停在「6」。'},
+        {speaker:'內心',text:'門縫像是開了一瞬間。裡面不是病房，是一間臨床技能訓練中心。'}
+      ], '搭電梯到 8F；途中記住 6F 一閃而過的畫面', { glimpse6f:true }),
+      event('八樓天橋門禁', [
+        {speaker:'內心',text:'八樓連通道門禁綠燈亮著。剛才電話裡說門禁已經打開。'},
+        {speaker:'內心',text:'先穿過天橋到第二院區，再搭電梯到 5F。'}
+      ], '由 8F 天橋前往第二院區')
     ],
     M2: [
       event('四樓護理站', reaction({
@@ -102,7 +112,7 @@ export function getIdentityRouteScene(step, identity) {
     ],
     M3: [
       event('急診無名掛號', [
-        {speaker:'急診護理師',text:'「醫師，這個人沒有可用的掛號資料，先看一下。」'},
+        {speaker:'急診護理師',text:'「值班醫師您好。這個人沒有可用的掛號資料，先看一下。」'},
         {speaker:'劉志遠',text:'「02:17……不要拉三個……紫色……警衛台……」'},
         {speaker:'值班醫師',text:reaction({
           ZHANG:'「先不要建立無名病歷。先確認他是誰。」',
@@ -116,7 +126,7 @@ export function getIdentityRouteScene(step, identity) {
           ZHOU:'剛才照片裡的設備背景，和他說的位置接起來了。',
           CHEN:'同一個人被兩個院區的流程反覆建立，才會變成幽靈紀錄。'
         })}
-      ], '核對病人、吊牌與掛號流水號'),
+      ], '核對病人、吊牌與掛號流水號', { erRegistrationChoice: identity==='ZHANG' }),
       event('00:33 時間異常', [
         {speaker:'急診護理師',text:'「00:33 這筆掛號有編號，可是檢傷區、候診區、留觀床都找不到對應的人。」'},
         {speaker:'值班醫師',text:'「先不要再建新病歷。把 1998-ER-0217 這張掛號聯印給我。」'},
@@ -256,13 +266,11 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'值班醫師',text:'「我現在回去。」'},
         {speaker:'內心',text:'從這裡回第一院區，得先走過天橋。'}
       ], '接聽監控室電話，經天橋返回第一院區 2F 急診')] : []),
-      event('天橋上的 Annie', [
-        {speaker:'內心',text:'走到天橋中段，玻璃倒影裡多出一個穿白袍的女人。'},
-        {speaker:'內心',text:'她沒有跟著我的動作。'},
-        {speaker:'安妮',text:'「醫師。」'},
-        {speaker:'安妮',text:'「回頭啊。」'},
-        {speaker:'內心',text:'腳步聲就在身後。現在回頭，還是不回頭？'}
-      ], '不要讓她逼你回頭', { bridgeChoice:true })
+      event('天橋上的白袍人影', [
+        {speaker:'內心',text:'回程走到天橋中段，視線突然像被什麼扯向玻璃倒影。'},
+        {speaker:'內心',text:'白袍人影突然從後方跑進倒影裡。'},
+        {speaker:'內心',text:'「不能回頭……可是我真的很想確認後面是不是有人。」'}
+      ], '保持向前，不要回頭', { bridgeChoice:true, forcedBridgeReveal:true })
     ],
     ZHANG_6F_FORESHADOW: [event('電梯樓層顯示器', ['5 → 6 → 5 → 4。', '我：「……六？」', '電梯沒有開門。這一次只有樓層顯示異常。'], '記下顯示異常，等候急診來電')],
     ZHOU_1F_PHOTO: [event('檢視玻璃反射照', [
@@ -288,18 +296,62 @@ export function getIdentityRouteScene(step, identity) {
       ], '接完電話後，前往第一院區 2F 急診')
     ],
     ZHOU_2117_RETURN: [event('21:17 三樓查哨', ['查房結束，我回到值班室。電話要求回三樓查哨。', '21:17。巡查欄位像被提前寫好。我一直以為再確認一個證據就會回去，真正的值班卻一路遲到。', '完成查哨後，我搭電梯準備回病房。'], '核對巡查欄後搭電梯')],
-    M6: [
+    M6: identity==='ZHANG' ? [
+      event('電梯劫持到六樓', [
+        {speaker:'內心',text:'我離開 316，原本只是想回四樓值班室。'},
+        {speaker:'內心',text:'電梯卻越過 4F、5F，再一次停在 6。這次門真的打開了。'}
+      ], '觀看 6F 事故與張 Seed 記憶回放', { accidentCg:true }),
+      event('離開六樓', [
+        {speaker:'內心',text:'畫面結束後，技能中心只剩焦黑器材與訓練人偶。'},
+        {speaker:'內心',text:'先離開。去一樓警衛台查當年的門禁與 B-Panel。'}
+      ], '回到電梯前，離開 6F 前往第一院區 1F 警衛台')
+    ] : [
       event('錯停六樓', ['電梯原本要回病房。3 → 4 → 5 → 6。門開了。', '這次真的抵達六樓。走廊裡的臨床技能訓練人偶面向我。'], '走近訓練人偶'),
       event('記憶錨點', [reaction({ ZHANG: '黑咖啡、藍印泥、門另一側的病人。我記得自己拒絕的是未核實的身分，不是眼前的人。', LI: '程序順序自動浮現，手比思考更快。相信程序的身體，也可能記住錯誤的程序。', ZHOU: '相機、Casio、快門。合照沒有攝影者，警告也像一直沒能送出。', CHEN: '灰滾邊識別證一閃而過。白袍、輪椅、5042、409-A，路線比自己的姓名清楚。' }), '人偶没有回答。這些是身體記憶，仍不能代替身分核對。'], '核對記憶後離開六樓')
     ],
-    M7: [
+    M7: identity==='ZHANG' ? [
+      event('警衛台後方照片', [
+        {speaker:'內心',text:'警衛台後方牆上那張舊照片現在看得特別清楚。'},
+        {speaker:'內心',text:'照片裡的設備、門禁與今晚看到的 409、6F 線索彼此對得上。'}
+      ], '查看警衛台後方牆上的舊照片'),
+      event('02:17 警衛鑰匙', [
+        {speaker:'內心',text:'警衛設備櫃裡還留著 B-Panel 十字鑰匙。'}
+      ], '檢查警衛台並取得 B-Panel 十字鑰匙', { flag:'B_PANEL_KEY' }),
+      event('閱讀 B-Panel 工務紀錄', [
+        {speaker:'內心',text:'舊手冊要求依序拉下 1 → 3 → 4，但監控紀錄顯示這會鎖死防火門並停止備援排煙。'},
+        {speaker:'內心',text:'旁邊的紫色備援旋鈕需要十字鑰匙。'}
+      ], '對照手冊與監控後操作 B-Panel'),
+      event('操作 B-Panel', [
+        {speaker:'內心',text:'02:17。不能再重演 1 → 3 → 4。'}
+      ], '插入十字鑰匙，啟動紫色備援排煙', {
+        puzzle:'b-panel',
+        wrong:'依舊手冊拉下 1 → 3 → 4',
+        wrongLines:['防火門鎖死，排煙停止。這正是歷史錯誤。','停止操作，重新比對監控與紫色備援旋鈕。'],
+        flag:'M7_B2_OPEN'
+      })
+    ] : [
       event('02:17 警衛鑰匙', ['警衛設備櫃留著 B-Panel 十字鑰匙。它屬於門禁設備，不能用一張表格代替。'], '拿取十字鑰匙', { flag: 'B_PANEL_KEY' }),
       event('閱讀 B-Panel 工務紀錄', ['舊工務手冊要求依序拉下 1 → 3 → 4。監控卻顯示這個動作讓防火門鎖死、備援排煙停止。', '旁邊是必須插入十字鑰匙才能轉動的紫色備援排煙旋鈕。', reaction({ ZHANG: '這段記憶來自門的另一側。門關上後，裡面仍有人。', LI: '我的身體記住的正是 1 → 3 → 4。最熟悉的程序，竟是當年的錯誤。', ZHOU: '照片裡的設備終於在眼前。光是記錄警告，不能讓警告及時送達。', CHEN: '不能再只因為知道下一步去哪裡，就把人推向同一個目的地。' })], '對照手冊與監控後操作面板'),
       event('操作 B-Panel', ['02:17。選擇實際操作；錯誤程序不能打開服務門。'], '插入十字鑰匙，啟動紫色備援排煙', { puzzle: 'b-panel', wrong: '依舊手冊拉下 1 → 3 → 4', wrongLines: ['防火門鎖死，排煙停止。這正是歷史錯誤。', '停止操作，重新比對監控與紫色備援旋鈕。'], flag: 'M7_B2_OPEN' })
     ],
     B2: [
       event('單向封存檔案', ['服務門在身後關閉。這是一次性的封存檔案接觸，不能回到面板重選。', 'CURRENT SELF = CORRUPTED。四名候選職務：第一線住院醫師、夜間總醫師、第二線住院醫師、第二院區支援醫師。', '客觀檔案已恢復，當前身分仍未判定。沒有姓名可以替你直接作答。'], '閱讀四名匿名候選職務'),
-      event('1998 火災回放', ['工程人員提出 B-Panel 危險警告。警衛鑰匙與 409-A 轉送流程交錯。', '煙升起。防火門關閉。錯誤程序讓備援排煙失常，紀錄隨後遭到覆寫。', 'OVERWRITE IN PROGRESS。CURRENT SHIFT NEXT。STOP THE OVERWRITE。RETURN TO 316。'], '讀完回放，帶著證據返回 316')
+      event('1998 火災回放', [
+        '工程人員提出 B-Panel 危險警告。警衛鑰匙與 409-A 轉送流程交錯。',
+        '煙升起。防火門關閉。錯誤程序讓備援排煙失常，紀錄隨後遭到覆寫。',
+        identity==='ZHANG'
+          ? '終端最後指向 3F 文史館：先核對院史影像與 1998 人員檔案，再回 316。'
+          : 'OVERWRITE IN PROGRESS。CURRENT SHIFT NEXT。STOP THE OVERWRITE。RETURN TO 316。'
+      ], identity==='ZHANG'?'離開 B2，前往 3F 文史館':'讀完回放，帶著證據返回 316')
+    ],
+    ZHANG_3F_ARCHIVE: [
+      event('文史館院史影像牆', [
+        {speaker:'內心',text:'B2 終端指向這裡。照片牆把 1998 的院區、人員與事故前配置重新放回同一個時間線。'}
+      ], '進入 3F 文史館，查看院史影像牆'),
+      event('1998 夜班核心人員名錄', [
+        {speaker:'內心',text:'四名醫師的職務、物件與今晚的自傳體記憶終於能互相比對。'},
+        {speaker:'內心',text:'最後只剩一件事：回 316，選擇這一輪真正屬於自己的名字。'}
+      ], '翻閱 1998 夜班核心人員名錄後返回 316')
     ],
     M8: [
       event('拒絕被指派的病人身分', ['IDENTITY REJECTION。系統試圖把值班醫師寫成 409 的病人。', '我握著自己的夜班記憶。床號、表格與流程都不能代替我是誰。'], '拒絕覆寫，保留已核對的證據', { flag: 'M8_IDENTITY_REJECTED' }),
@@ -309,11 +361,19 @@ export function getIdentityRouteScene(step, identity) {
   };
   if (!scenes[step]) throw new Error(`Unknown route scene: ${step}`);
   const locations = {
+    ZHANG_OUTBOUND_8F: [
+      { zoneId:'first_campus_8f', spawn:'first_8f_lift' },
+      { zoneId:'skybridge', spawn:'bridge_from_first' }
+    ],
     M2: [
       { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' },
       { room:'408', bed:'408C' },
       { zoneId:'first_campus_4f', spawn:'m2_4f_409' },
       { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' }
+    ],
+    ZHANG_3F_ARCHIVE: [
+      { zoneId:'first_campus_3f', spawn:'m0_3f_corridor' },
+      { zoneId:'first_campus_3f', spawn:'m0_3f_corridor' }
     ],
     M3: [{ spawn: 'm4_2f_er_triage' }, { spawn: 'm4_2f_er_bays' }, { zoneId: 'first_campus_3f', spawn: 'm0_316_office' }],
     M4: [
