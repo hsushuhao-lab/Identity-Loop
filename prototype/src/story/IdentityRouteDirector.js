@@ -696,6 +696,9 @@ export class IdentityRouteDirector {
     }
 
     this.awaitingZone = null;
+    if(beat.chenWheelchairPush){
+      this.gameState.setFlag('CHEN_WHEELCHAIR_BLOCKING',true);
+    }
     this.worldRouter.activeZoneInstance?.syncStoryState?.();
 
     if(this.worldRouter.activeZoneId==='first_campus_3f'){
