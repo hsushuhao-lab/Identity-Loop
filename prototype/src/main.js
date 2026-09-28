@@ -396,6 +396,7 @@ function playB2FireRecap(){
   gameState.setFlag('B2_TERMINAL_CONTACTED',true);
   controller.enabled=false;
   void b2FireRecapDirector.play({
+    hiddenIdentity:identityLoopMode?identityManager?.currentIdentity:null,
     onComplete:()=>{
       activateB2OverwriteRoute();
       const zhangIdentityRoute=identityLoopMode&&identityManager?.currentIdentity==='ZHANG';
