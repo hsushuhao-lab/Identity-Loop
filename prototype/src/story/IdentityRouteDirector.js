@@ -16,7 +16,10 @@ const NAVIGATION_TYPES = new Set([
   'elevator',
   'travel_selector',
   'exit_door',
-  'closed_door'
+  'closed_door',
+  'floor6_safe_return',
+  'hidden_service_door_1f',
+  'b2_exit_door'
 ]);
 
 /**
@@ -37,6 +40,7 @@ export class IdentityRouteDirector {
     this.busy = false;
     this.revision = 0;
     this.autoTimer = null;
+    this.awaitingZone = null;
   }
 
   get currentRouteStep() { return this.step; }
@@ -58,7 +62,7 @@ export class IdentityRouteDirector {
       }
       const firstBeat = getIdentityRouteScene(this.manager.currentRouteStep, this.manager.currentIdentity)[0];
       await this.prepareZone(firstBeat.zoneId || ROUTE_STEPS[this.manager.currentRouteStep].zoneId);
-      await this.loadCurrentStep();
+      await this.loadCurrentStep({ forceLoad: true });
       return true;
     } finally {
       this.busy = false;
@@ -95,13 +99,14 @@ export class IdentityRouteDirector {
     this.uiManager.renderTaskBoard('夜班結束', []);
   }
 
-  async loadCurrentStep() {
+  async loadCurrentStep({ forceLoad = true } = {}) {
     this.removeInteractionTarget();
     this.step = this.manager.currentRouteStep;
     const route = ROUTE_STEPS[this.step];
     this.beats = getIdentityRouteScene(this.step, this.manager.currentIdentity);
     this.beatIndex = 0;
     this.revision += 1;
+    this.awaitingZone = null;
 
     if (route.time === '16:50') {
       this.gameState.gameTime = route.time;
@@ -111,23 +116,54 @@ export class IdentityRouteDirector {
       this.gameState.setGameTime(route.time);
     }
 
-    const firstBeat = this.beats[0];
-    this.worldRouter.loadZone(firstBeat.zoneId || route.zoneId, firstBeat.spawn || route.spawn);
-    await this.onRouteStep(this.step);
-
-    if (this.step === 'B2') {
-      if (!this.manager.runSave.b2Entered) this.manager.enterB2();
-      this.worldRouter.activeZoneInstance.beginExitClosure?.();
+    if (this.step === 'M6') {
+      // M6 must be reached by a real elevator hijack, never by selecting 6F.
+      this.gameState.setFlag('FLOOR6_AVAILABLE', true);
+      this.gameState.setFlag('M6_FLOOR6_RESOLVED', false);
     }
-    if (this.step === 'M8') this.gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE', true);
 
     // The evidence panel is a journal/deduction surface, not the dialogue box.
     if (!['B2', 'M9'].includes(this.step)) {
       this.panel.root?.classList.remove('visible', 'archive-open', 'm9-open');
     }
 
-    await this.placeBeat();
+    await this.onRouteStep(this.step);
+
+    const firstBeat = this.beats[0];
+    const targetZone = firstBeat.zoneId || route.zoneId;
+    if (forceLoad && this.worldRouter.activeZoneId !== targetZone) {
+      await this.prepareZone(targetZone);
+      this.worldRouter.loadZone(targetZone, firstBeat.spawn || route.spawn);
+    }
+
+    if (this.worldRouter.activeZoneId === targetZone) {
+      await this.onArriveTargetZone();
+    } else {
+      this.awaitingZone = targetZone;
+      this.renderObjective();
+    }
+  }
+
+  async onArriveTargetZone() {
+    this.awaitingZone = null;
+    if (this.step === 'B2') {
+      if (!this.manager.runSave.b2Entered) this.manager.enterB2();
+      this.worldRouter.activeZoneInstance?.beginExitClosure?.();
+    }
+    if (this.step === 'M8') this.gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE', true);
+    await this.placeBeat({ forceLoad: false });
     this.renderObjective();
+  }
+
+  update() {
+    if (
+      this.awaitingZone &&
+      !this.busy &&
+      !this.manager.runSave.runEnded &&
+      this.worldRouter.activeZoneId === this.awaitingZone
+    ) {
+      void this.onArriveTargetZone().catch(error => console.error('[IdentityRouteDirector] arrival binding failed', error));
+    }
   }
 
   bindingFor(step = this.step, index = this.beatIndex) {
@@ -255,18 +291,24 @@ export class IdentityRouteDirector {
     return this.controller.position.clone().addScaledVector(forward, binding.distance || 1.5);
   }
 
-  async placeBeat() {
+  async placeBeat({ forceLoad = false } = {}) {
     this.removeInteractionTarget();
     const beat = this.beats[this.beatIndex];
     const route = ROUTE_STEPS[this.step];
     const zoneId = beat.zoneId || route.zoneId;
 
     if (this.worldRouter.activeZoneId !== zoneId) {
-      await this.prepareZone(zoneId);
-      this.worldRouter.loadZone(zoneId, beat.spawn || route.spawn);
-      await this.onRouteStep(this.step);
+      if (forceLoad) {
+        await this.prepareZone(zoneId);
+        this.worldRouter.loadZone(zoneId, beat.spawn || route.spawn);
+      } else {
+        this.awaitingZone = zoneId;
+        this.renderObjective();
+        return;
+      }
     }
 
+    this.awaitingZone = null;
     const binding = this.bindingFor();
     const existing = this.findExistingTarget(binding);
     if (existing) {
@@ -442,11 +484,27 @@ export class IdentityRouteDirector {
     this.panel.render();
     const beat = this.beats[this.beatIndex];
     if (!beat || !this.step) return;
+    const zoneLabels = {
+      first_campus_1f: '第一院區 1F',
+      first_campus_2f: '第一院區 2F 急診',
+      first_campus_3f: '第一院區 3F',
+      first_campus_4f: '第一院區 4F',
+      first_campus_8f: '第一院區 8F',
+      second_campus_1f: '第二院區 1F',
+      second_campus_2f: '第二院區 2F',
+      second_campus_5f: '第二院區 5F',
+      skybridge: '空中天橋',
+      phantom_6f: '異常樓層',
+      b2_archive: 'B2 封存層'
+    };
+    const objective = this.awaitingZone
+      ? `前往${zoneLabels[this.awaitingZone] || '下一個區域'}｜${ROUTE_STEPS[this.step].label}`
+      : (beat.review || beat.label);
     this.uiManager.renderTaskBoard('目前任務', [
       {
         id: 'identity-route-objective',
         state: 'active',
-        text: beat.review || beat.label
+        text: objective
       }
     ]);
   }
@@ -468,6 +526,25 @@ export class IdentityRouteDirector {
 
     try {
       if (beat.flag) this.gameState.setFlag(beat.flag, true);
+
+      // Compatibility flags let the original physical doors/elevators remain the
+      // actual traversal mechanism while V2 owns the narrative state.
+      if (this.step === 'M6' && this.beatIndex === this.beats.length - 1) {
+        this.gameState.setFlag('FLOOR6_STETHOSCOPE_FOUND', true);
+        this.gameState.setFlag('FLOOR6_STETHOSCOPE_INSPECTED', true);
+        this.gameState.setFlag('M6_FLOOR6_RESOLVED', true);
+      }
+      if (this.step === 'M7' && this.beatIndex === 0) {
+        this.gameState.setFlag('FIRST_FLOOR_GUARD_KEY', true);
+        this.gameState.setFlag('HIDDEN_SERVICE_DOOR_DISCOVERED', true);
+        this.worldRouter.activeZoneInstance?.syncStoryState?.();
+      }
+      if (this.step === 'B2' && this.beatIndex === 1) {
+        this.gameState.setFlag('B2_TERMINAL_CONTACTED', true);
+        this.gameState.setFlag('B2_FIRE_RECAP_SEEN', true);
+        this.gameState.setFlag('RECORD_OVERWRITE_ACTIVE', true);
+      }
+
       this.manager.recordEvidence({
         id: `route:${this.step}:${this.beatIndex}`,
         category: 'route',
@@ -481,16 +558,11 @@ export class IdentityRouteDirector {
 
       if (this.beatIndex + 1 < this.beats.length) {
         this.beatIndex += 1;
-        await this.placeBeat();
+        await this.placeBeat({ forceLoad: false });
       } else {
-        const routeIndex = this.manager.route.indexOf(this.step);
-        const nextStep = this.manager.route[routeIndex + 1];
+        const nextStep = this.manager.route[this.manager.route.indexOf(this.step) + 1];
         if (!this.manager.completeRouteStep(this.step)) throw new Error('Route completion rejected');
-        if (nextStep) {
-          const nextBeat = getIdentityRouteScene(nextStep, this.manager.currentIdentity)[0];
-          await this.prepareZone(nextBeat.zoneId || ROUTE_STEPS[nextStep].zoneId);
-          await this.loadCurrentStep();
-        }
+        if (nextStep) await this.loadCurrentStep({ forceLoad: false });
       }
 
       return true;
