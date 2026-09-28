@@ -90,6 +90,22 @@ assert.match(routeDirectorSource,/setFlag\('STAFF_ACCESS_CARD', true\)/);
 assert.match(routeDirectorSource,/\['KEY_PICKUP','DUTY_LOG','E_HANDOFF'\]/);
 assert.match(routeDirectorSource,/beat\.review \|\| beat\.label \|\| ROUTE_STEPS\[this\.step\]\.label/);
 console.log('PASS Zhou regression: wall photo -> guard -> ringing phone -> 2F -> explicit 316 legacy lookup; M1 grants durable duty access');
+
+const wardSource=readFileSync(new URL('./src/world/shared/WardFloorplan.js',import.meta.url),'utf8');
+assert.match(wardSource,/Identity4F_WardSpareKey/);
+assert.match(wardSource,/setIdentityWardSpareKeyBorrowed/);
+assert.match(routeDirectorSource,/ZHANG_4F_SPARE_KEY_BORROWED/);
+assert.match(routeDirectorSource,/id: 'BED33_BOARD'/);
+assert.match(routeDirectorSource,/id: 'BED33_HIS_409'/);
+assert.match(routeDirectorSource,/id: 'BED33_ASSIGNMENT'/);
+assert.match(routeDirectorSource,/把護理站備用鑰匙歸還/);
+assert.match(mainSourceFor316,/borrowedWardSpareKey[\s\S]*\^\/room_40\[1-8\]\$\//);
+assert.match(sceneSource,/向護理站借查房備用鑰匙/);
+assert.match(sceneSource,/核對 4F 晚間床位板/);
+assert.match(sceneSource,/核對 409 HIS 列印/);
+assert.match(sceneSource,/核對 409-A 臨時住院單/);
+assert.match(sceneSource,/clearFlag:'ZHANG_4F_SPARE_KEY_BORROWED'/);
+console.log('PASS Zhang pre-handoff round: borrow nursing spare key -> 403/408/409 -> board/HIS/temp admission form -> return key -> 316');
 for(const [identity,route] of Object.entries(expected))for(const milestone of ['M1','M2','M8','M9','B2']){
   const store=storage();
   store.setItem(IDENTITY_STORAGE_KEY,JSON.stringify({metaSave:{completedGoodEnds:['LI']},runSave:{currentIdentity:identity,currentMilestone:milestone,evidence:{old:{id:'old'}},b2Entered:true}}));
