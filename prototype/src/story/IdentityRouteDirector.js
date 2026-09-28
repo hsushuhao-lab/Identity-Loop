@@ -937,10 +937,19 @@ export class IdentityRouteDirector {
           onSecondary: () => {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M7_WRONG_PROCEDURE_SEEN', true);
-            this.uiManager.showDialogue(
-              (beat.wrongLines || ['防火門鎖死，排煙停止。你重演了歷史錯誤。']).map(text => ({ speaker: '現場', text })),
-              () => this.onEnding({type:'BAD_END',reason:'M7_HISTORICAL_PROCEDURE_PATIENTIZATION'})
-            );
+            this.gameState.setFlag('M7_HISTORICAL_ERROR_REPLAYED', true);
+            void soundManager.ensureRunning().then(ready=>{
+              if(!ready)return;
+              soundManager.playVentilationCollapse();
+              setTimeout(()=>soundManager.playDoorLockClack(),180);
+              setTimeout(()=>soundManager.playBed33KnockPattern(.18),520);
+            });
+            this.uiManager.showDialogue([
+              {speaker:'現場',text:'1。3。4。最後一支開關落下。'},
+              {speaker:'現場',text:'天花板上的排煙聲突然反向抽空，防火門重重砸落，濃煙沿走廊正面灌來。'},
+              {speaker:'內心',text:'「不對……這就是當年的錯誤。」'},
+              {speaker:'現場',text:'視野猛地翻轉。皮革約束帶扣住手腕與腳踝：409-A。'}
+            ],()=>this.onEnding({type:'BAD_END',reason:'M7_HISTORICAL_PROCEDURE_PATIENTIZATION'}));
           }
         });
         return;
