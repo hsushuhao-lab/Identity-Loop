@@ -69,7 +69,9 @@ export function getIdentityRouteScene(step, identity) {
         ]
       }), identity==='ZHANG'
         ? '向護理師拿 4F 備用鑰匙與臨時感應卡'
-        : '向護理師確認 408C 狀況'),
+        : '向護理師確認 408C 狀況', {
+          flag: identity==='ZHANG'?'ZHANG_4F_SPARE_KEY_BORROWED':null
+        }),
       event('408C 確認', [
         {speaker:'408C 老先生',text:'「醫師，又來了。」'},
         {speaker:'值班醫師',text:'「哪裡？」'},
