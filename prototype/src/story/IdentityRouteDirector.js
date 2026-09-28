@@ -175,13 +175,15 @@ export class IdentityRouteDirector {
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
     if (step === 'M1') {
-      if (index === 0) return { auto: true };
+      if (index === 0) return { contextual: true, fromSpawn: true, distance: .35, prompt: identity === 'ZHOU' ? '進入 316 查看留下的交班' : '進入 316 完成交班' };
       if (index === 1) return { type: 'workstation', prompt: '使用 316 電腦核對名冊與 HIS' };
       if (identity === 'ZHANG' && index === 2) return { type: 'office_phone_316', prompt: '接起 316 電話' };
     }
 
     if (step === 'M2') {
-      if (index === 0) return { auto: true };
+      if (index === 0) return identity === 'ZHANG'
+        ? { auto: true }
+        : { contextual: true, useSpawn: true, prompt: '到 4F 護理站報到' };
       if (index === 1 || index === 2) return { contextual: true, prompt: index === 1 ? '和 403 病人確認今晚狀況' : '查看 408C 與隔壁聲音' };
       if (index === 3) return { id: 'BED33_409_SEALED', prompt: '靠近 409 確認敲擊來源' };
       if (index === 4) return { id: 'BED33_ASSIGNMENT', prompt: '查看 409-A／Bed 33 臨時床位單' };
@@ -210,7 +212,7 @@ export class IdentityRouteDirector {
       if (index === 1) return { id: 'BRIDGE_LOOP_EVENT', prompt: '走到天橋中段，確認異常回聲與白袍人影' };
     }
 
-    if (step === 'ZHANG_6F_FORESHADOW') return { auto: true };
+    if (step === 'ZHANG_6F_FORESHADOW') return { contextual: true, useSpawn: true, prompt: '走到電梯前查看異常樓層顯示' };
 
     if (step === 'ZHOU_1F_PHOTO') {
       return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛台上的事故前設備照片' };
