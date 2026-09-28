@@ -54,6 +54,21 @@ for(const [step,data] of Object.entries(ROUTE_STEPS)){
   assert.doesNotMatch(data.label,/ZHANG|ZHOU|CHEN|\bLI\b|張|李|周|陳/);
   assert.ok(data.time===null||/^\d{2}:\d{2}$/.test(data.time));
 }
+
+// Regression: M1 means "arrive at 316", never "spawn inside 316".
+// The actual handoff completes only after using the real patrol-point key,
+// opening the real office door, and crossing into the office volume.
+assert.equal(ROUTE_STEPS.M1.spawn,'m0_316_entrance');
+assert.equal(WORLD_SPAWNS[ROUTE_STEPS.M1.spawn].name,'316 總醫師室門口');
+const routeDirectorSource=readFileSync(new URL('./src/story/IdentityRouteDirector.js',import.meta.url),'utf8');
+assert.match(routeDirectorSource,/return \{ officeEntry: true \}/);
+assert.match(routeDirectorSource,/this\.gameState\.getFlag\('OPENED_316'\)/);
+assert.match(routeDirectorSource,/p\.x>3\.2&&p\.x<10\.8&&p\.z>2\.8&&p\.z<8\.2/);
+assert.match(routeDirectorSource,/取得 316 備援鑰匙/);
+assert.match(routeDirectorSource,/走進 316 辦公室，完成交接班/);
+const mainSourceFor316=readFileSync(new URL('./src/main.js',import.meta.url),'utf8');
+assert.match(mainSourceFor316,/identityLoopMode[\s\S]*門開了。進去 316，完成今晚的交接。/);
+console.log('PASS M1 regression: starts outside locked 316, uses real spare-key/door flow, completes on physical entry');
 for(const [identity,route] of Object.entries(expected))for(const milestone of ['M1','M2','M8','M9','B2']){
   const store=storage();
   store.setItem(IDENTITY_STORAGE_KEY,JSON.stringify({metaSave:{completedGoodEnds:['LI']},runSave:{currentIdentity:identity,currentMilestone:milestone,evidence:{old:{id:'old'}},b2Entered:true}}));
