@@ -101,6 +101,14 @@ export class UIManager {
     if (btnSignHandoff) {
       btnSignHandoff.addEventListener('click', () => {
         if(!this.gameState.getFlag('HIS_AUTHENTICATED')){document.getElementById('his-login-status').textContent='請先用值班本上的帳密登入';return;}
+        // Identy Loop M1 is not a moral-choice gate. The player may inspect the
+        // handoff artifacts in any order, but once authenticated the electronic
+        // handoff should submit directly and preserve the unresolved identity anomaly.
+        if(isIdentityRouteMode()){
+          this.gameState.setFlag('M1_HANDOFF_CHOICE_RESOLVED',true);
+          this.commitNightHandoff(btnSignHandoff);
+          return;
+        }
         if(!this.gameState.getFlag('M1_HANDOFF_CHOICE_RESOLVED')){
           soundManager.playComputerBeep();
           this.openStoryChoice({
