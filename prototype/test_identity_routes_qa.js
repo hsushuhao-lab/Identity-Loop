@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { anonymousNarrative, worldNarrative } from './src/story/IdentityPrivacy.js';
 import { drawCharacterStrip } from './src/art/CharacterPortraitArt.js';
+import { buildVictimMap } from './src/story/B2FireRecapDirector.js';
 const expected={
   ZHANG:['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9'],
   LI:['M1','M2','M3','M4','M5','M6','M7','B2','M8','M9'],
@@ -222,9 +223,23 @@ assert.match(second2FSource,/ZHANG_CCTV_HINT_RECEIVED/);
 const first3FSource=readFileSync(new URL('./src/world/zones/FirstCampus3F.js',import.meta.url),'utf8');
 assert.match(first3FSource,/ARCHIVE_HISTORY_PHOTO_WALL/);
 const b2RecapSource=readFileSync(new URL('./src/story/B2FireRecapDirector.js',import.meta.url),'utf8');
-for(const doctorName of ['張守恆','李承禮','周啟文','陳柏勳'])assert.doesNotMatch(b2RecapSource,new RegExp(doctorName));
-assert.match(b2RecapSource,/MED-87••••／第一線住院醫師：4F 409-A/);
+const b2Doctors={
+  ZHANG:{name:'張守恆',masked:'MED-87••••'},
+  LI:{name:'李承禮',masked:'MED-82••••'},
+  ZHOU:{name:'周啟文',masked:'MED-88••••'},
+  CHEN:{name:'陳柏勳',masked:'MED-89••••'}
+};
+for(const [identity,profile] of Object.entries(b2Doctors)){
+  const map=buildVictimMap(identity);
+  assert.equal(map.includes(profile.name),false,`B2 must redact active seed name: ${identity}`);
+  assert.equal(map.includes(profile.masked),true,`B2 must preserve masked employee prefix: ${identity}`);
+  for(const [otherId,other] of Object.entries(b2Doctors)){
+    if(otherId!==identity)assert.equal(map.includes(other.name),true,`B2 must preserve non-player victim name: ${identity}/${otherId}`);
+  }
+}
+assert.match(b2RecapSource,/buildVictimMap\(hiddenIdentity\)/);
 assert.match(b2RecapSource,/完整姓名仍需回 3F 文史館核對/);
+assert.match(mainSourceFor316,/hiddenIdentity:identityLoopMode\?identityManager\?\.currentIdentity:null/);
 assert.match(mainSourceFor316,/CURRENT SELF：CORRUPTED｜409-A 死者姓名欄遭除籍塗銷｜員編前綴 MED-87••••/);
 const identityPanelSource=readFileSync(new URL('./src/ui/IdentityLoopPanel.js',import.meta.url),'utf8');
 assert.match(identityPanelSource,/手動輸入你認為屬於這一輪記憶的姓名與員編/);
