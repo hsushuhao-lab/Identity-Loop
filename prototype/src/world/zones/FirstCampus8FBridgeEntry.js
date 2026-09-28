@@ -172,8 +172,11 @@ export class FirstCampus8FBridgeEntry {
 
     // Identy Loop: Zhou's opening clue is a real wall-mounted archival group photo,
     // not a route-generated quest card. The photographer remains outside the frame.
-    const historyTexture=new THREE.TextureLoader().load(`${import.meta.env?.BASE_URL || './'}assets/identity-v03/history-group.png`);
-    historyTexture.colorSpace=THREE.SRGBColorSpace;
+    const canLoadIdentityImage=typeof document!=='undefined'&&typeof document.createElementNS==='function';
+    const historyTexture=canLoadIdentityImage
+      ? new THREE.TextureLoader().load(`${import.meta.env?.BASE_URL || './'}assets/identity-v03/history-group.png`)
+      : null;
+    if(historyTexture)historyTexture.colorSpace=THREE.SRGBColorSpace;
     const historyFrame=new THREE.Group();
     historyFrame.name='IdentityHistoryGroupPhoto_Frame';
     historyFrame.position.set(19.78,1.62,0);
@@ -185,7 +188,9 @@ export class FirstCampus8FBridgeEntry {
     historyFrame.add(historyBacking);
     const historyPhoto=new THREE.Mesh(
       new THREE.PlaneGeometry(2.48,1.65),
-      new THREE.MeshBasicMaterial({map:historyTexture,toneMapped:false})
+      historyTexture
+        ? new THREE.MeshBasicMaterial({map:historyTexture,toneMapped:false})
+        : new THREE.MeshBasicMaterial({color:0x5e594e})
     );
     historyPhoto.position.z=-.031;
     historyPhoto.name='IdentityHistoryGroupPhoto';
