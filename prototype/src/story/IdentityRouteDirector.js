@@ -120,6 +120,10 @@ export class IdentityRouteDirector {
       this.gameState.setGameTime(route.time);
     }
 
+    if(this.manager.runSave.completedStoryModules.includes('M1')){
+      this.ensureIdentityDutyAccess();
+    }
+
     if (this.step === 'M6') {
       // M6 must be reached by a real elevator hijack, never by selecting 6F.
       this.gameState.setFlag('FLOOR6_AVAILABLE', true);
@@ -146,6 +150,19 @@ export class IdentityRouteDirector {
       this.awaitingZone = targetZone;
       this.renderObjective();
     }
+  }
+
+  ensureIdentityDutyAccess() {
+    // Once M1 handoff is complete, V2 must not inherit V1's locker/HIS gates.
+    // Keep legacy flags/tasks synchronized so reloads and later 316 visits never
+    // strand the player without the duty keys/access card needed for 4F.
+    this.gameState.setFlag('FOUND_316_SPARE_KEY', true);
+    this.gameState.setFlag('OPENED_316', true);
+    this.gameState.setFlag('STAFF_ACCESS_CARD', true);
+    for(const task of ['KEY_PICKUP','DUTY_LOG','E_HANDOFF']){
+      if(!this.gameState.isTaskComplete(task)) this.gameState.markTaskComplete(task);
+    }
+    this.gameState.setFlag('P1_316_COMPLETE', true);
   }
 
   async onArriveTargetZone() {
@@ -249,10 +266,13 @@ export class IdentityRouteDirector {
     if (step === 'ZHANG_6F_FORESHADOW') return { id: 'IDENTITY_6F_DISPLAY', prompt: '查看電梯樓層顯示' };
 
     if (step === 'ZHOU_1F_PHOTO') {
-      return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛台上的事故前設備照片' };
+      return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛台旁牆上的事故前設備照片' };
     }
 
-    if (step === 'ZHOU_SECURITY_TALK') return { id: 'OLD_GUARD_POST', prompt: '和警衛談談老照片' };
+    if (step === 'ZHOU_SECURITY_TALK') {
+      if(index===0) return { id: 'OLD_GUARD_POST', prompt: '回警衛台詢問老照片' };
+      return { id: 'IDENTITY_GUARD_PHONE', prompt: '接聽正在響的警衛台電話' };
+    }
     if (step === 'ZHOU_2117_RETURN') return { id: 'GUARD_SIGN_2117', prompt: '查看 21:17 查哨板' };
 
     if (step === 'M6') {
@@ -345,6 +365,13 @@ export class IdentityRouteDirector {
     }
 
     this.awaitingZone = null;
+
+    if(this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1){
+      this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHOU_ER');
+      this.gameState.setFlag('PHONE_ANSWERED',false);
+      this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+    }
+
     const binding = this.bindingFor();
     if (binding.officeEntry) {
       this.renderObjective();
@@ -492,6 +519,11 @@ export class IdentityRouteDirector {
   inspect() {
     if (this.busy || this.manager.runSave.runEnded) return;
     const beat = this.beats[this.beatIndex];
+    if(this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1){
+      this.gameState.setFlag('PHONE_RING_ACTIVE',false);
+      this.gameState.setFlag('PHONE_ANSWERED',true);
+      this.gameState.setFlag('PHONE_CALL_KIND',null);
+    }
     if (!beat) return;
     document.exitPointerLock?.();
     this.controller.enabled = false;
@@ -546,7 +578,7 @@ export class IdentityRouteDirector {
       else objective='走進 316 辦公室，完成交接班';
     }else{
       objective = this.awaitingZone
-        ? `前往${zoneLabels[this.awaitingZone] || '下一個區域'}｜${ROUTE_STEPS[this.step].label}`
+        ? `前往${zoneLabels[this.awaitingZone] || '下一個區域'}｜${beat.review || beat.label || ROUTE_STEPS[this.step].label}`
         : (beat.review || beat.label);
     }
     this.uiManager.renderTaskBoard('目前任務', [
@@ -609,6 +641,7 @@ export class IdentityRouteDirector {
         this.beatIndex += 1;
         await this.placeBeat({ forceLoad: false });
       } else {
+        if(this.step==='M1') this.ensureIdentityDutyAccess();
         const nextStep = this.manager.route[this.manager.route.indexOf(this.step) + 1];
         if (!this.manager.completeRouteStep(this.step)) throw new Error('Route completion rejected');
         if (nextStep) await this.loadCurrentStep({ forceLoad: false });
