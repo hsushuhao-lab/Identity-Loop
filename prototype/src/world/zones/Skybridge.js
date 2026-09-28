@@ -1,7 +1,7 @@
 import { AccessDoor } from '../shared/AccessDoor.js';
 // Skybridge.js - Milestone M7: Enclosed Long Structural Connector Bridge
 import * as THREE from 'three';
-import { worldNarrative } from '../../story/IdentityPrivacy.js';
+import { worldNarrative, isIdentityRouteMode } from '../../story/IdentityPrivacy.js';
 import { artRoot, solid, wallTrim } from '../../art/ArtDetails.js';
 import { buildCampusBackdrop } from '../../art/CampusBackdrop.js';
 import { buildDistantNightLandscape } from '../../art/LandscapeArt.js';
@@ -257,7 +257,7 @@ export class Skybridge {
 
     // Doppelgänger appears only after the second-campus chest-pain discrepancy is resolved.
     const doubleGroup=createAnnieArt(this.zoneGroup,{materials:this.gf.materials,state:'BRIDGE_MANIFEST',position:[46,0,0],rotationY:-Math.PI/2});
-    doubleGroup.visible=gameState.getFlag('M4_CHEST_RESOLVED');
+    doubleGroup.visible=isIdentityRouteMode()?false:gameState.getFlag('M4_CHEST_RESOLVED');
     const bridgeEvent=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.5,3.2),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
     bridgeEvent.position.set(31,1.2,0);
     bridgeEvent.userData={interactable:gameState.getFlag('M4_CHEST_RESOLVED'),id:'BRIDGE_LOOP_EVENT',type:'bridge_loop_event',label:'停下來確認遠處白袍'};
