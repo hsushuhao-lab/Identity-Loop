@@ -157,6 +157,7 @@ assert.match(routeDirectorSource,/index===5\) return \{ id:'KEY_PICKUP'.*complet
 assert.match(routeDirectorSource,/freeTypes=new Set\(\['duty_log','credential_drawer_316','workstation','locker_316','key'\]\)/);
 assert.match(routeDirectorSource,/完成 316 交班（可自由操作）/);
 assert.match(uiManagerSource,/SYSTEM WARNING：CURRENT DUTY PHYSICIAN 與歷史值班索引不一致/);
+assert.match(uiManagerSource,/if\(isIdentityRouteMode\(\)\)\{[\s\S]*M1_HANDOFF_CHOICE_RESOLVED[\s\S]*commitNightHandoff/);
 assert.match(uiManagerSource,/錯誤：未插入夜間值班醫師登入卡｜終端處於待機鎖定/);
 assert.match(uiManagerSource,/我沒有密碼。登入卡應該還在這間辦公室裡/);
 assert.match(uiManagerSource,/CURRENT DUTY PHYSICIAN：PRESENT｜NAME SOURCE：NULL｜HISTORICAL POINTER：409-A／CORRUPTED/);
