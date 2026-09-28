@@ -267,7 +267,7 @@ export class FirstCampus1F {
     // Identy Loop: Zhou's second photo clue is a physical framed print on the
     // old guard desk. The glass reflection contains the photographer's partial
     // camera/hand silhouette but no readable identity label.
-    const reflectionTexture=new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}assets/identity-v03/history-reflection.png`);
+    const reflectionTexture=new THREE.TextureLoader().load(`${import.meta.env?.BASE_URL || './'}assets/identity-v03/history-reflection.png`);
     reflectionTexture.colorSpace=THREE.SRGBColorSpace;
     const reflectionFrame=new THREE.Group();
     reflectionFrame.name='IdentityGuardReflectionPhoto_Frame';
