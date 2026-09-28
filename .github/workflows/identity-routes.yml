@@ -1,7 +1,5 @@
-name: Identity v0.3 Public Routes QA
+name: Manual Identity v0.3 Public Routes QA
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
