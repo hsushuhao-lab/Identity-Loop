@@ -48,6 +48,11 @@ export class WardFloorplan {
 
     // Entrance vestibule storage room on the left, plant bay on the right.
     ordinaryRoom(this,walls,{id:'STORE_ENTRY',label:'儲藏室',rect:[o-12,0,o-7,2],side:'east',door:1,kind:'storage',protectedArea:false,storageLock:'knob'});
+
+    // Central glass nursing station. Keep the station architecture/workstations,
+    // but Identy Loop uses the workstation screen as the dialogue anchor.
+    nursingStationV5(this,{x:o,z:-4.3,id:second?'second_station':'first_station'});
+
     if(second&&this.floor===5){
       // Keep nursing interaction on the workstation screen for visual consistency.
       const nurseStationScreen=this.workstations.find(item=>item.id==='second_station_A')?.screen;
