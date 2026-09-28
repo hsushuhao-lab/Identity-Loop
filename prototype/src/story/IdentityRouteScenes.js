@@ -327,7 +327,9 @@ export function getIdentityRouteScene(step, identity) {
         ]
       }), identity==='ZHANG'
         ? '前往第二院區 1F 警衛台找咖啡'
-        : '前往第二院區 2F 監視器室查看異常')
+        : identity==='LI'
+          ? '前往第二院區 2F 警衛休息室找警衛'
+          : '前往第二院區 2F 監視器室查看異常')
     ],
     ZHANG_SECOND_CAMPUS_SECURITY: [
       event('警衛台舊相簿', [
@@ -345,15 +347,20 @@ export function getIdentityRouteScene(step, identity) {
       ], '喝完咖啡後，前往第二院區 2F CCTV 監控室', { art:'coffee', flag:'ZHANG_CCTV_HINT_RECEIVED' })
     ],
     M5: [
+      ...(identity==='LI' ? [event('警衛休息室的錄影帶', [
+        {speaker:'內心',text:'警衛不在。桌上只留著一卷舊監視錄影帶。'},
+        {speaker:'錄影帶標籤',text:'「走廊燈閃／CAM 02／天橋；異常時到隔壁 202 回放。」'},
+        {speaker:'內心',text:'所以不是只有我看到燈閃。隔壁就是監控室，先去把這卷紀錄對起來。'}
+      ], '到警衛休息室查看桌上的監視錄影帶', { flag:'LI_GUARD_LOUNGE_CCTV_CLUE_FOUND' })] : []),
       event('監視器室回放', [
         {speaker:'內心',text:'第二院區 2F 監控畫面一格一格閃爍。'},
         {speaker:'內心',text:reaction({
           ZHANG:'畫面裡確實有另一個白袍身影，而且有幾格像是同時拍到兩個值班醫師。',
-          LI:'同一段天橋路線，在兩段回放裡需要的時間完全不同。',
+          LI:'錄影帶標籤寫的 CAM 02 就是這段。同一段天橋路線，在兩段回放裡需要的時間完全不同。',
           ZHOU:'畫面總在關鍵一格跳掉。手指竟然下意識想按快門。',
           CHEN:'同一條跨院路線，畫面裡的方向和我記得的走法對不上。'
         })}
-      ], '查看第二院區 2F CCTV 監控異常', { cctvCg: identity==='ZHANG' }),
+      ], '到隔壁監控室查看錄影帶與即時回放', { cctvCg: identity==='ZHANG' }),
       ...(identity==='ZHANG' ? [event('監控室電話', [
         {speaker:'電話',text:'鈴——鈴——鈴——'},
         {speaker:'內心',text:'「監控室的電話？誰會知道我在這裡？」'},
@@ -362,10 +369,10 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'內心',text:'從這裡回第一院區，得先走過天橋。'}
       ], '接聽監控室電話，經天橋返回第一院區 2F 急診')] : []),
       event('天橋上的白袍人影', [
-        {speaker:'內心',text:'回程走到天橋中段，視線突然像被什麼扯向玻璃倒影。'},
+        {speaker:'內心',text:'走到天橋中段，視線突然被硬生生扯向玻璃倒影。滑鼠像失去控制，身體卻還在往前。'},
         {speaker:'內心',text:'白袍人影突然從後方跑進倒影裡。'},
         {speaker:'內心',text:'「不能回頭……可是我真的很想確認後面是不是有人。」'}
-      ], '保持向前，不要回頭', { bridgeChoice:true, forcedBridgeReveal:true })
+      ], '走到天橋中段；視角會被強制拉向倒影', { bridgeChoice:true, forcedBridgeReveal:true })
     ],
     ZHANG_6F_FORESHADOW: [event('電梯樓層顯示器', ['5 → 6 → 5 → 4。', '我：「……六？」', '電梯沒有開門。這一次只有樓層顯示異常。'], '記下顯示異常，等候急診來電')],
     ZHOU_1F_PHOTO: [event('檢視玻璃反射照', [
@@ -436,8 +443,10 @@ export function getIdentityRouteScene(step, identity) {
         '煙升起。防火門關閉。錯誤程序讓備援排煙失常，紀錄隨後遭到覆寫。',
         identity==='ZHANG'
           ? '終端最後指向 3F 文史館：先核對院史影像與 1998 人員檔案，再回 316。'
-          : 'OVERWRITE IN PROGRESS。CURRENT SHIFT NEXT。STOP THE OVERWRITE。RETURN TO 316。'
-      ], identity==='ZHANG'?'離開 B2，前往 3F 文史館':'讀完回放，帶著證據返回 316')
+          : identity==='LI'
+            ? 'B2 只證明四種職務都和事故有關，沒有替我決定我是誰。回三樓確認行政辦公室與文史室，再回 316。'
+            : 'OVERWRITE IN PROGRESS。CURRENT SHIFT NEXT。STOP THE OVERWRITE。RETURN TO 316。'
+      ], identity==='ZHANG'?'離開 B2，前往 3F 文史館':identity==='LI'?'離開 B2，回 3F 打開行政辦公室與文史室':'讀完回放，帶著證據返回 316')
     ],
     ZHANG_3F_ARCHIVE: [
       event('文史館院史影像牆', [
