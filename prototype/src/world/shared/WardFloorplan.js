@@ -105,40 +105,21 @@ export class WardFloorplan {
     }
 
     if(!second&&this.floor===4){
-      // Diegetic intercom mounted beside the protected nursing-station window.
-      const intercom=new THREE.Group();
-      intercom.name='Identity4F_Intercom';
-      intercom.position.set(o+5.72,1.25,-1.08);
-      const body=new THREE.Mesh(
-        new THREE.BoxGeometry(.24,.34,.08),
-        new THREE.MeshStandardMaterial({color:0x6c7470,roughness:.62,metalness:.28})
-      );
-      intercom.add(body);
-      const grille=new THREE.Mesh(
-        new THREE.CircleGeometry(.073,18),
-        new THREE.MeshStandardMaterial({color:0x252b28,roughness:.9})
-      );
-      grille.position.set(0,.055,.043);intercom.add(grille);
-      const button=new THREE.Mesh(
-        new THREE.CircleGeometry(.036,18),
-        new THREE.MeshStandardMaterial({color:0xb9aa75,roughness:.45,metalness:.15})
-      );
-      button.position.set(0,-.095,.044);intercom.add(button);
-      const hit=new THREE.Mesh(
-        new THREE.BoxGeometry(.55,.66,.38),
-        new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
-      );
-      hit.position.set(0,0,.04);
-      hit.userData={
-        interactable:true,
-        id:'IDENTITY_4F_NURSE_STATION',
-        type:'identity_nurse_station_4f',
-        label:'按下護理站對講機'
-      };
-      intercom.add(hit);
-      this.zoneGroup.add(intercom);
-      this.interactables.push(hit);
-      this.identity4FIntercom=intercom;
+      // Identity Loop uses a real nursing-station workstation as the conversation anchor.
+      // Do not create a floating intercom prop beside the station glass.
+      const stationComputer=this.workstations.find(item=>item.id==='first_station_A')?.screen;
+      if(stationComputer){
+        stationComputer.name='Identity4F_NurseStationComputer';
+        stationComputer.userData={
+          ...stationComputer.userData,
+          interactable:true,
+          id:'IDENTITY_4F_NURSE_STATION',
+          type:'identity_nurse_station_4f',
+          label:'使用護理站電腦聯絡晚班護理師'
+        };
+        this.interactables.push(stationComputer);
+        this.identity4FNurseComputer=stationComputer;
+      }
 
       // 4F temporary access set: traditional room key + temporary ward access card.
       // This is intentionally separate from the formal 316 duty credentials.
