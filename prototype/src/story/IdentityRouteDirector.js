@@ -24,6 +24,33 @@ const NAVIGATION_TYPES = new Set([
   'spare_key_316'
 ]);
 
+// During Identity Loop, exploration should remain open. Only world interactions
+// that can advance/overwrite a main story state are blocked when they are not
+// the current route target. Posters, photos, documents and ordinary props stay usable.
+const IDENTITY_STORY_CRITICAL_TYPES = new Set([
+  'identity_nurse_station_4f',
+  'identity_second_5f_nurse_station',
+  'key',
+  'duty_log',
+  'workstation',
+  'legacy_terminal_316',
+  'office_phone_316',
+  'story_phone',
+  'second_chest_patient',
+  'second_chest_transfer',
+  'security_monitor_anomaly',
+  'bridge_loop_event',
+  'floor6_stethoscope_search',
+  'floor6_stethoscope_inspect',
+  'guard_post_inspection',
+  'b2_archive_terminal',
+  'er_ghost_registration',
+  'guard_sign_2117',
+  'guard_book_2117',
+  'p1_action',
+  'identity_route_context_event'
+]);
+
 /**
  * V2 uses the original DutyNight world as the interaction surface.
  * The route director must never create a visible generic "quest card" in front
@@ -245,14 +272,14 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M2') {
-      if (index === 0) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: identity==='ZHANG'?'向護理站借查房備用鑰匙':'和護理站護理師說話' };
-      if (index === 1) return { id: 'IDENTITY_403_PATIENT', prompt: '詢問 403 病人今晚狀況' };
-      if (index === 2) return { id: '408C_BED_PLAQUE', prompt: '查看 408C 並詢問敲牆聲' };
-      if (index === 3) return { id: 'BED33_409_SEALED', prompt: '靠近 409 確認敲擊來源' };
-      if (index === 4) return { id: 'BED33_BOARD', prompt: '核對 4F 晚間床位板' };
-      if (index === 5) return { id: 'BED33_HIS_409', prompt: '核對 409 HIS 狀態列印' };
-      if (index === 6) return { id: 'BED33_ASSIGNMENT', prompt: '核對 409-A／Bed 33 臨時住院單' };
-      if (identity === 'ZHANG' && index === 7) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: '把護理站備用鑰匙歸還' };
+      if (index === 0) return {
+        id: 'IDENTITY_4F_NURSE_STATION',
+        prompt: identity==='ZHANG'
+          ? '和護理師說話，領取 4F 備用鑰匙與臨時感應卡'
+          : '和護理師確認 408C 狀況'
+      };
+      if (index === 1) return { id: '408C_BED_PLAQUE', prompt: '到 408C 確認敲牆聲' };
+      if (index === 2) return { id: 'BED33_409_SEALED', prompt: '確認 409 封閉房與敲擊來源' };
     }
 
     if (step === 'M3') {
@@ -540,7 +567,8 @@ export class IdentityRouteDirector {
 
   allowWorldInteraction(interactable) {
     const data = interactable?.userData || interactable;
-    return NAVIGATION_TYPES.has(data?.type);
+    if (NAVIGATION_TYPES.has(data?.type)) return true;
+    return !IDENTITY_STORY_CRITICAL_TYPES.has(data?.type);
   }
 
   dialogueLines(beat) {
@@ -680,6 +708,9 @@ export class IdentityRouteDirector {
 
     try {
       if (beat.flag) this.gameState.setFlag(beat.flag, true);
+      if(this.step==='M2'&&this.beatIndex===0&&this.manager.currentIdentity==='ZHANG'){
+        this.gameState.setFlag('IDENTITY_4F_TEMP_ACCESS_CARD',true);
+      }
       if (beat.clearFlag) this.gameState.setFlag(beat.clearFlag, false);
       if (beat.flag==='ZHANG_4F_SPARE_KEY_BORROWED' || beat.clearFlag==='ZHANG_4F_SPARE_KEY_BORROWED') {
         this.worldRouter.activeZoneInstance?.setIdentityWardSpareKeyBorrowed?.(
