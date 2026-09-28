@@ -838,9 +838,20 @@ controller.onInteract = async (interactable) => {
       controller.currentInteractable=null;uiManager.showPrompt(null);
       return;
     }
-    if (!gameState.isTaskComplete('KEY_PICKUP')) {
+    const borrowedWardSpareKey=
+      identityLoopMode &&
+      worldRouter.activeZoneId==='first_campus_4f' &&
+      gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED') &&
+      /^room_40[1-8]$/.test(interactable.doorId||'');
+    if (!gameState.isTaskComplete('KEY_PICKUP') && !borrowedWardSpareKey) {
       soundManager.playClick();
-      uiManager.showSubtitle('值班醫師','「這是傳統喇叭鎖，先去 316 拿值班室鑰匙與感應卡。」',3000);
+      uiManager.showSubtitle(
+        '值班醫師',
+        identityLoopMode&&worldRouter.activeZoneId==='first_campus_4f'
+          ? '「病房門是傳統喇叭鎖。先回護理站借查房用的備用鑰匙。」'
+          : '「這是傳統喇叭鎖，先去 316 拿值班室鑰匙與感應卡。」',
+        3000
+      );
       return;
     }
     const zone=worldRouter.activeZoneInstance;
