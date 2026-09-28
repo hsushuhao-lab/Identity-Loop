@@ -319,6 +319,71 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playIntercomBurst() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const click=this.ctx.createOscillator(),clickGain=this.ctx.createGain();
+      click.type='square';click.frequency.setValueAtTime(1450,now);
+      clickGain.gain.setValueAtTime(.07,now);clickGain.gain.exponentialRampToValueAtTime(.001,now+.045);
+      click.connect(clickGain);clickGain.connect(this.ctx.destination);click.start(now);click.stop(now+.05);
+
+      const length=Math.floor(this.ctx.sampleRate*.42);
+      const buffer=this.ctx.createBuffer(1,length,this.ctx.sampleRate);
+      const data=buffer.getChannelData(0);
+      for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(.42*(1-i/length));
+      const noise=this.ctx.createBufferSource();noise.buffer=buffer;
+      const filter=this.ctx.createBiquadFilter();filter.type='bandpass';filter.frequency.value=1650;filter.Q.value=.75;
+      const gain=this.ctx.createGain();gain.gain.setValueAtTime(.001,now+.035);gain.gain.linearRampToValueAtTime(.065,now+.06);gain.gain.exponentialRampToValueAtTime(.001,now+.42);
+      noise.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);noise.start(now+.035);noise.stop(now+.45);
+    }catch(e){}
+  }
+
+  playElevatorCableScrape() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+      osc.type='sawtooth';osc.frequency.setValueAtTime(118,now);osc.frequency.linearRampToValueAtTime(72,now+.7);
+      filter.type='bandpass';filter.frequency.value=720;filter.Q.value=.55;
+      gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(.12,now+.09);gain.gain.exponentialRampToValueAtTime(.001,now+.9);
+      osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);osc.start(now);osc.stop(now+.92);
+    }catch(e){}
+  }
+
+  playAmbuBagBurst() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const puff=(t)=>{
+        const length=Math.floor(this.ctx.sampleRate*.24);
+        const buffer=this.ctx.createBuffer(1,length,this.ctx.sampleRate);
+        const data=buffer.getChannelData(0);
+        for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/length);
+        const source=this.ctx.createBufferSource();source.buffer=buffer;
+        const filter=this.ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=580;
+        const gain=this.ctx.createGain();gain.gain.setValueAtTime(.001,t);gain.gain.linearRampToValueAtTime(.065,t+.04);gain.gain.exponentialRampToValueAtTime(.001,t+.23);
+        source.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);source.start(t);source.stop(t+.25);
+      };
+      puff(now);puff(now+.42);
+    }catch(e){}
+  }
+
+  playVentilationCollapse() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const length=Math.floor(this.ctx.sampleRate*1.2);
+      const buffer=this.ctx.createBuffer(1,length,this.ctx.sampleRate);
+      const data=buffer.getChannelData(0);
+      for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(1-i/length);
+      const source=this.ctx.createBufferSource();source.buffer=buffer;
+      const filter=this.ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.setValueAtTime(900,now);filter.frequency.exponentialRampToValueAtTime(120,now+1.0);
+      const gain=this.ctx.createGain();gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(.22,now+.08);gain.gain.exponentialRampToValueAtTime(.001,now+1.15);
+      source.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);source.start(now);source.stop(now+1.2);
+    }catch(e){}
+  }
+
   playClick() {
     if (!this.ctx || this.isMuted) return;
     try {
