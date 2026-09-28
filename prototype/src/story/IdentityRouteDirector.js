@@ -902,16 +902,23 @@ export class IdentityRouteDirector {
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
       if(beat.glimpse6f){
+        void soundManager.ensureRunning().then(ready=>{
+          if(!ready)return;
+          soundManager.playElevatorCableScrape();
+          setTimeout(()=>soundManager.playAmbuBagBurst(),260);
+        });
+        document.body.classList.add('his-flicker');
+        setTimeout(()=>document.body.classList.remove('his-flicker'),420);
         const sequence={
           id:'ZHANG_6F_GLIMPSE',
           title:'3F → 8F 電梯｜6F 一閃',
           mode:'CCTV',
           source:'ELEVATOR MEMORY / TRANSIENT FRAME',
           frames:[
-            {stamp:'05 → 06',title:'樓層顯示停頓',caption:'數字「6」比其他樓層多停了不到一秒。',narration:'電梯沒有正式停靠，門縫卻像被撬開一線。'},
-            {stamp:'06 / 0.4 SEC',title:'臨床技能中心',caption:'褪色門牌、CPR 人偶、教學床架。',narration:'這不是病房。像是一間早就停用的臨床技能訓練中心。'},
+            {stamp:'05 → 06',title:'樓層顯示停頓',caption:'數字「6」比其他樓層多停了不到一秒；指示燈由綠色短暫跳成紫色。',narration:'鋼索傳來刺耳摩擦聲。電梯沒有正式停靠，門縫卻像被撬開一線。'},
+            {stamp:'06 / 0.4 SEC',title:'臨床技能中心',caption:'褪色門牌、CPR 人偶、教學床架；門縫裡傳來兩下 Ambu Bag 般的「噗嗤——噗嗤——」。',narration:'這不是病房。像是一間早就停用的臨床技能訓練中心。'},
             {stamp:'06 / 0.7 SEC',title:'白袍背影',caption:'畫面最深處有一個背對電梯的人影。',narration:'還沒看清楚，門就重新合上。'},
-            {stamp:'07 → 08',title:'電梯恢復',caption:'樓層顯示恢復正常。',narration:'八樓到了。剛才那一幕像從沒發生。'}
+            {stamp:'07 → 08',title:'電梯恢復',caption:'樓層顯示恢復正常。',narration:'八樓到了。……我們醫院有 6 樓嗎？剛才那一幕像從沒發生。'}
           ]
         };
         this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:720,hold:650});
