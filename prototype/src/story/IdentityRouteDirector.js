@@ -186,6 +186,8 @@ export class IdentityRouteDirector {
     this.gameState.setFlag('FOUND_316_SPARE_KEY', true);
     this.gameState.setFlag('OPENED_316', true);
     this.gameState.setFlag('STAFF_ACCESS_CARD', true);
+    this.gameState.setFlag('ZHANG_4F_SPARE_KEY_BORROWED', false);
+    this.gameState.setFlag('IDENTITY_4F_TEMP_ACCESS_CARD', false);
     for(const task of ['KEY_PICKUP','DUTY_LOG','E_HANDOFF']){
       if(!this.gameState.isTaskComplete(task)) this.gameState.markTaskComplete(task);
     }
