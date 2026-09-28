@@ -408,9 +408,16 @@ function activateB2OverwriteRoute(){
   gameState.setFlag('CHEN_B1_DISPATCH_ACCESS',chenDispatchRoute);
   if(zhangIdentityRoute)gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
   persistentMemory.resolveLegend('lastCall');
+  const postB2Objective=identity==='CHEN'
+    ? 'B2 後沿地下後勤線進入 B1 救護車接駁調度室，完成跨院程序性身分核對。'
+    : identity==='ZHANG'
+      ? 'B2 後前往 3F 文史館，在 04:09 核銷前取得最後歷史拼圖。'
+      : identity==='LI'
+        ? 'B2 後回 3F 行政辦公室與文史室交叉核對，再返回 316。'
+        : '離開 B2 後依目前身分路線繼續完成最後核對。';
   persistentMemory.addJournalNote(
     'B2_FIRE_RECAP',
-    'B2 封存終端重播 1998 火災：02:17 的錯誤程序使防火門與備援排煙失常；八名罹難者的最後位置重新對上。回放結束時，一個 UNKNOWN SESSION 正在再次覆寫這些紀錄。必須返回 316，以正確權限阻止覆寫。'
+    `B2 封存終端重播 1998 火災：02:17 的錯誤程序使防火門與備援排煙失常；八名罹難者的最後位置重新對上。回放結束時，一個 UNKNOWN SESSION 正在再次覆寫這些紀錄。${postB2Objective}`
   );
   uiManager.updateTasks();
 }
@@ -1445,10 +1452,15 @@ controller.onInteract = async (interactable) => {
           'B2 身分矩陣尚未完整重建，但火災回放已證明紀錄正在被重新覆寫。B2 關閉後直接返回 316，以已掌握的正確權限進行最後驗證。'
         );
       }else{
-        persistentMemory.addJournalNote(
-          'B2_EXIT_RESOLVED',
-          'B2 身分矩陣與火災回放均已完成。封存層永久關閉；返回 316 阻止 UNKNOWN SESSION 繼續覆寫。'
-        );
+        const exitIdentity=identityLoopMode?identityManager?.currentIdentity:null;
+        const nextEvidence=exitIdentity==='CHEN'
+          ? '封存層永久關閉；地下後勤路線仍通往 B1 救護車接駁調度室。'
+          : exitIdentity==='ZHANG'
+            ? '封存層永久關閉；前往 3F 文史館，在系統核銷前完成最後歷史核對。'
+            : exitIdentity==='LI'
+              ? '封存層永久關閉；回 3F 行政辦公室與文史室取得兩個獨立來源。'
+              : '封存層永久關閉；繼續目前身分路線的最後核對。';
+        persistentMemory.addJournalNote('B2_EXIT_RESOLVED',`B2 火災回放已完成。${nextEvidence}`);
       }
 
       const finishLeavingB2=async()=>{
