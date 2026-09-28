@@ -36,8 +36,8 @@ assert.match(ward,/CHEN_GREY_BADGE/);
 assert.match(ward,/CHEN_5F_DUTY_PHONE/);
 assert.match(ward,/CHEN_WHEELCHAIR/);
 assert.match(ward,/pushChenWheelchair/);
-assert.match(ward,/SecondCampus_TransferMedicalOrder/);
-assert.match(ward,/查看 409-A 醫囑單/);
+assert.match(ward,/id:'SECOND_CHEST_TRANSFER'.*label:'查看 409-A 轉送醫囑單'/);
+assert.match(ward,/查看 409-A 轉送醫囑單/);
 
 assert.match(ui,/openChen5042Lockbox/);
 assert.match(ui,/value!=='5042'/);
@@ -84,10 +84,10 @@ assert.equal(victimMap.includes('陳柏勳'),false);
 assert.equal(victimMap.includes('MED-89••••'),true);
 assert.match(scenes,/MED-89••••／第二院區支援醫師／最後位置：空中天橋/);
 
-assert.match(scenes,/409-A 醫囑單/);
-assert.doesNotMatch(scenes,/409-A 轉送醫囑單/);
+assert.match(scenes,/409-A 轉送醫囑單/);
+assert.doesNotMatch(scenes,/409-A 醫囑單/);
 assert.doesNotMatch(scenes,/轉院單/);
-assert.match(director,/第二院區｜409-A 醫囑單/);
+assert.match(director,/第二院區｜409-A 轉送醫囑單/);
 assert.match(endings,/THE TRANSFER/);
 assert.match(endings,/我是支援醫師陳柏勳/);
 assert.match(endings,/撤銷所有轉入 409-A 的轉送/);
