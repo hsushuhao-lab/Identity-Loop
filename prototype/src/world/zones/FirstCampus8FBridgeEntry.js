@@ -169,6 +169,35 @@ export class FirstCampus8FBridgeEntry {
     for(const x of [5,12,18])solid(art,this.gf.materials.lightWarm,[x,3.10,0],[1.2,.04,.35]);
     // Keep the 8F transfer lobby and bridge approach clear of loose seating/furniture.
     asset(art,'plant',[-10.5,0,-2.7]);
+
+    // Identy Loop: Zhou's opening clue is a real wall-mounted archival group photo,
+    // not a route-generated quest card. The photographer remains outside the frame.
+    const historyTexture=new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}assets/identity-v03/history-group.png`);
+    historyTexture.colorSpace=THREE.SRGBColorSpace;
+    const historyFrame=new THREE.Group();
+    historyFrame.name='IdentityHistoryGroupPhoto_Frame';
+    historyFrame.position.set(19.78,1.62,0);
+    historyFrame.rotation.y=-Math.PI/2;
+    const historyBacking=new THREE.Mesh(
+      new THREE.BoxGeometry(2.62,1.82,.055),
+      new THREE.MeshStandardMaterial({color:0x2a2118,roughness:.78})
+    );
+    historyFrame.add(historyBacking);
+    const historyPhoto=new THREE.Mesh(
+      new THREE.PlaneGeometry(2.48,1.65),
+      new THREE.MeshBasicMaterial({map:historyTexture,toneMapped:false})
+    );
+    historyPhoto.position.z=-.031;
+    historyPhoto.name='IdentityHistoryGroupPhoto';
+    historyPhoto.userData={
+      interactable:true,
+      id:'IDENTITY_HISTORY_GROUP_PHOTO',
+      type:'identity_photo',
+      label:'查看院史長廊大型合照'
+    };
+    historyFrame.add(historyPhoto);
+    this.zoneGroup.add(historyFrame);
+    this.interactables.push(historyPhoto);
     const oldBridgeDoor=this.zoneGroup.getObjectByName('Doorway_0_0');
     for(const leaf of oldBridgeDoor.children)if(leaf.geometry?.parameters.height===2.35||leaf.geometry?.parameters.height===2.45)leaf.visible=false;
     new AccessDoor(this,{id:'BRIDGE_ACCESS',x:0,z:0,yaw:Math.PI/2,width:2.4,title:'天橋感應門',portal:'bridge_from_first'});
