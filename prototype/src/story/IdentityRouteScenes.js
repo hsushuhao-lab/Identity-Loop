@@ -159,30 +159,83 @@ export function getIdentityRouteScene(step, identity) {
       ], '回 316，用舊終端查 1998-ER-0217')
     ],
     M4: [
-      event('504B 胸痛紀錄', reaction({
+      event('第二院區 5F 護理站報到', reaction({
         ZHANG:[
-          {speaker:'第二院區護理師',text:'「504B 胸悶、心悸，剛才呼吸很快。」'},
-          {speaker:'值班醫師',text:'「先看病人，不要先看那張轉院單。」'},
+          {speaker:'第二院區護理師',text:'「醫師，504B 胸悶、心悸，剛才呼吸很快。」'},
+          {speaker:'值班醫師',text:'「我有正式值班鑰匙，先進去看病人。」'}
+        ],
+        LI:[
+          {speaker:'第二院區護理師',text:'「醫師，504B 胸痛會診。」'},
+          {speaker:'值班醫師',text:'「我有值班鑰匙。生命徵象、心電圖、目前用藥先給我。」'},
+          {speaker:'第二院區護理師',text:'「都在床邊。」'}
+        ],
+        ZHOU:[
+          {speaker:'第二院區護理師',text:'「醫師你來了——等等，你不是還沒正式交班嗎？」'},
+          {speaker:'值班醫師',text:'「病人先處理。」'},
+          {speaker:'第二院區護理師',text:'「你身上沒有正式值班鑰匙吧？先拿這串會診備用鑰匙，只開 504。看完病人記得還我。」'},
+          {speaker:'值班醫師',text:'「好。」'}
+        ],
+        CHEN:[
+          {speaker:'第二院區護理師',text:'「504B 又喘起來了。你還沒正式交班，先拿護理站這串會診備用鑰匙。」'},
+          {speaker:'值班醫師',text:'「504？」'},
+          {speaker:'第二院區護理師',text:'「對，只開 504。處理完就還回來。」'},
+          {speaker:'內心',text:'她說得像這不是第一次借給我。'}
+        ]
+      }), (identity==='ZHOU'||identity==='CHEN')?'向 5F 護理站借會診備用鑰匙':'完成 5F 護理站報到', {
+        flag:(identity==='ZHOU'||identity==='CHEN')?'SECOND_5F_CONSULT_KEY_BORROWED':null
+      }),
+      event('504B 胸痛評估', reaction({
+        ZHANG:[
           {speaker:'504B 病人',text:'「醫師，我是不是心臟有問題？」'},
           {speaker:'值班醫師',text:'「先慢慢呼吸，我們先把危險原因排除。」'}
         ],
         LI:[
-          {speaker:'第二院區護理師',text:'「醫師，504B 胸痛會診。」'},
-          {speaker:'值班醫師',text:'「生命徵象、心電圖、目前用藥先給我。」'},
-          {speaker:'第二院區護理師',text:'「都在床邊。」'}
+          {speaker:'值班醫師',text:'「先量生命徵象，心電圖我看一下。」'},
+          {speaker:'504B 病人',text:'「我胸口一直悶。」'}
         ],
         ZHOU:[
-          {speaker:'第二院區護理師',text:'「醫師你來了——等等，你不是還沒接班嗎？」'},
-          {speaker:'值班醫師',text:'「病人先處理。」'},
-          {speaker:'第二院區護理師',text:'「你們今天到底怎麼回事……504B 在裡面。」'}
+          {speaker:'504B 病人',text:'「醫師，我是不是很嚴重？」'},
+          {speaker:'值班醫師',text:'「我先確認你的狀況。其他事情等一下再說。」'}
         ],
         CHEN:[
-          {speaker:'第二院區護理師',text:'「504B 又喘起來了，床邊資料都在原位。」'},
+          {speaker:'第二院區護理師',text:'「床邊資料都在原位。」'},
           {speaker:'值班醫師',text:'「好，我先看她。」'},
-          {speaker:'內心',text:'她沒有問我是誰。這裡的路、床位、護理站位置也都熟得不合理。'}
+          {speaker:'內心',text:'房間配置、床位、器材位置熟得不合理。'}
         ]
       }), '完成 504B 床邊評估'),
-      event('核對預填轉院單', ['病人尚未完成身分核對，轉院單卻已填好「409-A」。目的地早於評估出現。', reaction({ ZHANG: '我拒絕把預填的目的地當作病人身分。「先確認他是誰。」', LI: '表格看起來完整，流程卻跳過了本人核對。簽章不是證明。', ZHOU: '我想把這張單子的時間與影像對照。究竟是誰先寫好了目的地？', CHEN: '轉送單與我熟悉的路線吻合。我知道下一步去哪裡，卻還沒確認方向是否正確。' })], '覆核 409-A 轉送矛盾')
+      event('核對預填轉院單', [
+        {speaker:'第二院區護理師',text:'「病人穩定一些了。這張轉院單已經先印出來。」'},
+        {speaker:'內心',text:'病人尚未完成身分核對，轉院單卻已填好「409-A」。目的地早於評估出現。'},
+        {speaker:'值班醫師',text:reaction({
+          ZHANG:'「先確認病人身分與目的地，這張不能直接簽。」',
+          LI:'「表格完整不代表流程正確。這份先暫停。」',
+          ZHOU:'「這張單的時間，我要和剛才看到的影像對一下。」',
+          CHEN:'「……409-A。為什麼這個目的地這麼熟？」'
+        })}
+      ], '覆核 409-A 預填轉院單'),
+      event('回 5F 護理站交代', reaction({
+        ZHANG:[
+          {speaker:'值班醫師',text:'「504B 已評估，409-A 轉院單先不要執行。」'},
+          {speaker:'第二院區護理師',text:'「收到。」'}
+        ],
+        LI:[
+          {speaker:'值班醫師',text:'「病人先留觀，轉院單暫停。」'},
+          {speaker:'第二院區護理師',text:'「好。」'}
+        ],
+        ZHOU:[
+          {speaker:'第二院區護理師',text:'「備用鑰匙先還我。」'},
+          {speaker:'值班醫師',text:'「504B 已評估，409-A 那張先不要送。」'},
+          {speaker:'第二院區護理師',text:'「好。你還是先回去把正式交班補完吧。」'}
+        ],
+        CHEN:[
+          {speaker:'第二院區護理師',text:'「會診鑰匙。」'},
+          {speaker:'值班醫師',text:'「給妳。504B 先留在這裡，不轉 409-A。」'},
+          {speaker:'第二院區護理師',text:'「知道了。」'},
+          {speaker:'內心',text:'把鑰匙交回去時，手竟然知道它平常放在護理站哪一格。'}
+        ]
+      }), (identity==='ZHOU'||identity==='CHEN')?'歸還 5F 會診備用鑰匙':'向護理站交代 504B 處置', {
+        clearFlag:(identity==='ZHOU'||identity==='CHEN')?'SECOND_5F_CONSULT_KEY_BORROWED':null
+      })
     ],
     ZHANG_SECOND_CAMPUS_SECURITY: [
       event('警衛桌的黑咖啡', ['我：「……我記得一樓警衛都會泡咖啡。我為什麼會記得這種事？」', '老式警衛桌上有保溫杯、即溶咖啡、訪客簿、院區往返紀錄與舊照片。', '警衛：「醫師，要出去？」我：「借杯咖啡。」', '警衛笑：「你們值班醫師都一樣。」我：「以前也是？」', '警衛翻舊簿：「以前有一個更誇張。每次經過都喝黑的。糖跟奶精碰都不碰。」', '我看向黑咖啡，短暫感到熟悉。'], '查看不加糖奶的黑咖啡', { art: 'coffee' }),
@@ -248,7 +301,12 @@ export function getIdentityRouteScene(step, identity) {
       { spawn: 'm3_4f_nursing_station' }
     ],
     M3: [{ spawn: 'm4_2f_er_triage' }, { spawn: 'm4_2f_er_bays' }, { zoneId: 'first_campus_3f', spawn: 'm0_316_office' }],
-    M4: [{ room: '504', bed: '504B' }, { room: '504', bed: '504B' }],
+    M4: [
+      { zoneId:'second_campus_5f', spawn:'second_5f_lift' },
+      { room:'504', bed:'504B' },
+      { zoneId:'second_campus_5f', spawn:'second_5f_lift' },
+      { zoneId:'second_campus_5f', spawn:'second_5f_lift' }
+    ],
     M5: [{ zoneId: 'second_campus_2f', spawn: 'm9_second_campus_2f', room: '202', yaw: 0 }, { zoneId: 'skybridge', spawn: 'bridge_from_second' }]
   };
   scenes[step].forEach((beat, index) => Object.assign(beat, locations[step]?.[index]));
