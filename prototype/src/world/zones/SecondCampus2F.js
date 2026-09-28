@@ -84,7 +84,7 @@ export class SecondCampus2F {
         );
         cctvDeskHit.position.set(x-1.0,1.22,-8.72);
         cctvDeskHit.userData={
-          interactable:false,
+          interactable:gameState.getFlag('ZHANG_CCTV_HINT_RECEIVED')===true,
           id:'SECOND_2F_CCTV_DESK',
           type:'security_monitor_anomaly',
           label:'使用桌上監控電腦'
