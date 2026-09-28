@@ -1,6 +1,6 @@
 export const IDENTITY_ROUTES=Object.freeze({
   ZHANG:Object.freeze(['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9']),
-  LI:Object.freeze(['M1','M2','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9']),
+  LI:Object.freeze(['M1','M2','LI_DUTY_CALL_2000','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9']),
   ZHOU:Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']),
   CHEN:Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9'])
 });
@@ -13,7 +13,8 @@ export const ROUTE_STEPS=Object.freeze({
   ZHANG_OUTBOUND_8F:{zoneId:'first_campus_8f',spawn:'first_8f_lift',label:'八樓天橋前往第二院區',time:null},
   M2:{zoneId:'first_campus_4f',spawn:'m3_4f_nursing_station',label:'病房查房',time:null},
   M3:{zoneId:'first_campus_2f',spawn:'m4_2f_er_arrival',label:'急診會診',time:null},
-  LI_ER_2005:{zoneId:'first_campus_2f',spawn:'m4_2f_er_bays',label:'急診身分核對',time:'20:05'},
+  LI_DUTY_CALL_2000:{zoneId:'first_campus_4f',spawn:'m2_4f_duty_room',label:'值班室休息',time:'20:00'},
+  LI_ER_2005:{zoneId:'first_campus_2f',spawn:'m4_2f_er_bays',label:'急診新病人',time:'20:05'},
   LI_RETURN_DUTY_2117:{zoneId:'first_campus_4f',spawn:'m2_4f_duty_room',label:'回值班室',time:'21:15'},
   LI_2117_PATROL:{zoneId:'first_campus_3f',spawn:'m0_3f_corridor',label:'三樓查哨',time:'21:17'},
   LI_RETURN_DUTY_0033:{zoneId:'first_campus_4f',spawn:'m2_4f_duty_room',label:'00:33 急診來電',time:'00:30'},
