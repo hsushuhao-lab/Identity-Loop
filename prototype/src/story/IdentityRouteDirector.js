@@ -289,6 +289,7 @@ export class IdentityRouteDirector {
       if(index===3) return { type:'workstation', prompt:'使用 316 HIS 工作站完成電子交班', passthrough:true, completeTask:'E_HANDOFF' };
       if(index===4) return { type:'locker_316', prompt:'在電子櫃輸入 1700 解鎖', passthrough:true, completeFlag:'LOCKER_OPENED' };
       if(index===5) return { id:'KEY_PICKUP', prompt:'從電子櫃內拿取正式值班鑰匙與感應卡', passthrough:true, completeTask:'KEY_PICKUP' };
+      if(identity==='ZHANG'&&index===6) return { id:'316_PHONE', prompt:'接聽正在響的 316 電話' };
     }
 
     if (step === 'M2') {
@@ -333,14 +334,16 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'ZHANG_SECOND_CAMPUS_SECURITY') {
-      return index === 0
-        ? { id: 'IDENTITY_SECOND_GUARD_COFFEE', prompt: '查看警衛桌上的黑咖啡' }
-        : { id: 'IDENTITY_SECOND_GUARD_LOGBOOK', prompt: '翻閱警衛訪客簿' };
+      return { id:'IDENTITY_SECOND_GUARD_COFFEE', prompt:'到一樓警衛台喝咖啡並詢問監控異常' };
     }
 
     if (step === 'M5') {
-      if (index === 0) return { id: 'SECOND_2F_CCTV_SELF', prompt: '查看第二院區監視畫面' };
-      if (index === 1) return { id: 'BRIDGE_LOOP_EVENT', prompt: '走到天橋中段，確認異常回聲與白袍人影' };
+      if(index===0) return { id:'SECOND_2F_CCTV_SELF', prompt:'查看第二院區監視畫面' };
+      if(identity==='ZHANG'){
+        if(index===1) return { id:'IDENTITY_SECOND_2F_CCTV_PHONE', prompt:'接聽正在響的監控室電話' };
+        if(index===2) return { id:'BRIDGE_LOOP_EVENT', prompt:'經天橋返回第一院區，留意白袍人影' };
+      }
+      if(index===1) return { id:'BRIDGE_LOOP_EVENT', prompt:'走到天橋中段，確認異常回聲與白袍人影' };
     }
 
     if (step === 'ZHANG_6F_FORESHADOW') return { id: 'IDENTITY_6F_DISPLAY', prompt: '查看電梯樓層顯示' };
@@ -464,6 +467,16 @@ export class IdentityRouteDirector {
 
     if(this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1){
       this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHOU_ER');
+      this.gameState.setFlag('PHONE_ANSWERED',false);
+      this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+    }
+    if(this.step==='M1'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===6){
+      this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHANG_SECOND_CAMPUS');
+      this.gameState.setFlag('PHONE_ANSWERED',false);
+      this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+    }
+    if(this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1){
+      this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHANG_ER_FROM_CCTV');
       this.gameState.setFlag('PHONE_ANSWERED',false);
       this.gameState.setFlag('PHONE_RING_ACTIVE',true);
     }
@@ -626,7 +639,11 @@ export class IdentityRouteDirector {
   inspect() {
     if (this.busy || this.manager.runSave.runEnded) return;
     const beat = this.beats[this.beatIndex];
-    if(this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1){
+    if(
+      (this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1) ||
+      (this.step==='M1'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===6) ||
+      (this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1)
+    ){
       this.gameState.setFlag('PHONE_RING_ACTIVE',false);
       this.gameState.setFlag('PHONE_ANSWERED',true);
       this.gameState.setFlag('PHONE_CALL_KIND',null);
