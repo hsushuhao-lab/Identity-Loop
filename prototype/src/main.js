@@ -178,7 +178,7 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
     M2_BED33_APPROVAL_PATIENTIZATION:'你把不存在的 Bed 33／409-A 正式寫回收治流程。',
     ER_UNVERIFIED_RECORD_PATIENTIZATION:'你在身分未核對前建立了新的無名病歷。',
     ER0033_DUPLICATE_RECORD_PATIENTIZATION:'現場沒有病人，你卻讓異常舊紀錄製造出新的無名病歷。',
-    M4_409A_ORDER_PATIENTIZATION:'你簽下了來源未核對、目的地卻已預填 409-A 的轉院單。',
+    M4_409A_ORDER_PATIENTIZATION:'你簽下了來源未核對、卻已預填「轉入 409-A」的醫囑單。',
     BRIDGE_LOOKBACK_PATIENTIZATION:'你在天橋上回頭確認了不該被確認的人影。',
     BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION:'你已選擇不回頭，卻在離開天橋前再次轉身。',
     M7_HISTORICAL_PROCEDURE_PATIENTIZATION:'你照著熟悉的舊程序重演了 1 → 3 → 4。',
@@ -1564,7 +1564,7 @@ controller.onInteract = async (interactable) => {
     }else uiManager.showSubtitle('陳怡君','「胸口好多了，謝謝醫師。」',2800);
   } else if (interactable.type === 'second_chest_roster_clue') {
     if(!gameState.getFlag('M4_CHEST_RESOLVED')){
-      uiManager.showSubtitle('值班醫師','「先完成病人評估與轉院單查核，再看這張舊名冊。」',2800);
+      uiManager.showSubtitle('值班醫師','「先完成病人評估與醫囑單查核，再看這張舊名冊。」',2800);
       return;
     }
     if(!gameState.getFlag('M4_NAME_CLUE_FOUND')){
@@ -1609,7 +1609,7 @@ controller.onInteract = async (interactable) => {
       return;
     }
     if(gameState.getFlag('M4_CHEST_RESOLVED')){
-      uiManager.showSubtitle('值班醫師','「這張轉院單目的地是第一院區 409A，而且已經有我的名字。」',3000);
+      uiManager.showSubtitle('值班醫師','「這張醫囑單已經預填「轉入第一院區 409A」，而且已經有我的名字。」',3000);
       return;
     }
     controller.enabled=false;
@@ -1617,20 +1617,20 @@ controller.onInteract = async (interactable) => {
       title:'第二院區｜病人處置醫囑',
       body:`陳怡君，主訴胸悶與心悸。生命徵象穩定，心電圖沒有急性變化；評估符合焦慮伴隨換氣過度。
 
-重新核對病人後才發現，這份「病人處置醫囑」的第二頁其實是已填妥的轉院單：目的地「第一院區 409A」，預審醫師「李承禮 MED-820316」。
+重新核對病人後才發現，這份「病人處置醫囑」已事先填妥「轉入第一院區 409A」，預審醫師「李承禮 MED-820316」。
 
 護理師：「醫師你剛剛開好了，現在簽名就好。」
 
 值班醫師（低聲）：「李承禮醫師？我剛剛也有這張醫囑單嗎？」`,
       primaryText:'補上簽名',
       secondaryText:'拒絕簽署並重新查核',
-      onPrimary:()=>loopManager.triggerLegendOverride('CHEST',{legend:'LEGEND 03 — 事先填妥的轉院單',reason:'轉院目的地是 409A。'}),
+      onPrimary:()=>loopManager.triggerLegendOverride('CHEST',{legend:'LEGEND 03 — 事先填妥的 409-A 醫囑',reason:'醫囑已預填轉入 409A。'}),
       onSecondary:()=>{
         gameState.setGameTime('01:45');
         gameState.setFlag('M4_CHEST_RESOLVED',true);
         gameState.setFlag('CHEST_RECORD_MATCH',true);
         persistentMemory.resolveLegend('chestPain');
-        persistentMemory.addJournalNote('CHEST_RESOLVED','焦慮引起的胸悶已改善；轉院單卻事先填妥第一院區 409A，並留有「李○○」簽名。');
+        persistentMemory.addJournalNote('CHEST_RESOLVED','焦慮引起的胸悶已改善；醫囑單卻事先填妥「轉入第一院區 409A」，並留有「李○○」簽名。');
         persistentMemory.raiseErosion(1);
         uiManager.showSubtitle('第二院區護理師','「這張單明明有李承禮的預審章……你又說 409-A 根本不能收治。」',4400);
         controller.enabled=true;
