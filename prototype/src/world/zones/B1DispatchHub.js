@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { solid, asset } from '../../art/ArtDetails.js';
 import { disposeZoneArt } from '../../art/ArtResources.js';
 import { SignAnchor } from '../shared/SignAnchor.js';
+import { gameState } from '../../core/GameState.js';
 
 export class B1DispatchHub {
   constructor(scene,geometryFactory){
