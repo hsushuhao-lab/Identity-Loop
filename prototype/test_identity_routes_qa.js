@@ -7,7 +7,7 @@ import { runInNewContext } from 'node:vm';
 import { anonymousNarrative, worldNarrative } from './src/story/IdentityPrivacy.js';
 import { drawCharacterStrip } from './src/art/CharacterPortraitArt.js';
 const expected={
-  ZHANG:['ZHANG_OPEN_4F','M2','M1','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','M8','M9'],
+  ZHANG:['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9'],
   LI:['M1','M2','M3','M4','M5','M6','M7','B2','M8','M9'],
   ZHOU:['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'],
   CHEN:['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9']
@@ -149,23 +149,41 @@ assert.match(routeDirectorSource,/bindingCompletionReady/);
 assert.match(routeDirectorSource,/setIdentityDutyItemsVisible/);
 assert.match(routeSceneSource,/316 電話/);
 assert.match(routeSceneSource,/奇怪……大家不是都走了？怎麼這時候還有人打 316/);
+assert.match(routeSceneSource,/醫師請你走八樓天橋過來第二院區，門禁已打開/);
+assert.match(routeSceneSource,/ZHANG_OUTBOUND_8F/);
+assert.match(routeSceneSource,/glimpse6f:true/);
 assert.match(routeSceneSource,/我想去一樓找警衛要咖啡|有點想喝咖啡/);
 assert.match(routeSceneSource,/剛才監視器有點怪/);
 assert.match(routeSceneSource,/畫面裡好像多了一個人/);
 assert.match(routeSceneSource,/監控室電話/);
 assert.match(routeSceneSource,/第一院區 2F 急診/);
-assert.match(routeSceneSource,/bridgeChoice:true/);
-assert.match(routeSceneSource,/安妮.*「回頭啊。」/s);
+assert.match(routeSceneSource,/erRegistrationChoice: identity==='ZHANG'/);
+assert.match(routeSceneSource,/forcedBridgeReveal:true/);
+assert.match(routeSceneSource,/accidentCg:true/);
+assert.doesNotMatch(routeSceneSource,/安妮.*回頭啊/s);
+assert.match(routeSceneSource,/警衛台後方照片/);
+assert.match(routeSceneSource,/ZHANG_3F_ARCHIVE/);
 assert.match(routeDirectorSource,/IDENTITY_ZHANG_SECOND_CAMPUS/);
 assert.match(routeDirectorSource,/IDENTITY_ZHANG_ER_FROM_CCTV/);
 assert.match(routeDirectorSource,/IDENTITY_SECOND_2F_CCTV_PHONE/);
-assert.match(routeDirectorSource,/primaryText:'不要回頭，繼續走'/);
-assert.match(routeDirectorSource,/secondaryText:'回頭'/);
+assert.match(routeDirectorSource,/SECOND_2F_CCTV_DESK/);
+assert.match(routeDirectorSource,/proximityBridge:true/);
+assert.match(routeDirectorSource,/playForcedBridgeReveal/);
+assert.match(routeDirectorSource,/primaryText:'忍住，不回頭'/);
+assert.match(routeDirectorSource,/secondaryText:'回頭確認'/);
+assert.match(routeDirectorSource,/ER_UNVERIFIED_RECORD_PATIENTIZATION/);
+assert.match(routeDirectorSource,/ZHANG_6F_ACCIDENT_MEMORY/);
+assert.match(routeDirectorSource,/ARCHIVE_HISTORY_PHOTO_WALL/);
 assert.match(routeDirectorSource,/BRIDGE_LOOKBACK_PATIENTIZATION/);
 assert.match(routeDirectorSource,/BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION/);
 const second2FSource=readFileSync(new URL('./src/world/zones/SecondCampus2F.js',import.meta.url),'utf8');
 assert.match(second2FSource,/Second2F_CCTV_Phone/);
 assert.match(second2FSource,/IDENTITY_SECOND_2F_CCTV_PHONE/);
+assert.match(second2FSource,/SECOND_2F_CCTV_ARCHIVE_WALL/);
+assert.match(second2FSource,/SECOND_2F_CCTV_DESK/);
+assert.match(second2FSource,/ZHANG_CCTV_HINT_RECEIVED/);
+const first3FSource=readFileSync(new URL('./src/world/zones/FirstCampus3F.js',import.meta.url),'utf8');
+assert.match(first3FSource,/ARCHIVE_HISTORY_PHOTO_WALL/);
 const level3Source=readFileSync(new URL('./src/world/Level3FBlockout.js',import.meta.url),'utf8');
 const uiManagerSource=readFileSync(new URL('./src/ui/UIManager.js',import.meta.url),'utf8');
 assert.match(level3Source,/keyGroup\.position\.set\(2\.39, 1\.02, 7\.55\)/);
@@ -175,7 +193,7 @@ assert.doesNotMatch(uiManagerSource,/markTaskComplete\('KEY_PICKUP'\);[\s\S]{0,1
 assert.match(uiManagerSource,/櫃門已解鎖｜請關閉畫面並從櫃內拿取實體鑰匙與感應卡/);
 console.log('PASS 316 physical handoff: log UI -> credential card -> HIS UI -> code 1700 cabinet -> physical key/card pickup');
 
-console.log('PASS M1/M5 regression: empty 316 monologue -> log/HIS/key-card gate; CCTV lead-in -> Annie choice -> lookback patientization');
+console.log('PASS Zhang narrative chain: 316 phone -> 8F/6F glimpse -> 5F -> coffee -> gated CCTV/phone -> forced Annie -> ER choice -> 6F accident -> 1F/B2 -> 3F archive -> 316');
 for(const [identity,route] of Object.entries(expected))for(const milestone of ['M1','M2','M8','M9','B2']){
   const store=storage();
   store.setItem(IDENTITY_STORAGE_KEY,JSON.stringify({metaSave:{completedGoodEnds:['LI']},runSave:{currentIdentity:identity,currentMilestone:milestone,evidence:{old:{id:'old'}},b2Entered:true}}));
