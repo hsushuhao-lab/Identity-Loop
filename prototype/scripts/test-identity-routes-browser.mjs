@@ -202,7 +202,11 @@ async function walk(identity,{wrong=false,mobile=false}={}){
         run.zhouBridgeLoop=true;
       }else{
         // Correct route QA follows the purple backup ventilation path.
-        await page.locator('#btn-story-primary').click();
+        const manualReview=page.locator('#btn-story-primary');
+        await manualReview.focus();
+        await page.keyboard.press('Enter');
+        await page.waitForFunction(()=>document.getElementById('btn-story-primary')?.classList.contains('his-confirm-armed'));
+        await page.keyboard.press('Enter');
       }
       run.actions++;
       continue;

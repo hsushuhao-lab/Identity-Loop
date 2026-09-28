@@ -1161,6 +1161,10 @@ controller.onInteract = async (interactable) => {
       uiManager.showSubtitle('值班醫師','「但是我沒有帳號密碼……」',2800);
     }
     checkElevatorReady();
+  } else if (interactable.type === 'identity_floor_photo') {
+    const identity = identityRouteDirector?.manager?.currentIdentity;
+    const reading = interactable.routeReadings?.[identity] || interactable.routeReadings?.fallback;
+    if (reading) uiManager.showSubtitle('照片旁的記錄', reading, 5200);
   } else if (interactable.type === 'memory_evidence') {
     const sequence=getMemorySequence(interactable.memoryId);
     if(!sequence)return;
