@@ -77,11 +77,78 @@ export class IdentityRouteDirector {
     this.autoTimer = null;
     this.awaitingZone = null;
     this.m1GateState = null;
+    this.archivePressureDeadline = 0;
+    this.archivePressureLastCue = 0;
   }
 
   get currentRouteStep() { return this.step; }
   get currentScene() { return this.step ? { step: this.step, ...ROUTE_STEPS[this.step], beats: this.beats } : null; }
   get currentBeat() { return this.beats[this.beatIndex] ? { ...this.beats[this.beatIndex], index: this.beatIndex } : null; }
+
+  startZhangArchivePressure(){
+    if(this.manager.currentIdentity!=='ZHANG')return;
+    let startedAt=Number(this.gameState.getFlag('ZHANG_ARCHIVE_PRESSURE_STARTED_AT'))||0;
+    if(!startedAt){
+      startedAt=Date.now();
+      this.gameState.setFlag('ZHANG_ARCHIVE_PRESSURE_STARTED_AT',startedAt);
+    }
+    this.archivePressureDeadline=startedAt+12*60*1000;
+    this.gameState.setFlag('ZHANG_ARCHIVE_PRESSURE_ACTIVE',true);
+    document.body.classList.add('zhang-archive-pressure-active');
+
+    if(!document.getElementById('zhang-archive-pressure-style')){
+      const style=document.createElement('style');
+      style.id='zhang-archive-pressure-style';
+      style.textContent=[
+        '.zhang-archive-pressure-active::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:8700;box-shadow:inset 0 0 180px rgba(115,0,0,.42);background:rgba(80,0,0,.035);animation:zhangPressurePulse 1.6s ease-in-out infinite alternate}',
+        '@keyframes zhangPressurePulse{from{opacity:.42}to{opacity:.82}}',
+        '#zhang-archive-pressure{position:fixed;top:86px;left:50%;transform:translateX(-50%);z-index:8800;padding:8px 14px;border:1px solid rgba(255,90,90,.45);background:rgba(28,5,5,.88);color:#ffb0a8;font:600 12px/1.35 monospace;letter-spacing:.055em;pointer-events:none;box-shadow:0 0 28px rgba(120,0,0,.28)}'
+      ].join('');
+      document.head.appendChild(style);
+    }
+    let overlay=document.getElementById('zhang-archive-pressure');
+    if(!overlay){
+      overlay=document.createElement('div');
+      overlay.id='zhang-archive-pressure';
+      document.body.appendChild(overlay);
+    }
+    this.updateZhangArchivePressure(true);
+    if(!this.gameState.getFlag('ZHANG_ARCHIVE_PRESSURE_ANNOUNCED')){
+      this.gameState.setFlag('ZHANG_ARCHIVE_PRESSURE_ANNOUNCED',true);
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playComputerBeep();});
+      this.uiManager.showSubtitle(
+        '院內廣播',
+        '「04:09 系統資料總核銷即將封存。剩餘 12 分鐘。」\n走廊燈光切成暗紅色；門框輕輕震動，遠處傳來推車輪與沉重皮鞋聲。',
+        6200
+      );
+    }
+  }
+
+  updateZhangArchivePressure(force=false){
+    if(!this.gameState.getFlag('ZHANG_ARCHIVE_PRESSURE_ACTIVE'))return;
+    const overlay=document.getElementById('zhang-archive-pressure');
+    const remaining=Math.max(0,this.archivePressureDeadline-Date.now());
+    const min=Math.floor(remaining/60000);
+    const sec=Math.floor((remaining%60000)/1000);
+    if(overlay)overlay.textContent=`04:09 系統總核銷｜剩餘 ${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}｜ARCHIVE PURGE PENDING`;
+    const now=Date.now();
+    if(force||now-this.archivePressureLastCue>7200){
+      this.archivePressureLastCue=now;
+      void soundManager.ensureRunning().then(ready=>{
+        if(!ready)return;
+        soundManager.playFootstep();
+        setTimeout(()=>soundManager.playFootstep(),360);
+        if(Math.floor(now/7200)%2===0)setTimeout(()=>soundManager.playDoorLockClack(),900);
+      });
+    }
+  }
+
+  stopZhangArchivePressure(){
+    this.gameState.setFlag('ZHANG_ARCHIVE_PRESSURE_ACTIVE',false);
+    document.body.classList.remove('zhang-archive-pressure-active');
+    document.getElementById('zhang-archive-pressure')?.remove();
+    this.archivePressureDeadline=0;
+  }
 
   async start() { return this.resume(); }
 
@@ -159,6 +226,9 @@ export class IdentityRouteDirector {
 
     if(this.step==='ZHANG_3F_ARCHIVE'){
       this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
+      this.startZhangArchivePressure();
+    }else if(this.step==='M9'&&this.manager.currentIdentity==='ZHANG'&&this.gameState.getFlag('B2_FIRE_RECAP_SEEN')){
+      this.startZhangArchivePressure();
     }
 
     if (this.step === 'M6') {
@@ -216,6 +286,7 @@ export class IdentityRouteDirector {
   }
 
   update() {
+    this.updateZhangArchivePressure();
     if(
       this.step==='M5' &&
       this.manager.currentIdentity==='ZHANG' &&
@@ -1115,6 +1186,7 @@ export class IdentityRouteDirector {
 
   triggerPatientization(reason='IDENTITY_ROUTE_PATIENTIZATION'){
     if(this.manager.runSave.runEnded)return false;
+    this.stopZhangArchivePressure();
     this.onEnding({type:'BAD_END',reason});
     return true;
   }
@@ -1183,6 +1255,7 @@ export class IdentityRouteDirector {
 
   finishEnding(result) {
     if (!result.ok) return;
+    this.stopZhangArchivePressure();
     this.removeInteractionTarget();
     this.controller.enabled = false;
     if (result.type === 'GOOD_END') {
