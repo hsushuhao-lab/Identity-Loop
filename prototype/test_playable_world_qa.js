@@ -5,7 +5,7 @@ import {FPSController} from './src/player/FPSController.js';
 import {WORLD_SPAWNS,ROUTE_PORTALS,FIRST_FLOORS,SECOND_FLOORS} from './src/world/shared/WorldRoutes.js';
 global.document={addEventListener(){},querySelector(){return null;},createElement:()=>({getContext:()=>new Proxy({},{get:()=>()=>({addColorStop(){}})})})};
 const camera=new THREE.PerspectiveCamera(),controller=new FPSController(camera,{addEventListener(){}},[],[],[]),scene=new THREE.Scene(),router=new WorldRouter(scene,camera,controller);
-const canonical=[...FIRST_FLOORS.map(f=>`first_campus_${f}f`),'skybridge',...SECOND_FLOORS.map(f=>`second_campus_${f}f`),'second_campus_4f_story','phantom_6f','b2_archive'];
+const canonical=[...FIRST_FLOORS.map(f=>`first_campus_${f}f`),'skybridge',...SECOND_FLOORS.map(f=>`second_campus_${f}f`),'second_campus_4f_story','phantom_6f','b2_archive','b1_dispatch_hub'];
 assert(!Object.values(WORLD_SPAWNS).some(spawn=>['hillside_route','ecology_pond'].includes(spawn.zoneId)),
  'outdoor zones must not be player-facing production destinations');
 assert(ROUTE_PORTALS.every(portal=>!['hillside_route','ecology_pond'].includes(WORLD_SPAWNS[portal.spawn]?.zoneId)),
