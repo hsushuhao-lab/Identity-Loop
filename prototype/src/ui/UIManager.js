@@ -404,6 +404,103 @@ export class UIManager {
     this.onTerminalClose?.();
   }
 
+  ensureChenModal(id,title){
+    let root=document.getElementById(id);
+    if(root)return root;
+    root=document.createElement('div');
+    root.id=id;
+    root.className='modal-overlay';
+    root.style.cssText='z-index:10030;background:rgba(4,10,8,.88);backdrop-filter:blur(4px);';
+    root.innerHTML=`
+      <div style="width:min(92vw,720px);background:#17211c;border:1px solid #6f8076;border-radius:8px;padding:22px;color:#eef4ef;box-shadow:0 20px 70px rgba(0,0,0,.65)">
+        <div data-title style="font:700 20px ui-monospace,monospace;color:#d7e3da;margin-bottom:14px">${title}</div>
+        <div data-body></div>
+      </div>`;
+    document.body.appendChild(root);
+    return root;
+  }
+
+  openChen5042Lockbox({onUnlock}={}){
+    document.exitPointerLock?.();
+    const root=this.ensureChenModal('chen-5042-modal','第二院區 5F｜私人金屬保險箱');
+    const body=root.querySelector('[data-body]');
+    body.innerHTML=`
+      <div style="font-size:15px;line-height:1.7;margin-bottom:14px;color:#cdd7d1">灰綠色手提金屬保險箱。四位數機械鎖沒有任何姓名標籤。</div>
+      <div style="font-size:14px;line-height:1.7;margin-bottom:16px;color:#9fb0a5">腦袋還一片空白，手指卻像知道這四個數字該怎麼排列。</div>
+      <input id="chen-5042-code" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="____"
+        style="width:180px;background:#0b100d;border:1px solid #68786f;color:#fff;font:700 28px ui-monospace,monospace;letter-spacing:12px;padding:10px 14px;border-radius:5px;text-align:center">
+      <div id="chen-5042-status" style="min-height:28px;margin-top:12px;color:#dfc78b;font:14px ui-monospace,monospace"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+        <button id="chen-5042-cancel" class="btn-secondary">離開</button>
+        <button id="chen-5042-submit" class="btn-primary">嘗試解鎖</button>
+      </div>`;
+    const input=body.querySelector('#chen-5042-code');
+    const status=body.querySelector('#chen-5042-status');
+    const close=()=>{root.classList.remove('active');this.onTerminalClose?.();};
+    body.querySelector('#chen-5042-cancel').onclick=close;
+    body.querySelector('#chen-5042-submit').onclick=()=>{
+      const value=(input.value||'').replace(/\D/g,'').slice(0,4);
+      if(value!=='5042'){
+        status.textContent='喀、喀……鎖芯沒有彈開。';
+        soundManager.playClick();
+        return;
+      }
+      this.gameState.setFlag('CHEN_5042_LOCKBOX_OPENED',true);
+      status.textContent='5－0－4－2。喀噠。箱蓋彈開。';
+      soundManager.playDoorLockClack();
+      setTimeout(()=>{close();onUnlock?.();},620);
+    };
+    input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4);});
+    root.classList.add('active');
+    setTimeout(()=>input.focus(),0);
+  }
+
+  openChenBadgeInspection({onComplete}={}){
+    document.exitPointerLock?.();
+    const root=this.ensureChenModal('chen-badge-modal','實體證物檢驗｜第二院區支援識別證');
+    const body=root.querySelector('[data-body]');
+    body.innerHTML=`
+      <div style="font-size:14px;color:#aebbb3;margin-bottom:14px">拖曳卡片旋轉檢查正反面。</div>
+      <div id="chen-badge-stage" style="height:300px;display:grid;place-items:center;perspective:1000px;background:radial-gradient(circle,#26332c,#0d1410);border:1px solid #36473e;border-radius:8px;overflow:hidden">
+        <div id="chen-badge-card" style="width:330px;height:205px;position:relative;transform-style:preserve-3d;transform:rotateY(0deg);transition:transform .08s linear">
+          <div style="position:absolute;inset:0;backface-visibility:hidden;background:#e8e7dc;border:12px solid #505654;border-radius:14px;color:#1d2923;padding:20px;box-sizing:border-box;box-shadow:0 12px 25px rgba(0,0,0,.5)">
+            <div style="font:700 18px sans-serif">青嶺醫療中心｜第二院區</div>
+            <div style="margin-top:14px;font:700 22px ui-monospace,monospace;color:#632f29">MED-89••••</div>
+            <div style="margin-top:8px;font-size:17px">跨院支援住院醫師</div>
+            <div style="margin-top:20px;color:#7a2626;font-weight:700;transform:rotate(-7deg)">救護車出入戳印／姓名與照片欄覆蓋</div>
+          </div>
+          <div style="position:absolute;inset:0;backface-visibility:hidden;transform:rotateY(180deg);background:#dedccf;border:12px solid #505654;border-radius:14px;color:#1d2923;padding:24px;box-sizing:border-box;box-shadow:0 12px 25px rgba(0,0,0,.5)">
+            <div style="font:700 19px sans-serif">第二院區急診室</div>
+            <div style="margin-top:18px;font:700 21px ui-monospace,monospace">專用通行憑證</div>
+            <div style="margin-top:30px;font-size:14px;color:#526059">CARD STRIPE / CROSS-CAMPUS SUPPORT</div>
+          </div>
+        </div>
+      </div>
+      <div id="chen-badge-status" style="margin-top:12px;color:#aebbb3;font-size:14px">正面：姓名與照片被密集戳印覆蓋，只能辨識 MED-89••••。</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+        <button id="chen-badge-turn" class="btn-secondary">旋轉 90°</button>
+        <button id="chen-badge-done" class="btn-primary">完成檢驗並收起</button>
+      </div>`;
+    const card=body.querySelector('#chen-badge-card');
+    const status=body.querySelector('#chen-badge-status');
+    let angle=0,dragging=false,lastX=0,moved=false;
+    const render=()=>{card.style.transform=`rotateY(${angle}deg)`;status.textContent=Math.abs((angle%360+360)%360-180)<70?'背面：手寫標籤「第二院區急診室 專用通行憑證」。':'正面：灰色防撞滾邊；MED-89••••；姓名與照片被救護出入戳印覆蓋。';};
+    body.querySelector('#chen-badge-stage').onpointerdown=e=>{dragging=true;lastX=e.clientX;e.currentTarget.setPointerCapture?.(e.pointerId);};
+    body.querySelector('#chen-badge-stage').onpointermove=e=>{if(!dragging)return;angle+=e.clientX-lastX;lastX=e.clientX;moved=true;render();};
+    body.querySelector('#chen-badge-stage').onpointerup=()=>{dragging=false;};
+    body.querySelector('#chen-badge-turn').onclick=()=>{angle+=90;moved=true;render();};
+    body.querySelector('#chen-badge-done').onclick=()=>{
+      this.gameState.setFlag('CHEN_GREY_BADGE_INSPECTED',true);
+      this.gameState.setFlag('CHEN_GREY_BADGE_COLLECTED',true);
+      persistentMemory.addJournalNote('CHEN_GREY_BADGE','灰滾邊跨院支援證件：MED-89••••；背面標示第二院區急診室專用通行憑證。');
+      root.classList.remove('active');
+      this.onTerminalClose?.();
+      onComplete?.({rotated:moved});
+    };
+    root.classList.add('active');
+    render();
+  }
+
   showAnomalyMessage() {
     document.exitPointerLock();
     this.gameState.setFlag('ARCHIVE_OBJECTIVE',true);
