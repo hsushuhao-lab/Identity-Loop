@@ -9,7 +9,7 @@ import { drawCharacterStrip } from './src/art/CharacterPortraitArt.js';
 import { buildVictimMap } from './src/story/B2FireRecapDirector.js';
 const expected={
   ZHANG:['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9'],
-  LI:['M1','M2','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9'],
+  LI:['M1','M2','LI_DUTY_CALL_2000','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9'],
   ZHOU:['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'],
   CHEN:['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9']
 };
@@ -98,8 +98,10 @@ assert.match(wardSource,/Identity4F_TemporaryAccessCard/);
 assert.doesNotMatch(wardSource,/Identity4F_Nurse_LinWanZhen|IdentitySecond5F_Nurse/);
 assert.match(wardSource,/first_station_A/);
 assert.match(wardSource,/second_station_A/);
-assert.match(wardSource,/Identity4F_Intercom/);
+assert.doesNotMatch(wardSource,/Identity4F_Intercom/);
+assert.match(wardSource,/Identity4F_NurseStationComputer/);
 assert.match(wardSource,/IdentitySecond5F_Intercom/);
+assert.match(wardSource,/使用護理站電腦聯絡晚班護理師/);
 assert.match(wardSource,/按下護理站對講機/);
 assert.match(wardSource,/IDENTITY_4F_NURSE_STATION/);
 assert.doesNotMatch(wardSource,/IDENTITY_403_PATIENT|Identity403PatientInteraction|identity_patient_403/);
@@ -124,7 +126,7 @@ assert.match(routeDirectorSource,/triggerPatientization\(reason='IDENTITY_ROUTE_
 assert.match(mainSourceFor316,/M2_BED33_APPROVAL_PATIENTIZATION/);
 assert.match(routeDirectorSource,/playBed33KnockPattern/);
 assert.match(routeDirectorSource,/return !IDENTITY_STORY_CRITICAL_TYPES\.has\(data\?\.type\)/);
-console.log('PASS M2 mainline: diegetic intercom -> temporary key/card -> 408C -> audible 409 -> required temporary bed form; 403 removed and optional exploration remains open');
+console.log('PASS M2 mainline: 4F workstation dialogue anchor -> 408C; other seeds retain 409/Bed33 branch; no floating 4F intercom');
 
 assert.match(wardSource,/IdentitySecond5F_ConsultSpareKey/);
 assert.match(wardSource,/IDENTITY_SECOND_5F_NURSE_STATION/);
@@ -165,6 +167,9 @@ assert.match(uiManagerSource,/請輸入交班時間代碼（HHMM）/);
 assert.match(routeDirectorSource,/bindingCompletionReady/);
 assert.match(routeDirectorSource,/setIdentityDutyItemsVisible/);
 assert.match(routeSceneSource,/316 電話/);
+assert.match(routeSceneSource,/嘻嘻，你又回來了/);
+assert.match(routeDirectorSource,/LI_DUTY_CALL_2000/);
+assert.match(routeDirectorSource,/ER_DOCTOR_CHARTING/);
 assert.match(routeSceneSource,/奇怪……大家不是都走了？怎麼這時候還有人打 316/);
 assert.match(routeSceneSource,/醫師請你走八樓天橋過來第二院區，門禁已打開/);
 assert.match(routeSceneSource,/ZHANG_OUTBOUND_8F/);
