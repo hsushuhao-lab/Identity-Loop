@@ -19,7 +19,9 @@ const NAVIGATION_TYPES = new Set([
   'closed_door',
   'floor6_safe_return',
   'hidden_service_door_1f',
-  'b2_exit_door'
+  'b2_exit_door',
+  'office_316_door',
+  'spare_key_316'
 ]);
 
 /**
@@ -175,19 +177,20 @@ export class IdentityRouteDirector {
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
     if (step === 'M1') {
-      if (index === 0) return { contextual: true, fromSpawn: true, distance: .35, prompt: identity === 'ZHOU' ? '進入 316 查看留下的交班' : '進入 316 完成交班' };
-      if (index === 1) return { type: 'workstation', prompt: '使用 316 電腦核對名冊與 HIS' };
+      // The player physically enters 316 using the existing door/key flow.
+      // Story beats live on the real duty log and HIS workstation.
+      if (index === 0) return { id: 'DUTY_LOG', prompt: identity === 'ZHOU' ? '查看桌上留下的值班簿' : '查看 316 值班簿' };
+      if (index === 1) return { type: 'workstation', prompt: '使用 316 HIS 工作站核對交班' };
       if (identity === 'ZHANG' && index === 2) return { type: 'office_phone_316', prompt: '接起 316 電話' };
     }
 
     if (step === 'M2') {
-      if (index === 0) return identity === 'ZHANG'
-        ? { auto: true }
-        : { contextual: true, useSpawn: true, prompt: '到 4F 護理站報到' };
-      if (index === 1 || index === 2) return { contextual: true, prompt: index === 1 ? '和 403 病人確認今晚狀況' : '查看 408C 與隔壁聲音' };
+      if (index === 0) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: '和護理站護理師說話' };
+      if (index === 1) return { id: 'IDENTITY_403_PATIENT', prompt: '詢問 403 病人今晚狀況' };
+      if (index === 2) return { id: '408C_BED_PLAQUE', prompt: '查看 408C 並詢問敲牆聲' };
       if (index === 3) return { id: 'BED33_409_SEALED', prompt: '靠近 409 確認敲擊來源' };
       if (index === 4) return { id: 'BED33_ASSIGNMENT', prompt: '查看 409-A／Bed 33 臨時床位單' };
-      if (identity === 'ZHANG' && index === 5) return { contextual: true, useSpawn: true, prompt: '回護理站向護理師確認' };
+      if (identity === 'ZHANG' && index === 5) return { id: 'IDENTITY_4F_NURSE_STATION', prompt: '回護理站向護理師確認' };
     }
 
     if (step === 'M3') {
@@ -436,6 +439,7 @@ export class IdentityRouteDirector {
 
   dialogueLines(beat) {
     return beat.lines.map(raw => {
+      if (raw && typeof raw === 'object') return raw;
       const text = String(raw).trim();
       const match = text.match(/^([^：]{1,18})：「?(.+?)」?$/);
       if (match) {
@@ -445,7 +449,7 @@ export class IdentityRouteDirector {
       }
       if (/^(我|玩家)/.test(text)) return { speaker: '值班醫師', text };
       if (/護理師|學長|警衛|第二院區|急診/.test(text)) return { speaker: '現場', text };
-      return { speaker: /記得|熟悉|回聲|閃|心跳|手指|身體/.test(text) ? '記憶' : '現場', text };
+      return { speaker: /記得|熟悉|回聲|閃|心跳|手指|身體|為什麼/.test(text) ? '內心' : '現場', text };
     });
   }
 
