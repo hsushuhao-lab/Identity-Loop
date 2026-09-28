@@ -525,8 +525,8 @@ export class WardFloorplan {
 
     // The treatment order sits on the second-campus nursing-station workstation, not in mid-air.
     const form=solid(this.zoneGroup,m.lightWarm,[o-1.28,.829,-2.18],[.42,.018,.30]);
-    form.name='SecondCampus_ChestTreatmentOrder';
-    form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看病人處置醫囑'};
+    form.name='SecondCampus_TransferMedicalOrder';
+    form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看 409-A 轉送醫囑單'};
     this.secondCampusTreatmentOrder=form;
     this.interactables.push(form);
 
