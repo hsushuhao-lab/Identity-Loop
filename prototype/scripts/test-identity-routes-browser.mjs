@@ -109,6 +109,7 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       await page.locator('.identity-entry-form input[aria-label="員編"]').fill(IDENTITY_PROFILES[selected].employeeId);
       await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-manual-entry`);
       await page.locator('.identity-entry-submit').click();
+      await page.waitForFunction(()=>window.__storyQA.identityManager.snapshot().runSave.runEnded===true,{},{timeout:5000});
       const ended=await page.evaluate(()=>window.__storyQA.identityManager.snapshot());
       assert.equal(ended.runSave.runEnded,true);
       assert.equal(ended.runSave.m9CommittedChoice,selected);
