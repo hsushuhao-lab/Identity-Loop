@@ -703,7 +703,7 @@ export class UIManager {
       button.classList.toggle('his-standard-action',side===systemTrap);
       button.classList.toggle('his-manual-review',!!systemTrap&&side!==systemTrap);
       button.classList.remove('his-confirm-armed');
-      button.dataset.workflow=side===systemTrap?'SYSTEM DEFAULT':'MANUAL REVIEW';
+      button.dataset.workflow=side===systemTrap?'STANDARD WORKFLOW':'MANUAL REVIEW';
     }
     this.storyChoiceModal?.classList.add('active');
     if(systemTrap)requestAnimationFrame(()=>document.getElementById(`btn-story-${systemTrap}`)?.focus());
