@@ -861,9 +861,17 @@ controller.onInteract = async (interactable) => {
         uiManager.showSubtitle('值班醫師','「打不開……鑰匙呢？」',2600);
         return;
       }
+      const wasClosed=keyedDoor.closed;
       const changed=keyedDoor.toggle(controller.position);
-      if(changed)soundManager.playClick();
-      else uiManager.showSubtitle('門鎖','請先離開門幅後再關門。',2500);
+      if(changed){
+        soundManager.playClick();
+        if(wasClosed&&!keyedDoor.closed&&!gameState.getFlag('ARCHIVE_ROOM_ENTERED')){
+          gameState.setFlag('ARCHIVE_ROOM_ENTERED',true);
+          if(identityLoopMode&&identityManager?.currentIdentity==='LI'){
+            uiManager.showSubtitle('內心','「文史室也打開了。兩邊都確認過，就回 316。」',3200);
+          }
+        }
+      }else uiManager.showSubtitle('門鎖','請先離開門幅後再關門。',2500);
       controller.currentInteractable=null;uiManager.showPrompt(null);
       return;
     }
