@@ -396,7 +396,7 @@ export class FirstCampus3F {
       if(this.spareKeyMesh.userData.targetGroup)this.spareKeyMesh.userData.targetGroup.visible=false;
     }
     if(gameState.getFlag('OPENED_316'))this.levelInstance.open316Door();
-    if(gameState.getFlag('LOCKER_OPENED'))this.levelInstance.markLockerOpen();
+    if(gameState.getFlag('LOCKER_OPENED'))this.levelInstance.markLockerOpen(!gameState.isTaskComplete('KEY_PICKUP'));
     if(gameState.getFlag('OFFICE_302_UNLOCKED'))this.levelInstance.unlock302();
     if(gameState.getFlag('ARCHIVE_ACCESS_KEY')){
       if(this.levelInstance.museumKey302){
@@ -461,7 +461,7 @@ export class FirstCampus3F {
 
   setIdentityDutyItemsVisible(visible){
     if(!this.keyMesh)return;
-    const show=!!visible&&!gameState.isTaskComplete('KEY_PICKUP');
+    const show=!!visible&&gameState.getFlag('LOCKER_OPENED')&&!gameState.isTaskComplete('KEY_PICKUP');
     this.keyMesh.visible=show;
     this.keyMesh.userData.interactable=show;
     if(this.keyMesh.userData.targetGroup)this.keyMesh.userData.targetGroup.visible=show;
