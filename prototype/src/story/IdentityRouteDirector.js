@@ -997,6 +997,28 @@ export class IdentityRouteDirector {
         this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:720,hold:650});
         return;
       }
+      if(beat.cctvCg){
+        void soundManager.ensureRunning().then(ready=>{
+          if(!ready)return;
+          soundManager.playComputerBeep();
+          setTimeout(()=>soundManager.playDoorLockClack(),520);
+        });
+        const sequence={
+          id:'ZHANG_CCTV_DOPPELGANGER',
+          title:'第二院區 2F｜監控異常回放',
+          mode:'CCTV',
+          source:'LIVE CCTV / BUFFER REPLAY',
+          frames:[
+            {stamp:'CAM 02 / 17:42:11',title:'天橋入口',caption:'一名白袍值班醫師從第二院區方向走入畫面。',narration:'時間戳正常，步速也正常。'},
+            {stamp:'CAM 02 / 17:42:14',title:'畫面失步',caption:'影像跳掉三格；同一個走廊位置同時出現兩個白袍輪廓。',narration:'其中一個人在往前走，另一個卻停在原地看著鏡頭。'},
+            {stamp:'CAM 06 / 17:42:16',title:'無法對應人員',caption:'系統框選第二個白袍輪廓：STAFF MATCH = NONE。',narration:'這個人沒有門禁刷卡紀錄，也沒有被任何入口攝影機拍到。'},
+            {stamp:'CAM 02 / 17:42:19',title:'回放終止',caption:'第二個輪廓突然轉向鏡頭；下一格只剩雪花。',narration:'監控主機自行停止回放。桌上的電話隨即開始響。'}
+          ]
+        };
+        this.gameState.setFlag('ZHANG_CCTV_CG_SEEN',true);
+        this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:900,hold:650});
+        return;
+      }
       if(beat.accidentCg){
         const sequence={
           id:'ZHANG_6F_ACCIDENT_MEMORY',
