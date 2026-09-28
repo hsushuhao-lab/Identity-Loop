@@ -1669,6 +1669,36 @@ export class IdentityRouteDirector {
 
   qaInteractCurrentBeat() {
     if (this.busy || this.manager.runSave.runEnded || this.uiManager.dialogueSequence) return false;
+    const beat=this.beats[this.beatIndex];
+    if(beat?.chenLockbox){
+      this.gameState.setFlag('CHEN_5042_LOCKBOX_OPENED',true);
+      this.gameState.setFlag('CHEN_5042_PROCEDURAL_MEMORY',true);
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
+      void this.completeBeat();
+      return true;
+    }
+    if(beat?.chenBadgeInspect){
+      this.gameState.setFlag('CHEN_GREY_BADGE_INSPECTED',true);
+      this.gameState.setFlag('CHEN_GREY_BADGE_COLLECTED',true);
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
+      void this.completeBeat();
+      return true;
+    }
+    if(beat?.chenWheelchairPush){
+      this.gameState.setFlag('CHEN_WHEELCHAIR_BLOCKING',false);
+      this.gameState.setFlag('CHEN_WHEELCHAIR_PUSHED',true);
+      this.gameState.setFlag('CHEN_WHEELCHAIR_MOTOR_MEMORY',true);
+      this.worldRouter.activeZoneInstance?.setChenWheelchairBlocking?.(false);
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
+      void this.completeBeat();
+      return true;
+    }
+    if(beat?.chenDispatchBadgeSwipe){
+      this.gameState.setFlag('CHEN_DISPATCH_LOCKER_OPENED',true);
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
+      void this.completeBeat();
+      return true;
+    }
     const binding = this.bindingFor();
     if(binding.evidenceSweep){
       this.gameState.setFlag('ADMIN_OFFICE_ENTERED',true);
