@@ -342,12 +342,29 @@ export class UIManager {
       this.gameState.setFlag('HIS_AUTHENTICATED',false);
       document.getElementById('his-login-status').textContent='錯誤：未插入夜間值班醫師登入卡｜終端處於待機鎖定';
       document.getElementById('his-handoff-content')?.classList.remove('unlocked');
+      if(isIdentityRouteMode()){
+        this.gameState.setFlag('M1_HIS_EARLY_PEEK',true);
+        this.showSubtitle('內心','「……我沒有密碼。登入卡應該還在這間辦公室裡。」',3000);
+      }
     }
     this.workstationModal.classList.add('active');
   }
 
   closeWorkstation() {
     this.workstationModal.classList.remove('active');
+    if(
+      isIdentityRouteMode() &&
+      this.gameState.getFlag('M1_HIS_EARLY_PEEK') &&
+      !this.gameState.getFlag('M1_HIS_EARLY_WARNING_SEEN') &&
+      !this.gameState.getFlag('HIS_CREDENTIALS')
+    ){
+      this.gameState.setFlag('M1_HIS_EARLY_WARNING_SEEN',true);
+      setTimeout(()=>this.showSubtitle(
+        'HIS SYSTEM',
+        '「CURRENT DUTY PHYSICIAN：PRESENT｜NAME SOURCE：NULL｜HISTORICAL POINTER：409-A／CORRUPTED」',
+        4800
+      ),180);
+    }
     if (this.onTerminalClose) this.onTerminalClose();
   }
 
