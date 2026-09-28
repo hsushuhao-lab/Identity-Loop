@@ -205,8 +205,9 @@ async function walk(identity,{wrong=false,mobile=false}={}){
         const manualReview=page.locator('#btn-story-primary');
         await manualReview.focus();
         await page.keyboard.press('Enter');
-        await page.waitForFunction(()=>document.getElementById('btn-story-primary')?.classList.contains('his-confirm-armed'));
-        await page.keyboard.press('Enter');
+        if(await manualReview.evaluate(button=>button.classList.contains('his-confirm-armed'))){
+          await page.keyboard.press('Enter');
+        }
       }
       run.actions++;
       continue;

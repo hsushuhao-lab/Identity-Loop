@@ -68,7 +68,9 @@ export function installIdentityFloorPhoto(zone, zoneId) {
   zone.zoneGroup.add(root);
   zone.interactables.push(face);
 
-  const sheetUrl = `${import.meta.env.BASE_URL}assets/identity-v03/floor-photo-contact-sheet.png`;
+  if (typeof document === 'undefined' || typeof document.createElementNS !== 'function') return root;
+
+  const sheetUrl = `${import.meta.env?.BASE_URL ?? '/'}assets/identity-v03/floor-photo-contact-sheet.png`;
   new THREE.TextureLoader().load(sheetUrl, (sheet) => {
     if (!face.parent) { sheet.dispose(); return; }
     const texture = sheet.clone();

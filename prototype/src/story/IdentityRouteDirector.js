@@ -3,6 +3,7 @@ import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
 import { soundManager } from '../audio/SoundManager.js';
+import { persistentMemory } from '../core/PersistentMemory.js';
 
 const PHOTO_FILES = {
   history_group_1998: 'history-group.png',
@@ -1703,7 +1704,7 @@ export class IdentityRouteDirector {
     if(binding.evidenceSweep){
       this.gameState.setFlag('ADMIN_OFFICE_ENTERED',true);
       this.gameState.setFlag('ARCHIVE_ROOM_ENTERED',true);
-      this.inspect();
+      void this.completeBeat();
       return true;
     }
     if(binding.dutyRoomEntry){
