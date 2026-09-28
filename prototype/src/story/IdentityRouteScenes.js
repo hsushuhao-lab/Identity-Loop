@@ -42,7 +42,13 @@ export function getIdentityRouteScene(step, identity) {
       event('領取正式值班物品', [
         {speaker:'內心',text:'櫃內放著今晚正式的值班室鑰匙與 Staff Access Card。'},
         {speaker:'值班醫師',text:'「這樣才算真正完成交班。」'}
-      ], '從電子櫃內拿取正式值班鑰匙與感應卡')
+      ], '從電子櫃內拿取正式值班鑰匙與感應卡'),
+      ...(identity==='ZHANG' ? [event('316 電話', [
+        {speaker:'電話',text:'鈴——鈴——鈴——'},
+        {speaker:'內心',text:'「奇怪……大家不是都走了？怎麼這時候還有人打 316？」'},
+        {speaker:'第二院區護理站',text:'「值班醫師您好。第二院區 5F 護理站需要你過來一趟。」'},
+        {speaker:'值班醫師',text:'「收到，我現在過去。」'}
+      ], '接聽 316 電話，前往第二院區 5F 護理站')] : [])
     ],
     M2: [
       event('四樓護理站', reaction({
@@ -200,26 +206,56 @@ export function getIdentityRouteScene(step, identity) {
       }), (identity==='ZHOU'||identity==='CHEN')?'歸還 5F 會診備用鑰匙':'向護理站交代 504B 處置', {
         clearFlag:(identity==='ZHOU'||identity==='CHEN')?'SECOND_5F_CONSULT_KEY_BORROWED':null
       }),
-      event('監視器室的閃爍', [
-        {speaker:'內心',text:'走出護理站時，走廊盡頭的監視器狀態燈忽然閃了兩下。'},
-        {speaker:'內心',text:'「監視器室……剛才是不是又閃了一次？」'},
-        {speaker:'內心',text:'回天橋本來就會經過二樓。先去看看。'}
-      ], '前往第二院區 2F 監視器室查看異常')
+      event(identity==='ZHANG'?'離開 5F 護理站':'監視器室的閃爍', reaction({
+        ZHANG:[
+          {speaker:'內心',text:'事情先處理完了。'},
+          {speaker:'內心',text:'「有點想喝咖啡……我記得一樓警衛那邊常常有咖啡。」'},
+          {speaker:'內心',text:'先下去找警衛。'}
+        ],
+        LI:[
+          {speaker:'內心',text:'走出護理站時，走廊盡頭的監視器狀態燈忽然閃了兩下。'},
+          {speaker:'內心',text:'「監視器室……剛才是不是又閃了一次？」'}
+        ],
+        ZHOU:[
+          {speaker:'內心',text:'走出護理站時，監視器狀態燈像是突然失去同步。'},
+          {speaker:'內心',text:'「先去二樓看看。」'}
+        ],
+        CHEN:[
+          {speaker:'內心',text:'回程原本應該很熟，監視器室的燈卻突然閃爍。'},
+          {speaker:'內心',text:'「先確認一下。」'}
+        ]
+      }), identity==='ZHANG'
+        ? '前往第二院區 1F 警衛台找咖啡'
+        : '前往第二院區 2F 監視器室查看異常')
     ],
     ZHANG_SECOND_CAMPUS_SECURITY: [
-      event('警衛桌的黑咖啡', ['我：「……我記得一樓警衛都會泡咖啡。我為什麼會記得這種事？」', '老式警衛桌上有保溫杯、即溶咖啡、訪客簿、院區往返紀錄與舊照片。', '警衛：「醫師，要出去？」我：「借杯咖啡。」', '警衛笑：「你們值班醫師都一樣。」我：「以前也是？」', '警衛翻舊簿：「以前有一個更誇張。每次經過都喝黑的。糖跟奶精碰都不碰。」', '我看向黑咖啡，短暫感到熟悉。'], '查看不加糖奶的黑咖啡', { art: 'coffee' }),
-      event('翻閱訪客簿與院區往返紀錄', ['「第一線醫師借用警衛室電話。要求再次確認送院病患姓名。」', '紀錄沒有姓名。舊照片旁也沒有可確認的署名。', '我：「第一線……」'], '記下再次核對身分的要求')
+      event('警衛台的黑咖啡', [
+        {speaker:'值班醫師',text:'「警衛大哥，還有咖啡嗎？」'},
+        {speaker:'警衛',text:'「有啊。你們值班醫師都一樣，晚上都來找這壺。」'},
+        {speaker:'值班醫師',text:'「我怎麼會記得你這裡一直都有……」'},
+        {speaker:'警衛',text:'「對了，剛才監視器有點怪。」'},
+        {speaker:'值班醫師',text:'「怎麼怪？」'},
+        {speaker:'警衛',text:'「畫面裡好像多了一個人。不是病人，也不像我們的人。我重播幾次都還在。」'},
+        {speaker:'值班醫師',text:'「我也去看看。」'}
+      ], '喝完咖啡後，前往第二院區 2F CCTV 監控室', { art:'coffee' })
     ],
     M5: [
       event('監視器室回放', [
-        {speaker:'內心',text:'二樓監視器室的畫面一格一格閃爍。某些時間戳甚至出現不存在的 6F。'},
+        {speaker:'內心',text:'第二院區 2F 監控畫面一格一格閃爍。'},
         {speaker:'內心',text:reaction({
-          ZHANG:'回放裡有人捲著袖口，手邊放著黑咖啡。那個動作熟得讓人不舒服。',
+          ZHANG:'畫面裡確實有另一個白袍身影，而且有幾格像是同時拍到兩個值班醫師。',
           LI:'同一段天橋路線，在兩段回放裡需要的時間完全不同。',
           ZHOU:'畫面總在關鍵一格跳掉。手指竟然下意識想按快門。',
           CHEN:'同一條跨院路線，畫面裡的方向和我記得的走法對不上。'
         })}
-      ], '前往 2F 監視器室查看閃爍的異常畫面'),
+      ], '查看第二院區 2F CCTV 監控異常'),
+      ...(identity==='ZHANG' ? [event('監控室電話', [
+        {speaker:'電話',text:'鈴——鈴——鈴——'},
+        {speaker:'內心',text:'「監控室的電話？誰會知道我在這裡？」'},
+        {speaker:'第一院區急診護理師',text:'「值班醫師您好。第一院區 2F 急診有一名身分待確認的男性，需要精神科評估。」'},
+        {speaker:'值班醫師',text:'「我現在回去。」'},
+        {speaker:'內心',text:'從這裡回第一院區，得先走過天橋。'}
+      ], '接聽監控室電話，經天橋返回第一院區 2F 急診')] : []),
       event('天橋上的 Annie', [
         {speaker:'內心',text:'走到天橋中段，玻璃倒影裡多出一個穿白袍的女人。'},
         {speaker:'內心',text:'她沒有跟著我的動作。'},
@@ -287,7 +323,16 @@ export function getIdentityRouteScene(step, identity) {
       { zoneId:'second_campus_5f', spawn:'second_5f_lift' },
       { zoneId:'second_campus_5f', spawn:'second_5f_lift' }
     ],
-    M5: [{ zoneId: 'second_campus_2f', spawn: 'm9_second_campus_2f', room: '202', yaw: 0 }, { zoneId: 'skybridge', spawn: 'bridge_from_second' }]
+    M5: identity==='ZHANG'
+      ? [
+          { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
+          { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
+          { zoneId:'skybridge', spawn:'bridge_from_second' }
+        ]
+      : [
+          { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
+          { zoneId:'skybridge', spawn:'bridge_from_second' }
+        ]
   };
   scenes[step].forEach((beat, index) => Object.assign(beat, locations[step]?.[index]));
   return scenes[step];
