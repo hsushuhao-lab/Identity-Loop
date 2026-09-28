@@ -54,18 +54,40 @@ export class WardFloorplan {
     nursingStationV5(this,{x:o,z:-4.3,id:second?'second_station':'first_station'});
 
     if(second&&this.floor===5){
-      // Keep nursing interaction on the workstation screen for visual consistency.
-      const nurseStationScreen=this.workstations.find(item=>item.id==='second_station_A')?.screen;
-      if(nurseStationScreen){
-        nurseStationScreen.userData={
-          ...nurseStationScreen.userData,
-          interactable:true,
-          id:'IDENTITY_SECOND_5F_NURSE_STATION',
-          type:'identity_second_5f_nurse_station',
-          label:'聯絡第二院區 5F 護理站'
-        };
-        this.interactables.push(nurseStationScreen);
-      }
+      // Diegetic intercom: the nurse stays behind the enclosed station glass.
+      const intercom=new THREE.Group();
+      intercom.name='IdentitySecond5F_Intercom';
+      intercom.position.set(o+5.72,1.25,-1.08);
+      const body=new THREE.Mesh(
+        new THREE.BoxGeometry(.24,.34,.08),
+        new THREE.MeshStandardMaterial({color:0x6c7470,roughness:.62,metalness:.28})
+      );
+      intercom.add(body);
+      const grille=new THREE.Mesh(
+        new THREE.CircleGeometry(.073,18),
+        new THREE.MeshStandardMaterial({color:0x252b28,roughness:.9})
+      );
+      grille.position.set(0,.055,.043);intercom.add(grille);
+      const button=new THREE.Mesh(
+        new THREE.CircleGeometry(.036,18),
+        new THREE.MeshStandardMaterial({color:0xb9aa75,roughness:.45,metalness:.15})
+      );
+      button.position.set(0,-.095,.044);intercom.add(button);
+      const hit=new THREE.Mesh(
+        new THREE.BoxGeometry(.55,.66,.38),
+        new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+      );
+      hit.position.set(0,0,.04);
+      hit.userData={
+        interactable:true,
+        id:'IDENTITY_SECOND_5F_NURSE_STATION',
+        type:'identity_second_5f_nurse_station',
+        label:'按下護理站對講機'
+      };
+      intercom.add(hit);
+      this.zoneGroup.add(intercom);
+      this.interactables.push(hit);
+      this.identitySecond5FIntercom=intercom;
 
       const keyDesk=this.workstations.find(item=>item.id==='second_station_A')?.desk;
       const keySurfaceY=keyDesk?new THREE.Box3().setFromObject(keyDesk).max.y:.82;
@@ -83,18 +105,40 @@ export class WardFloorplan {
     }
 
     if(!second&&this.floor===4){
-      // Keep nursing interaction on the workstation screen; no low-poly nurse model.
-      const nurseStationScreen=this.workstations.find(item=>item.id==='first_station_A')?.screen;
-      if(nurseStationScreen){
-        nurseStationScreen.userData={
-          ...nurseStationScreen.userData,
-          interactable:true,
-          id:'IDENTITY_4F_NURSE_STATION',
-          type:'identity_nurse_station_4f',
-          label:'聯絡 4F 護理站'
-        };
-        this.interactables.push(nurseStationScreen);
-      }
+      // Diegetic intercom mounted beside the protected nursing-station window.
+      const intercom=new THREE.Group();
+      intercom.name='Identity4F_Intercom';
+      intercom.position.set(o+5.72,1.25,-1.08);
+      const body=new THREE.Mesh(
+        new THREE.BoxGeometry(.24,.34,.08),
+        new THREE.MeshStandardMaterial({color:0x6c7470,roughness:.62,metalness:.28})
+      );
+      intercom.add(body);
+      const grille=new THREE.Mesh(
+        new THREE.CircleGeometry(.073,18),
+        new THREE.MeshStandardMaterial({color:0x252b28,roughness:.9})
+      );
+      grille.position.set(0,.055,.043);intercom.add(grille);
+      const button=new THREE.Mesh(
+        new THREE.CircleGeometry(.036,18),
+        new THREE.MeshStandardMaterial({color:0xb9aa75,roughness:.45,metalness:.15})
+      );
+      button.position.set(0,-.095,.044);intercom.add(button);
+      const hit=new THREE.Mesh(
+        new THREE.BoxGeometry(.55,.66,.38),
+        new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+      );
+      hit.position.set(0,0,.04);
+      hit.userData={
+        interactable:true,
+        id:'IDENTITY_4F_NURSE_STATION',
+        type:'identity_nurse_station_4f',
+        label:'按下護理站對講機'
+      };
+      intercom.add(hit);
+      this.zoneGroup.add(intercom);
+      this.interactables.push(hit);
+      this.identity4FIntercom=intercom;
 
       // 4F temporary access set: traditional room key + temporary ward access card.
       // This is intentionally separate from the formal 316 duty credentials.
