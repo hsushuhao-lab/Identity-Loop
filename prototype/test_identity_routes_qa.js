@@ -9,7 +9,7 @@ import { drawCharacterStrip } from './src/art/CharacterPortraitArt.js';
 import { buildVictimMap } from './src/story/B2FireRecapDirector.js';
 const expected={
   ZHANG:['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9'],
-  LI:['M1','M2','M3','M4','M5','M6','M7','B2','M8','M9'],
+  LI:['M1','M2','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9'],
   ZHOU:['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'],
   CHEN:['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9']
 };
@@ -168,8 +168,8 @@ assert.match(routeSceneSource,/奇怪……大家不是都走了？怎麼這時�
 assert.match(routeSceneSource,/醫師請你走八樓天橋過來第二院區，門禁已打開/);
 assert.match(routeSceneSource,/ZHANG_OUTBOUND_8F/);
 assert.match(routeSceneSource,/glimpse6f:true/);
-assert.match(routeSceneSource,/transferSignChoice: identity==='ZHANG'/);
-assert.match(routeDirectorSource,/M4_409A_TRANSFER_PATIENTIZATION/);
+assert.match(routeSceneSource,/transferSignChoice:true/);
+assert.match(routeDirectorSource,/M4_409A_ORDER_PATIENTIZATION/);
 assert.match(routeSceneSource,/警衛台舊相簿/);
 assert.match(routeDirectorSource,/SECOND_GUARD_PHOTO_ALBUM/);
 assert.match(routeDirectorSource,/M7_HISTORICAL_PROCEDURE_PATIENTIZATION/);
