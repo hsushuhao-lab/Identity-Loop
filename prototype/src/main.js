@@ -1309,6 +1309,14 @@ controller.onInteract = async (interactable) => {
 
     if(identityLoopMode){
       identityManager.enterB2();
+      if(identityManager.currentIdentity==='ZHANG'){
+        uiManager.showSubtitle(
+          '封存終端',
+          '「CURRENT SELF：CORRUPTED｜409-A 死者姓名欄遭除籍塗銷｜員編前綴 MED-87••••。完整姓名必須回 3F 文史館與院史影像交叉核對。」',
+          5200
+        );
+        return;
+      }
       identityLoopPanel.openB2Archive();
       return;
     }
