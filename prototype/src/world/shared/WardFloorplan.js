@@ -453,6 +453,52 @@ export class WardFloorplan {
     const phone=new THREE.Group();phone.name='SecondDutyRoom_ExtensionPhone';phone.position.set(o+12.55,.84,3.34);this.zoneGroup.add(phone);
     solid(phone,this.gf.materials.wallDark,[0,0,0],[.28,.07,.20]);
     solid(phone,this.gf.materials.bedSheet,[0,.08,-.055],[.25,.035,.055]);
+    const handset=new THREE.Mesh(new THREE.CapsuleGeometry(.025,.19,4,10),this.gf.materials.wallDark);
+    handset.rotation.z=Math.PI/2;handset.position.set(0,.16,-.055);phone.add(handset);
+    const phoneHit=new THREE.Mesh(new THREE.BoxGeometry(.58,.42,.48),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    phoneHit.position.set(0,.11,0);
+    phoneHit.userData={interactable:false,id:'CHEN_5F_DUTY_PHONE',type:'chen_duty_phone',label:'接聽 5F 值班室電話'};
+    phone.add(phoneHit);this.interactables.push(phoneHit);this.chenDutyPhone=phoneHit;
+
+    // Chen procedural-memory lockbox under the second-campus duty desk.
+    const lockbox=new THREE.Group();lockbox.name='Chen_5042_Lockbox';lockbox.position.set(o+11.35,.32,3.72);
+    const boxBody=new THREE.Mesh(new THREE.BoxGeometry(.66,.38,.42),new THREE.MeshStandardMaterial({color:0x59635e,roughness:.68,metalness:.22}));
+    lockbox.add(boxBody);
+    const boxLid=new THREE.Mesh(new THREE.BoxGeometry(.64,.055,.40),new THREE.MeshStandardMaterial({color:0x66716b,roughness:.62,metalness:.25}));
+    boxLid.position.y=.215;lockbox.add(boxLid);this.chenLockboxLid=boxLid;
+    for(let i=0;i<4;i++){
+      const dial=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.035,16),this.gf.materials.wallDark);
+      dial.rotation.x=Math.PI/2;dial.position.set(-.18+i*.12,.03,.225);lockbox.add(dial);
+    }
+    const lockHit=new THREE.Mesh(new THREE.BoxGeometry(.9,.72,.72),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    lockHit.position.y=.08;lockHit.userData={interactable:true,id:'CHEN_5042_LOCKBOX',type:'chen_5042_lockbox',label:'查看桌下私人金屬保險箱'};
+    lockbox.add(lockHit);this.zoneGroup.add(lockbox);this.interactables.push(lockHit);this.chenLockbox=lockbox;
+
+    // Physical gray-trim support badge starts hidden inside the lockbox.
+    const badge=new THREE.Group();badge.name='Chen_GrayTrim_Badge';badge.position.set(o+11.35,.58,3.72);badge.visible=false;
+    const badgeCard=new THREE.Mesh(new THREE.BoxGeometry(.28,.018,.18),new THREE.MeshStandardMaterial({color:0xe7e5da,roughness:.56}));
+    badgeCard.rotation.y=.12;badge.add(badgeCard);
+    const badgeTrim=new THREE.Mesh(new THREE.BoxGeometry(.31,.014,.21),new THREE.MeshStandardMaterial({color:0x555b59,roughness:.74}));
+    badgeTrim.position.y=-.012;badgeTrim.rotation.y=.12;badge.add(badgeTrim);
+    const badgeHit=new THREE.Mesh(new THREE.BoxGeometry(.58,.30,.48),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    badgeHit.userData={interactable:false,id:'CHEN_GREY_BADGE',type:'chen_grey_badge',label:'檢查灰滾邊跨院支援識別證'};
+    badge.add(badgeHit);this.zoneGroup.add(badge);this.interactables.push(badgeHit);this.chenGreyBadge=badge;this.chenGreyBadgeHit=badgeHit;
+
+    // Old wheelchair blocks the duty-room-to-elevator path until Chen pushes it.
+    const wheelchair=new THREE.Group();wheelchair.name='Chen_Wheelchair';wheelchair.position.set(o+7.1,0,5.65);
+    const chairMetal=new THREE.MeshStandardMaterial({color:0x6f7773,roughness:.52,metalness:.58});
+    const chairSeat=new THREE.MeshStandardMaterial({color:0x30423a,roughness:.82});
+    const seat=new THREE.Mesh(new THREE.BoxGeometry(.55,.08,.48),chairSeat);seat.position.set(0,.62,0);wheelchair.add(seat);
+    const back=new THREE.Mesh(new THREE.BoxGeometry(.55,.62,.08),chairSeat);back.position.set(0,.91,.22);wheelchair.add(back);
+    for(const x of [-.34,.34]){
+      const wheel=new THREE.Mesh(new THREE.TorusGeometry(.31,.035,10,30),chairMetal);wheel.rotation.y=Math.PI/2;wheel.position.set(x,.38,0);wheelchair.add(wheel);
+      const caster=new THREE.Mesh(new THREE.TorusGeometry(.11,.022,8,24),chairMetal);caster.rotation.y=Math.PI/2;caster.position.set(x,.13,-.42);wheelchair.add(caster);
+      const handle=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,.43,10),chairMetal);handle.position.set(x,.98,.36);handle.rotation.x=.18;wheelchair.add(handle);
+    }
+    const wheelHit=new THREE.Mesh(new THREE.BoxGeometry(1.25,1.5,1.25),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    wheelHit.position.set(0,.65,0);wheelHit.userData={interactable:false,id:'CHEN_WHEELCHAIR',type:'chen_wheelchair',label:'推開擋住通道的舊輪椅'};
+    wheelchair.add(wheelHit);this.zoneGroup.add(wheelchair);this.interactables.push(wheelHit);this.chenWheelchair=wheelchair;this.chenWheelchairHit=wheelHit;
+
     w.build();this.gf.buildCeilingLight(this.zoneGroup,o+11,3.15,6,.75,7);
     this.roomAreas.push({id:'SECOND_DUTY',label:'值班室',point:[o+9.5,1.7,6],door:[o+8,1.7,6],corridor:[o+6.5,1.7,6],protectedArea:false,kind:'duty_room',accessDoorId:'second_duty_room'});
   }
@@ -531,8 +577,45 @@ export class WardFloorplan {
     }
     if(this.secondCampusTreatmentOrder){
       const seen=gameState.getFlag('SECOND_CHEST_PATIENT_SEEN')===true;
-      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看病人處置醫囑':'查看病人處置醫囑';
+      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看 409-A 轉送醫囑單':'查看 409-A 轉送醫囑單';
     }
+    if(this.chenLockbox){
+      const opened=gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')===true;
+      if(this.chenLockboxLid){this.chenLockboxLid.rotation.z=opened?-1.18:0;this.chenLockboxLid.position.y=opened?.34:.215;}
+      this.chenLockbox.traverse(o=>{if(o.userData?.id==='CHEN_5042_LOCKBOX')o.userData.label=opened?'5042 保險箱｜已解鎖':'查看桌下私人金屬保險箱';});
+    }
+    if(this.chenGreyBadge){
+      const opened=gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')===true;
+      this.chenGreyBadge.visible=opened&&!gameState.getFlag('CHEN_GREY_BADGE_COLLECTED');
+      if(this.chenGreyBadgeHit)this.chenGreyBadgeHit.userData.interactable=opened&&!gameState.getFlag('CHEN_GREY_BADGE_COLLECTED');
+    }
+    if(this.chenDutyPhone){
+      const ringing=gameState.getFlag('PHONE_RING_ACTIVE')===true&&gameState.getFlag('PHONE_CALL_KIND')==='CHEN_5F_GUARD_ANOMALY';
+      this.chenDutyPhone.userData.interactable=ringing;
+      this.chenDutyPhone.userData.label=ringing?'接聽正在響的 5F 值班室電話':'查看 5F 值班室電話';
+    }
+    if(this.chenWheelchairHit){
+      const active=gameState.getFlag('CHEN_WHEELCHAIR_BLOCKING')===true&&!gameState.getFlag('CHEN_WHEELCHAIR_PUSHED');
+      this.chenWheelchairHit.userData.interactable=active;
+    }
+  }
+
+  pushChenWheelchair(onComplete){
+    if(!this.chenWheelchair||gameState.getFlag('CHEN_WHEELCHAIR_PUSHED')){onComplete?.();return;}
+    const startX=this.chenWheelchair.position.x,targetX=startX-2.0,start=performance.now(),duration=1750;
+    const tick=now=>{
+      const t=Math.min(1,(now-start)/duration);
+      const ease=1-Math.pow(1-t,3);
+      this.chenWheelchair.position.x=startX+(targetX-startX)*ease;
+      if(t<1)requestAnimationFrame(tick);
+      else{
+        gameState.setFlag('CHEN_WHEELCHAIR_PUSHED',true);
+        gameState.setFlag('CHEN_WHEELCHAIR_BLOCKING',false);
+        if(this.chenWheelchairHit)this.chenWheelchairHit.userData.interactable=false;
+        onComplete?.();
+      }
+    };
+    requestAnimationFrame(tick);
   }
 
   setIdentitySecondConsultKeyBorrowed(borrowed){
