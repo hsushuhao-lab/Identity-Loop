@@ -512,16 +512,18 @@ export class Level3FBlockout {
     cardStripe.position.set(-0.075, 0.007, -0.055);
     keyGroup.add(cardStripe);
 
-    keyGroup.position.set(5.6, 0.83, 6.0);
+    keyGroup.position.set(2.39, 1.02, 7.55);
+    keyGroup.rotation.z=-Math.PI/2;
     keyGroup.visible = false;
     this.scene.add(keyGroup);
+    this.dutyItemsGroup=keyGroup;
 
     // Hitbox for key pickup
     const keyHitbox = new THREE.Mesh(
       new THREE.BoxGeometry(0.35, 0.25, 0.35),
       new THREE.MeshBasicMaterial({ visible: false })
     );
-    keyHitbox.position.copy(keyGroup.position);
+    keyHitbox.position.set(2.42,1.02,7.55);
     keyHitbox.userData = {
       interactable: false,
       id: 'KEY_PICKUP',
@@ -587,6 +589,23 @@ export class Level3FBlockout {
     const lockerBody=new THREE.Mesh(new THREE.BoxGeometry(1.15,1.65,.48),new THREE.MeshStandardMaterial({color:0x59625d,roughness:.72,metalness:.15}));
     lockerBody.position.set(1.75,.83,7.55);lockerBody.castShadow=true;this.scene.add(lockerBody);
     this.addCollider(new THREE.Box3(new THREE.Vector3(1.16,0,7.27),new THREE.Vector3(2.34,1.70,7.83)));
+    const lockerDoor=new THREE.Mesh(
+      new THREE.BoxGeometry(.045,1.48,.42),
+      new THREE.MeshStandardMaterial({color:0x4f5753,roughness:.68,metalness:.22})
+    );
+    lockerDoor.position.set(2.355,.84,7.55);
+    lockerDoor.name='316_LockerDoor';
+    this.scene.add(lockerDoor);
+    this.lockerDoor=lockerDoor;
+    const lockerInset=new THREE.Mesh(
+      new THREE.BoxGeometry(.035,.78,.30),
+      new THREE.MeshStandardMaterial({color:0x1d2421,roughness:.95})
+    );
+    lockerInset.position.set(2.335,1.00,7.55);
+    lockerInset.visible=false;
+    lockerInset.name='316_LockerOpenInset';
+    this.scene.add(lockerInset);
+    this.lockerInset=lockerInset;
     const keypad=new THREE.Mesh(new THREE.BoxGeometry(.07,.30,.22),new THREE.MeshStandardMaterial({color:0x242826,roughness:.45}));
     keypad.position.set(2.36,1.05,7.55);
     keypad.userData={interactable:true,id:'316_LOCKER',type:'locker_316',label:'輸入四位數密碼打開值班櫃'};
@@ -884,9 +903,20 @@ export class Level3FBlockout {
     return true;
   }
 
-  markLockerOpen() {
+  markLockerOpen(showContents=true) {
     if(this.lockerLed)this.lockerLed.material.color.setHex(0x3ea75a);
     if(this.lockerMesh)this.lockerMesh.userData.label='值班櫃｜已解鎖';
+    if(this.lockerDoor){
+      this.lockerDoor.rotation.z=-1.15;
+      this.lockerDoor.position.set(2.48,.32,7.55);
+    }
+    if(this.lockerInset)this.lockerInset.visible=true;
+    if(this.keyMesh){
+      this.keyMesh.visible=!!showContents;
+      this.keyMesh.userData.interactable=!!showContents;
+      if(this.keyMesh.userData.targetGroup)this.keyMesh.userData.targetGroup.visible=!!showContents;
+      if(showContents)this.keyMesh.userData.label='拿取櫃內值班鑰匙與感應卡';
+    }
   }
 
   createSignMesh(x, y, z, text, rotationY = 0) {
