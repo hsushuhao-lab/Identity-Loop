@@ -1125,14 +1125,22 @@ controller.onInteract = async (interactable) => {
     uiManager.showSubtitle('值班醫師','「這個電腦是護理師專用，請醫師用醫師診療室專用電腦。」',3600);
   } else if (interactable.type === 'archive_document') {
     controller.enabled = false;
-    if(interactable.id==='ARCHIVE_HISTORY_PHOTO_WALL')gameState.setFlag('ARCHIVE_HISTORY_WALL_REVIEWED',true);
-    uiManager.openArchiveDocument({title:interactable.documentTitle,pages:interactable.pages,onComplete:interactable.id==='ARCHIVE_PERSONNEL_1998'?()=>{
-      gameState.setFlag('HISTORY_PERSONNEL_PROFILES_REVIEWED',true);
-      gameState.setFlag('ARCHIVE_PERSONNEL_OBJECTIVE',false);
-      if(gameState.getFlag('B2_EXITED_PERMANENTLY'))gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',true);
-      persistentMemory.addJournalNote('ARCHIVE_PERSONNEL_REVIEWED','完成 1998 夜班核心人員名錄七頁核對。返回 316，以正確權限阻止紀錄覆寫。');
-      uiManager.updateTasks();
-    }:null});
+    const archiveComplete=interactable.id==='ARCHIVE_PERSONNEL_1998'
+      ? ()=>{
+          gameState.setFlag('HISTORY_PERSONNEL_PROFILES_REVIEWED',true);
+          gameState.setFlag('ARCHIVE_PERSONNEL_OBJECTIVE',false);
+          if(gameState.getFlag('B2_EXITED_PERMANENTLY'))gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',true);
+          persistentMemory.addJournalNote('ARCHIVE_PERSONNEL_REVIEWED','完成 1998 夜班核心人員名錄七頁核對。返回 316，以正確權限阻止紀錄覆寫。');
+          uiManager.updateTasks();
+        }
+      : interactable.id==='ARCHIVE_HISTORY_PHOTO_WALL'
+        ? ()=>{
+            gameState.setFlag('ARCHIVE_HISTORY_WALL_REVIEWED',true);
+            persistentMemory.addJournalNote('ARCHIVE_HISTORY_WALL_REVIEWED','已核對文史館院史影像牆；下一步查看 1998 夜班核心人員名錄。');
+            uiManager.updateTasks();
+          }
+        : null;
+    uiManager.openArchiveDocument({title:interactable.documentTitle,pages:interactable.pages,onComplete:archiveComplete});
     gameState.addEvidence(1);
     if(interactable.id?.startsWith('ADMIN_'))gameState.setFlag('B2_ADMIN_SOURCE',true);
     if(interactable.id?.startsWith('ARCHIVE_'))gameState.setFlag('B2_HISTORY_SOURCE',true);
