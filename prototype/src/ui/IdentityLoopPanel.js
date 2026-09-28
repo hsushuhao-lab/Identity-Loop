@@ -2,6 +2,7 @@ import { B2_ARCHIVE_IDENTITIES, B2_FIRE_MEMORY } from '../story/IdentityLoopFire
 import { getGoodEnding, getM9Candidates, WRONG_MEMORY_LINES } from '../story/IdentityLoopEndings.js';
 import { getVisibleEvidence } from '../story/IdentityLoopEvidence.js';
 import { ROUTE_STEPS } from '../story/IdentityRoutes.js';
+import { soundManager } from '../audio/SoundManager.js';
 
 
 export class IdentityLoopPanel{
@@ -44,19 +45,34 @@ export class IdentityLoopPanel{
     const status=document.createElement('div');status.className='identity-entry-status';status.setAttribute('aria-live','polite');
     const submit=document.createElement('button');submit.type='button';submit.className='identity-entry-submit';submit.textContent='這是我的名字';
 
-    const normalize=value=>String(value||'').trim().toUpperCase().replace(/－|—/g,'-');
-    submit.addEventListener('click',()=>{
-      const typedName=String(name.value||'').trim();
-      const typedId=normalize(employeeId.value);
-      const candidate=getM9Candidates().find(item=>item.name===typedName&&normalize(item.employeeId)===typedId);
+    const normalizeName=value=>String(value||'').normalize('NFKC').trim();
+    const normalizeId=value=>String(value||'').normalize('NFKC').trim().toUpperCase().replace(/[‐‑‒–—−]/g,'-').replace(/\s+/g,'');
+    let submitting=false;
+    const submitIdentity=()=>{
+      if(submitting)return;
+      const typedName=normalizeName(name.value);
+      const typedId=normalizeId(employeeId.value);
+      const candidate=getM9Candidates().find(item=>normalizeName(item.name)===typedName&&normalizeId(item.employeeId)===typedId);
       if(!candidate){
-        status.textContent='查無相符的人事資料，或姓名與員編不屬於同一筆紀錄。請重新核對。';
+        status.textContent='STAFF ID NOT RECOGNIZED — RETRY｜姓名或員編無法對應同一筆人事資料。';
+        soundManager.playComputerBeep();
         return;
       }
-      status.textContent='IDENTITY RECORD MATCHED｜正式提交中…';
-      this.commit(candidate.identity);
-    });
-    for(const input of [name,employeeId])input.addEventListener('keydown',event=>{if(event.key==='Enter')submit.click();});
+      submitting=true;
+      form.classList.add('submitting');
+      name.disabled=true;employeeId.disabled=true;submit.disabled=true;
+      status.textContent='IDENTITY RECORD MATCHED｜VERIFYING…';
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playTerminalFanHold(1.2);});
+      setTimeout(()=>{
+        status.textContent='IDENTITY RECORD MATCHED｜COMMITTING…';
+        this.commit(candidate.identity);
+      },1200);
+    };
+    submit.addEventListener('click',submitIdentity);
+    for(const input of [name,employeeId]){
+      input.addEventListener('input',()=>{void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playTerminalKey();});});
+      input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();submitIdentity();}});
+    }
     form.append(name,employeeId,submit,status);
     choices.append(form);
     this.render();
