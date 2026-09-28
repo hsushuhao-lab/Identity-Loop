@@ -558,7 +558,7 @@ export class WardFloorplan {
     }
     if(this.secondCampusTreatmentOrder){
       const seen=gameState.getFlag('SECOND_CHEST_PATIENT_SEEN')===true;
-      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看 409-A 轉送醫囑單':'查看 409-A 轉送醫囑單';
+      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看 409-A 醫囑單':'查看 409-A 醫囑單';
     }
     if(this.chenLockbox){
       const opened=gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')===true;
