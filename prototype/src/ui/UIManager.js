@@ -90,7 +90,7 @@ export class UIManager {
       const p=document.getElementById('his-password')?.value;
       const hasCredentials=this.gameState.getFlag('HIS_CREDENTIALS');
       const ok=hasCredentials&&a==='night403'&&p==='QL1700';
-      document.getElementById('his-login-status').textContent=!hasCredentials?'尚未取得今晚的系統帳密':ok?'登入成功｜可讀取夜班交班':'帳號或密碼錯誤';
+      document.getElementById('his-login-status').textContent=!hasCredentials?'錯誤：未插入夜間值班醫師登入卡｜終端處於待機鎖定':ok?'登入成功｜可讀取夜班交班':'帳號或密碼錯誤';
       document.getElementById('his-handoff-content')?.classList.toggle('unlocked',ok);
       if(ok)this.gameState.setFlag('HIS_AUTHENTICATED',true);
       soundManager.playComputerBeep();
@@ -340,7 +340,7 @@ export class UIManager {
       document.getElementById('his-handoff-content')?.classList.add('unlocked');
     }else{
       this.gameState.setFlag('HIS_AUTHENTICATED',false);
-      document.getElementById('his-login-status').textContent='尚未取得今晚的系統帳密';
+      document.getElementById('his-login-status').textContent='錯誤：未插入夜間值班醫師登入卡｜終端處於待機鎖定';
       document.getElementById('his-handoff-content')?.classList.remove('unlocked');
     }
     this.workstationModal.classList.add('active');
