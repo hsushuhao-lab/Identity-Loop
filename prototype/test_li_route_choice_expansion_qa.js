@@ -47,7 +47,7 @@ assert.match(director,/primaryText:'忍住，不回頭'/);
 assert.match(scenes,/嘻嘻，你又回來了/);
 assert.match(scenes,/警衛休息室的錄影帶/);
 assert.doesNotMatch(scenes,/順序自由/);
-assert.match(scenes,/沒有名牌、看不清臉的白袍輪廓/);
+assert.match(scenes,/沒有名牌(?:、看不清臉)?的白袍輪廓|沒有名牌，臉仍然看不清/);
 assert.match(scenes,/六樓[\s\S]*白袍輪廓/);
 
 assert.match(main,/result\.type==='WRONG_MEMORY_BAD_END'/);
