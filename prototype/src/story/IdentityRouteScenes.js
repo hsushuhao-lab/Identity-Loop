@@ -494,7 +494,7 @@ export function getIdentityRouteScene(step, identity) {
     CHEN_M8_DISPATCH: [
       event('救護調度白板', [
         {speaker:'內心',text:'B1 調度室的白板還停在 1998。最後一趟跨院車次沒有完整姓名。'},
-        {speaker:'內心',text:'「車次 094｜23:40 第二院區 → 第一院區｜隨車支援醫師：陳○○｜MED-89••••。」'},
+        {speaker:'內心',text:'「車次 094｜23:40 第二院區 → 第一院區｜隨車支援醫師：[姓名欄磨損]｜MED-89••••。」'},
         {speaker:'內心',text:'姓氏只剩一個字，員編仍被遮掉後四碼。還不能直接作答。'}
       ], '核對 1998 跨院救護調度白板'),
       event('灰滾邊證件刷卡', [
