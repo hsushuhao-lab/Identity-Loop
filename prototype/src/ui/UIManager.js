@@ -367,7 +367,9 @@ export class UIManager {
     const opened=this.gameState.getFlag('LOCKER_OPENED');
     const contents=document.getElementById('locker-contents');
     contents?.classList.toggle('revealed',opened);
-    document.getElementById('locker-status').textContent=opened?'櫃門已解鎖｜可再次查看值班物品':'櫃門鎖定中';
+    document.getElementById('locker-status').textContent=opened
+      ? '櫃門已解鎖｜請從場景中的櫃內拿取值班物品'
+      : '請輸入交班時間代碼（HHMM）';
     const input=document.getElementById('locker-code');
     if(input&&!opened&&persistentMemory.data.knownCodes.pass_1700)input.value='1700';
     this.lockerModal?.classList.add('active');
