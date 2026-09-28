@@ -106,8 +106,52 @@ export class SecondCampus1F {
     monitor(art, this.gf.materials, 74, 1.18, -4.5, Math.PI);
     buildDeskCluster(art,this.gf.materials,{x:74,z:-5.2,yaw:Math.PI,chairs:1,name:'Second1F_GuardWorkstation'});
     buildSupplyCabinet(art,this.gf.materials,{x:76.6,z:-6.6,yaw:-Math.PI/2,name:'Second1F_GuardStorage'});
-    // Guard logbook and security transceiver
-    solid(art, this.gf.materials.doorWood, [75, 1.19, -4.5], [0.35, 0.04, 0.28]);
+    // Guard logbook and security transceiver.
+    // These are real Identy Loop scene props so Zhang's clue is found by looking
+    // at the guard desk, not by interacting with a floating route marker.
+    const guardLogbook=solid(art, this.gf.materials.doorWood, [75, 1.19, -4.5], [0.35, 0.04, 0.28]);
+    guardLogbook.name='Second1F_IdentityGuardLogbook';
+    guardLogbook.userData={
+      interactable:true,
+      id:'IDENTITY_SECOND_GUARD_LOGBOOK',
+      type:'identity_guard_logbook',
+      label:'翻閱警衛訪客簿'
+    };
+    this.interactables.push(guardLogbook);
+
+    const coffee=new THREE.Group();
+    coffee.name='Second1F_IdentityBlackCoffee';
+    coffee.position.set(74.45,1.23,-4.42);
+    const cup=new THREE.Mesh(
+      new THREE.CylinderGeometry(.075,.065,.15,20),
+      new THREE.MeshStandardMaterial({color:0xeee8dc,roughness:.72})
+    );
+    cup.position.y=.075;
+    coffee.add(cup);
+    const coffeeSurface=new THREE.Mesh(
+      new THREE.CircleGeometry(.058,20),
+      new THREE.MeshStandardMaterial({color:0x21120b,roughness:.5})
+    );
+    coffeeSurface.rotation.x=-Math.PI/2;
+    coffeeSurface.position.y=.153;
+    coffee.add(coffeeSurface);
+    const handle=new THREE.Mesh(
+      new THREE.TorusGeometry(.047,.012,8,18,Math.PI*1.45),
+      new THREE.MeshStandardMaterial({color:0xeee8dc,roughness:.72})
+    );
+    handle.rotation.x=Math.PI/2;
+    handle.rotation.z=-.35;
+    handle.position.set(.075,.085,0);
+    coffee.add(handle);
+    coffee.userData={
+      interactable:true,
+      id:'IDENTITY_SECOND_GUARD_COFFEE',
+      type:'identity_guard_coffee',
+      label:'查看警衛桌上的黑咖啡'
+    };
+    art.add(coffee);
+    this.interactables.push(coffee);
+
     solid(art, this.gf.materials.metal, [73.2, 1.25, -4.5], [0.08, 0.22, 0.08]);
     CollisionFactory.addBox(this.colliders, 74, .6, -4.5, 2.7, 1.2, .9);
     SignAnchor.buildWallPlaque({scene:this.zoneGroup,x:74,y:.73,z:-4.02,rotationY:0,code:'SEC-1',title:'1F 警衛駐守台',subtitle:'SECURITY POST',header:'青嶺醫療中心 ｜ 第二院區'});
