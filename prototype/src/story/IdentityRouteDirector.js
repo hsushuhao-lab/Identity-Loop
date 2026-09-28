@@ -297,7 +297,7 @@ export class IdentityRouteDirector {
     const identity = this.manager.currentIdentity;
     if (step === 'ZHANG_OPEN_4F') return {
       id:'IDENTITY_4F_NURSE_STATION',
-      prompt:'使用護理站電腦聯絡晚班護理師'
+      prompt:'按下 4F 護理站對講機'
     };
     if (step === 'ZHOU_OPEN_8F') return index === 0
       ? { id: 'IDENTITY_HISTORY_GROUP_PHOTO', prompt: '查看院史長廊大型合照' }
@@ -322,7 +322,7 @@ export class IdentityRouteDirector {
       const offset=identity==='ZHANG'?0:1;
       if(identity!=='ZHANG'&&index===0) return {
         id:'IDENTITY_4F_NURSE_STATION',
-        prompt:'使用護理站電腦聯絡晚班護理師，確認 408C 狀況'
+        prompt:'按下 4F 護理站對講機，確認 408C 狀況'
       };
       if(index===offset) return { id:'408C_BED_PLAQUE', prompt:'到 408C 確認敲牆聲' };
       if(index===offset+1) return { id:'BED33_409_SEALED', prompt:'確認 409 封閉房與敲擊來源' };
@@ -349,16 +349,16 @@ export class IdentityRouteDirector {
       if (index === 0) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
-          ? '使用 5F 護理站電腦聯絡護理師，借會診備用鑰匙'
-          : '使用 5F 護理站電腦完成聯絡報到'
+          ? '按下 5F 護理站對講機，借會診備用鑰匙'
+          : '按下 5F 護理站對講機完成聯絡報到'
       };
       if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
       if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 504B 預填轉院單' };
       if (index === 3) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
-          ? '回 5F 護理站電腦聯絡護理師並歸還會診備用鑰匙'
-          : '回 5F 護理站電腦回報 504B 處置'
+          ? '回 5F 護理站對講機聯絡護理師並歸還會診備用鑰匙'
+          : '回 5F 護理站對講機回報 504B 處置'
       };
       if(index===4) return { auto:true };
     }
@@ -817,6 +817,10 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_CALL_KIND',null);
     }
     if (!beat) return;
+    const activeBinding=this.bindingFor();
+    if(['IDENTITY_4F_NURSE_STATION','IDENTITY_SECOND_5F_NURSE_STATION'].includes(activeBinding?.id)){
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playIntercomBurst();});
+    }
     if(beat.knock409){
       void soundManager.ensureRunning().then(ready=>{
         if(ready)soundManager.playBed33KnockPattern(.16);
