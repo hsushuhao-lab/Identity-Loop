@@ -1314,6 +1314,17 @@ export class IdentityRouteDirector {
         });
         return;
       }
+      if(beat.chenDispatchServiceLift){
+        this.gameState.setFlag('CHEN_DISPATCH_ROUTE_VERIFIED',true);
+        void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playElevatorChime();});
+        void this.completeBeat().then(async()=>{
+          if(this.manager.runSave.runEnded)return;
+          await this.prepareZone('first_campus_3f');
+          this.worldRouter.loadZone('first_campus_3f','m0_316_office');
+          this.renderObjective();
+        });
+        return;
+      }
       if(beat.chenDispatchBadgeSwipe){
         if(!this.gameState.getFlag('CHEN_GREY_BADGE_COLLECTED')){
           this.uiManager.showDialogue([
