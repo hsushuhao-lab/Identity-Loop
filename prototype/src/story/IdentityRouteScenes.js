@@ -1,6 +1,6 @@
 const event = (label, lines, review, extra = {}) => ({ label, lines, review, ...extra });
 
-export function getIdentityRouteScene(step, identity) {
+export function getIdentityRouteScene(step, identity, runSeed=null) {
   const reaction = choices => choices[identity];
   const scenes = {
     ZHANG_OPEN_4F: [
@@ -530,6 +530,7 @@ export function getIdentityRouteScene(step, identity) {
     M9: [event('316 最後身分核對', ['夜班的路徑、動作與記憶已經留下證據。', '最後交班只允許正式提交一次。請手動輸入你認為屬於自己的姓名與員編。'], '在 316 最後交班終端手動輸入姓名與員編')]
   };
   if (!scenes[step]) throw new Error(`Unknown route scene: ${step}`);
+  if(shouldShowAnnie(identity,step,runSeed))scenes[step].push(annieEvent(identity));
   const locations = {
     ZHANG_OUTBOUND_8F: [
       { zoneId:'first_campus_8f', spawn:'first_8f_lift' },
@@ -572,4 +573,28 @@ export function getIdentityRouteScene(step, identity) {
   };
   scenes[step].forEach((beat, index) => Object.assign(beat, locations[step]?.[index]));
   return scenes[step];
+}
+
+const ANNIE_WINDOWS=Object.freeze({
+  ZHANG:new Set(['M2','M5','M7']),
+  LI:new Set(['LI_2117_PATROL','LI_ER_0033','M7']),
+  ZHOU:new Set(['ZHOU_OPEN_8F','ZHOU_2117_RETURN','M5']),
+  CHEN:new Set(['CHEN_OPEN_SKYBRIDGE','CHEN_M8_DISPATCH','M5'])
+});
+
+export function shouldShowAnnie(identity,step,runSeed=null){
+  if(runSeed==null||!ANNIE_WINDOWS[identity]?.has(step))return false;
+  let hash=(2166136261^(Number(runSeed)>>>0))>>>0;
+  for(const char of `${identity}:${step}`)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
+  return hash%3===0;
+}
+
+function annieEvent(identity){
+  const lines={
+    ZHANG:['技能人偶安靜地坐在走廊末端，袖口沾著藍色印泥。','我先確認急救箱封條完整，再把注意力放回病床。'],
+    LI:['計時器停在 02:17，訓練人偶沒有呼吸起伏。','我將設備歸零，沒有替空白的巡查欄補上時間。'],
+    ZHOU:['玻璃反射裡多出一具坐著的訓練人偶，沒有相機快門聲。','我記下位置，不再為了得到照片而延誤值班。'],
+    CHEN:['天橋輪聲停止後，訓練人偶坐在通道轉角，前方沒有輪椅。','我先清出通道，再逐項確認車次與床位。']
+  };
+  return event('走廊盡頭的訓練人偶',lines[identity],'確認設備與通道後繼續',{flag:`ANNIE_ROUTE_EVENT_${identity}`});
 }

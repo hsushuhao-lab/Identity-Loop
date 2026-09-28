@@ -10,6 +10,8 @@ export class SoundManager {
     this.phoneOscillators = new Set();
     this.phoneRingActive = false;
     this.debugCounters = {phoneBurst:0};
+    this.pendingRouteTheme=null;
+    this.routeTheme=null;
   }
 
   init() { return this.ensureRunning(); }
@@ -25,7 +27,7 @@ export class SoundManager {
         const recovering=!this.userUnlocked||this.ctx.state!=='running';
         if(this.ctx.state!=='running')await this.ctx.resume();
         if(this.ctx.state!=='running')return false;
-        this.userUnlocked=true;this.startAmbient();
+        this.userUnlocked=true;this.startAmbient();this.applyPendingRouteTheme();
         if(recovering&&this.phoneRingActive)this.playPhoneRingPattern();
         return true;
       }catch(error){console.warn('[audio] unlock failed',error);return false;}
@@ -89,6 +91,34 @@ export class SoundManager {
     } catch (e) {
       console.warn('Ambient sound failed:', e);
     }
+  }
+
+  setRouteTheme(identity,step){
+    this.pendingRouteTheme={identity,step};
+    if(this.ctx?.state==='running')this.applyPendingRouteTheme();
+  }
+
+  applyPendingRouteTheme(){
+    if(!this.ctx||this.ctx.state!=='running'||!this.pendingRouteTheme)return;
+    const {identity,step}=this.pendingRouteTheme,now=this.ctx.currentTime;
+    if(this.routeTheme?.identity===identity&&this.routeTheme?.step===step)return;
+    if(this.routeTheme){
+      const previous=this.routeTheme;
+      previous.gain.gain.cancelScheduledValues(now);
+      previous.gain.gain.setValueAtTime(previous.gain.gain.value,now);
+      previous.gain.gain.linearRampToValueAtTime(.0001,now+.65);
+      for(const oscillator of previous.oscillators)oscillator.stop(now+.7);
+      this.routeTheme=null;
+    }
+    if(!identity||step==='M9'||step==='ENDING'||this.isMuted)return;
+    const profiles={ZHANG:{wave:'sine',notes:[55,82.41],level:.035},LI:{wave:'triangle',notes:[61.74,92.5],level:.026},ZHOU:{wave:'sawtooth',notes:[73.42,110],level:.022},CHEN:{wave:'square',notes:[46.25,69.3],level:.024}};
+    const profile=profiles[identity];if(!profile)return;
+    try{
+      const gain=this.ctx.createGain();gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(profile.level,now+1.4);gain.connect(this.ctx.destination);
+      const filter=this.ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=identity==='ZHOU'?420:identity==='LI'?260:180;filter.Q.value=.7;filter.connect(gain);
+      const oscillators=profile.notes.map((frequency,index)=>{const oscillator=this.ctx.createOscillator();oscillator.type=profile.wave;oscillator.frequency.setValueAtTime(frequency,now);oscillator.detune.value=index?3:-2;oscillator.connect(filter);oscillator.start(now);return oscillator;});
+      this.routeTheme={identity,step,gain,oscillators};
+    }catch(error){console.warn('[audio] route theme unavailable',error);}
   }
 
   playFootstep() {

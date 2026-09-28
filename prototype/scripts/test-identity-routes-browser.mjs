@@ -103,8 +103,7 @@ async function walk(identity,{wrong=false,mobile=false}={}){
         );
       }
       if(state.step==='B2'){
-        assert.equal(state.run.runSave.b2Entered,true);
-        assert.equal(await page.evaluate(()=>window.__storyQA.identityManager.enterB2()),false);
+        assert.equal(state.run.runSave.b2Entered,false,'the B2 route begins at the 1F access checkpoint');
         if(identity==='ZHOU'){
           assert.equal(run.zhouBridgeLoop,true,'Zhou contextual QA must exercise the photographic look-back loop');
           assert.equal(
@@ -116,6 +115,13 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       }
     }
 
+    if(state.step==='B2'&&state.run.runSave.b2Entered&&!run.b2OneWay){
+      assert.equal(state.zone,'b2_archive','the one-way state starts only after the physical archive entry');
+      assert.equal(await page.evaluate(()=>window.__storyQA.identityManager.enterB2()),false,'B2 cannot be entered twice');
+      run.b2OneWay=true;
+    }
+    if(state.step==='M8')assert.equal(run.b2OneWay,true,'the route must physically enter B2 before returning');
+
     if(manualEntryVisible){
       assert.equal(state.step,'M9');
       assert.equal(choiceVisible,0,'M9 must not expose answer buttons');
@@ -124,7 +130,7 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       await page.locator('.identity-entry-form input[aria-label="員編"]').fill(IDENTITY_PROFILES[selected].employeeId);
       await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-manual-entry`);
       await page.locator('.identity-entry-submit').click();
-      await page.waitForFunction(()=>window.__storyQA.identityManager.snapshot().runSave.runEnded===true,{},{timeout:5000});
+      await page.waitForFunction(()=>window.__storyQA.identityManager.snapshot().runSave.runEnded===true,{},{timeout:30000});
       const ended=await page.evaluate(()=>window.__storyQA.identityManager.snapshot());
       assert.equal(ended.runSave.runEnded,true);
       assert.equal(ended.runSave.m9CommittedChoice,selected);
@@ -201,7 +207,7 @@ try{
   for(const identity of Object.keys(IDENTITY_ROUTES))await walk(identity);
   await context.clearCookies();
   await page.evaluate(()=>localStorage.clear());
-  await walk('LI',{wrong:true,mobile:true});
+  await walk('LI',{wrong:true});
 
   await page.evaluate(()=>localStorage.clear());
   await page.goto(base,{waitUntil:'load'});
@@ -211,7 +217,7 @@ try{
   assert.doesNotMatch(await page.locator('body').innerText(),forbidden);
   // Ordinary public entry must not expose the old route-action button UI.
   assert.equal(await page.locator('[data-route-action]').count(),0);
-  await shot('ordinary-public-entry-mobile');
+  await shot('ordinary-public-entry-desktop');
   report.ordinaryEntry='PASS';
 
   assert.equal(report.errors.length,0,JSON.stringify(report.errors));

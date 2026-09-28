@@ -190,7 +190,7 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
     identityManager.startNewRun({forceIdentity:identity,restart:true});
     location.reload();
   });
-}});
+},onRouteStep:step=>soundManager.setRouteTheme(identityManager.currentIdentity,step)});
 
 const actPresentationDirector=new ActPresentationDirector({
   gameState,

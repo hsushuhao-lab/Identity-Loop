@@ -194,7 +194,7 @@ export class IdentityRouteDirector {
         await this.restoreEnding();
         return true;
       }
-      const firstBeat = getIdentityRouteScene(this.manager.currentRouteStep, this.manager.currentIdentity)[0];
+      const firstBeat = getIdentityRouteScene(this.manager.currentRouteStep, this.manager.currentIdentity,this.manager.runSave.runSeed)[0];
       await this.prepareZone(firstBeat.zoneId || ROUTE_STEPS[this.manager.currentRouteStep].zoneId);
       await this.loadCurrentStep({ forceLoad: true });
       return true;
@@ -237,7 +237,7 @@ export class IdentityRouteDirector {
     this.removeInteractionTarget();
     this.step = this.manager.currentRouteStep;
     const route = ROUTE_STEPS[this.step];
-    this.beats = getIdentityRouteScene(this.step, this.manager.currentIdentity);
+    this.beats = getIdentityRouteScene(this.step, this.manager.currentIdentity,this.manager.runSave.runSeed);
     this.beatIndex = 0;
     this.revision += 1;
     this.awaitingZone = null;

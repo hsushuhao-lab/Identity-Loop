@@ -15,7 +15,7 @@ export const IDENTITY_STORAGE_KEY='IdentyLoop_IdentityState_v1';
 const IDENTITIES=Object.freeze(Object.values(IdentityEnum));
 const clone=value=>JSON.parse(JSON.stringify(value));
 const freshMeta=()=>({completedGoodEnds:[],identityBag:[],m10Unlocked:false});
-const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,runEnded:false,b2Entered:false});
+const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,runEnded:false,b2Entered:false,runSeed:null});
 
 function defaultStorage(){
   if(typeof window!=='undefined'&&window.localStorage)return window.localStorage;
@@ -45,9 +45,10 @@ export class IdentityManager{
     if(parsed.version!==2){
       runSave=runSave.runEnded?{...runSave,currentRouteStep:IDENTITY_ROUTES[runSave.currentIdentity]?.length||0,completedStoryModules:[]}:{...freshRun(),currentIdentity:validIdentity(runSave.currentIdentity)?runSave.currentIdentity:null};
     }
+    if(runSave.currentIdentity&&runSave.runSeed==null){runSave.runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;}
     runSave.currentMilestone=IDENTITY_ROUTES[runSave.currentIdentity]?.[runSave.currentRouteStep]||(runSave.runEnded?'M9':metaSave.m10Unlocked?'M10':null);
     const state={version:2,metaSave,runSave};
-    if(parsed.version!==2)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
+    if(parsed.version!==2||parsed.runSave?.runSeed==null)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
     return state;
   }
 
@@ -67,7 +68,8 @@ export class IdentityManager{
     }
     const currentIdentity=forceIdentity||this.drawIdentity();
     if(!validIdentity(currentIdentity))throw new Error('Unknown identity seed');
-    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0]};
+    const runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;
+    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed};
     return this.save();
   }
 
