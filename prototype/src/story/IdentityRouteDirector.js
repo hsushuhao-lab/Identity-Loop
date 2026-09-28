@@ -590,12 +590,22 @@ export class IdentityRouteDirector {
     return {
       step: this.step,
       beatIndex: this.beatIndex,
+      awaitingZone: this.awaitingZone,
       auto: binding.auto === true,
       boundToWorldObject: !!this.boundTarget,
       contextualHitbox: !!this.anchor,
       visibleSyntheticQuestCard: this.anchor?.name?.startsWith('identity_route_event') === true,
       targetId: (this.boundTarget?.object?.userData || this.boundTarget?.object)?.id || this.anchor?.userData?.label || null
     };
+  }
+
+  qaArriveAtAwaitingZone() {
+    if (!this.awaitingZone || this.busy) return false;
+    const beat = this.beats[this.beatIndex];
+    const route = ROUTE_STEPS[this.step];
+    const targetZone = this.awaitingZone;
+    this.worldRouter.loadZone(targetZone, beat?.spawn || route?.spawn);
+    return true;
   }
 
   finishEnding(result) {
