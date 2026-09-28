@@ -136,6 +136,7 @@ assert.match(sceneSource,/clearFlag:\(identity==='ZHOU'\|\|identity==='CHEN'\)\?
 console.log('PASS pre-handoff M4: Zhou/Chen borrow 504-only consult key, assess patient, review transfer, return key');
 
 const routeSceneSource=readFileSync(new URL('./src/story/IdentityRouteScenes.js',import.meta.url),'utf8');
+const uiManagerSource=readFileSync(new URL('./src/ui/UIManager.js',import.meta.url),'utf8');
 const m1Slice=routeSceneSource.slice(routeSceneSource.indexOf("    M1: ["),routeSceneSource.indexOf("    M2: ["));
 assert.doesNotMatch(m1Slice,/speaker:'學長'/);
 assert.match(m1Slice,/以前.*學長/);
@@ -203,7 +204,6 @@ const b2RecapSource=readFileSync(new URL('./src/story/B2FireRecapDirector.js',im
 for(const doctorName of ['張守恆','李承禮','周啟文','陳柏勳'])assert.doesNotMatch(b2RecapSource,new RegExp(doctorName));
 assert.match(b2RecapSource,/第一線住院醫師在 4F 409-A/);
 const level3Source=readFileSync(new URL('./src/world/Level3FBlockout.js',import.meta.url),'utf8');
-const uiManagerSource=readFileSync(new URL('./src/ui/UIManager.js',import.meta.url),'utf8');
 assert.match(level3Source,/keyGroup\.position\.set\(2\.39, 1\.02, 7\.55\)/);
 assert.match(level3Source,/316_LockerDoor/);
 assert.match(level3Source,/markLockerOpen\(showContents=true\)/);
