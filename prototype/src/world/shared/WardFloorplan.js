@@ -479,7 +479,7 @@ export class WardFloorplan {
     const wheelHit=new THREE.Mesh(new THREE.BoxGeometry(1.25,1.5,1.25),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
     wheelHit.position.set(0,.65,0);wheelHit.userData={interactable:false,id:'CHEN_WHEELCHAIR',type:'chen_wheelchair',label:'推開擋住通道的舊輪椅'};
     wheelchair.add(wheelHit);this.zoneGroup.add(wheelchair);this.interactables.push(wheelHit);this.chenWheelchair=wheelchair;this.chenWheelchairHit=wheelHit;
-    this.chenWheelchairCollider=CollisionFactory.addBox(this.colliders,o+7.1,.72,5.65,1.10,1.42,1.05);
+    this.chenWheelchairCollider=null;
 
     w.build();this.gf.buildCeilingLight(this.zoneGroup,o+11,3.15,6,.75,7);
     this.roomAreas.push({id:'SECOND_DUTY',label:'值班室',point:[o+9.5,1.7,6],door:[o+8,1.7,6],corridor:[o+6.5,1.7,6],protectedArea:false,kind:'duty_room',accessDoorId:'second_duty_room'});
@@ -579,16 +579,23 @@ export class WardFloorplan {
     if(this.chenWheelchairHit){
       const active=gameState.getFlag('CHEN_WHEELCHAIR_BLOCKING')===true&&!gameState.getFlag('CHEN_WHEELCHAIR_PUSHED');
       this.chenWheelchairHit.userData.interactable=active;
+      this.setChenWheelchairBlocking(active);
+    }
+  }
+
+  setChenWheelchairBlocking(active){
+    if(active&&!this.chenWheelchairCollider){
+      this.chenWheelchairCollider=CollisionFactory.addBox(this.colliders,this.planOrigin+7.1,.72,5.65,1.10,1.42,1.05);
+    }else if(!active&&this.chenWheelchairCollider){
+      const idx=this.colliders.indexOf(this.chenWheelchairCollider);
+      if(idx>=0)this.colliders.splice(idx,1);
+      this.chenWheelchairCollider=null;
     }
   }
 
   pushChenWheelchair(onComplete){
     if(!this.chenWheelchair||gameState.getFlag('CHEN_WHEELCHAIR_PUSHED')){onComplete?.();return;}
-    if(this.chenWheelchairCollider){
-      const idx=this.colliders.indexOf(this.chenWheelchairCollider);
-      if(idx>=0)this.colliders.splice(idx,1);
-      this.chenWheelchairCollider=null;
-    }
+    this.setChenWheelchairBlocking(false);
     const startX=this.chenWheelchair.position.x,targetX=startX-2.0,start=performance.now(),duration=1750;
     const tick=now=>{
       const t=Math.min(1,(now-start)/duration);
