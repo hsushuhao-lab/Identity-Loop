@@ -21,11 +21,10 @@ assert.match(scenes,/LI_316_ARCHIVE:[\s\S]*316 舊終端查詢[\s\S]*第二院�
 assert.match(scenes,/LI_OUTBOUND_8F:[\s\S]*glimpse6f:true/);
 assert.match(scenes,/LI_3F_EVIDENCE:[\s\S]*行政辦公室[\s\S]*文史室[\s\S]*evidenceSweep:true/);
 
-assert.doesNotMatch(scenes,/轉院單/);
-assert.match(scenes,/預填醫囑單/);
+assert.match(scenes,/核對預填轉院單/);
 assert.match(scenes,/transferSignChoice:true/);
-assert.match(director,/title:'第二院區｜409-A 預填醫囑單'/);
-assert.match(director,/secondaryText:'簽名確認 409-A 醫囑'/);
+assert.match(director,/title:'第二院區｜409-A 預填轉院單'/);
+assert.match(director,/secondaryText:'簽名核准轉送至 409-A'/);
 assert.match(director,/M4_409A_ORDER_PATIENTIZATION/);
 
 assert.match(director,/title:'00:33｜有紀錄，但沒有病人'/);
