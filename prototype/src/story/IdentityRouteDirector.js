@@ -134,7 +134,7 @@ export class IdentityRouteDirector {
     const identity = this.manager.currentIdentity;
     if (step === 'ZHANG_OPEN_4F') return { auto: true };
     if (step === 'ZHOU_OPEN_8F') return index === 0
-      ? { contextual: true, fromSpawn: true, distance: 1.7, photo: true, prompt: '查看院史長廊大型合照' }
+      ? { id: 'IDENTITY_HISTORY_GROUP_PHOTO', prompt: '查看院史長廊大型合照' }
       : { auto: true };
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
@@ -164,23 +164,20 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'ZHANG_SECOND_CAMPUS_SECURITY') {
-      return {
-        contextual: true,
-        point: index === 0 ? [74.0, 1.24, -4.35] : [75.0, 1.22, -4.45],
-        art: index === 0 ? 'coffee' : null,
-        prompt: index === 0 ? '查看警衛桌上的黑咖啡' : '翻閱警衛訪客簿'
-      };
+      return index === 0
+        ? { id: 'IDENTITY_SECOND_GUARD_COFFEE', prompt: '查看警衛桌上的黑咖啡' }
+        : { id: 'IDENTITY_SECOND_GUARD_LOGBOOK', prompt: '翻閱警衛訪客簿' };
     }
 
     if (step === 'M5') {
       if (index === 0) return { id: 'SECOND_2F_CCTV_SELF', prompt: '查看第二院區監視畫面' };
-      if (index === 1) return { contextual: true, point: [30, 1.45, 0], prompt: '沿天橋走到異常回聲最清楚的位置' };
+      if (index === 1) return { id: 'BRIDGE_LOOP_EVENT', prompt: '走到天橋中段，確認異常回聲與白袍人影' };
     }
 
     if (step === 'ZHANG_6F_FORESHADOW') return { auto: true };
 
     if (step === 'ZHOU_1F_PHOTO') {
-      return { contextual: true, point: [-10.5, 1.55, 2.25], photo: true, prompt: '查看警衛台旁的事故前設備照片' };
+      return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛台上的事故前設備照片' };
     }
 
     if (step === 'ZHOU_SECURITY_TALK') return { id: 'OLD_GUARD_POST', prompt: '和警衛談談老照片' };
