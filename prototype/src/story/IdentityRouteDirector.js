@@ -576,19 +576,9 @@ export class IdentityRouteDirector {
         this.uiManager.openStoryChoice({
           title:'空中天橋｜安妮',
           body:'玻璃倒影裡的白袍女人停在你身後。她低聲叫你回頭。\n\n回頭確認她是誰，還是忍住不回頭繼續走？',
-          primaryText:'回頭',
-          secondaryText:'不要回頭，繼續走',
+          primaryText:'不要回頭，繼續走',
+          secondaryText:'回頭',
           onPrimary:()=>{
-            this.uiManager.closeStoryChoice(false);
-            this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
-            this.uiManager.showDialogue([
-              {speaker:'安妮',text:'「抓到了。」'},
-              {speaker:'現場',text:'病床輪子的聲音從身後逼近。白色腕帶扣上手腕：409-A。'}
-            ],()=>{
-              this.onEnding({type:'BAD_END',reason:'BRIDGE_LOOKBACK_PATIENTIZATION'});
-            });
-          },
-          onSecondary:()=>{
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M5_BRIDGE_RESOLVED',true);
             this.gameState.setFlag('M5_BRIDGE_COMMITTED',true);
@@ -598,6 +588,16 @@ export class IdentityRouteDirector {
             this.uiManager.showDialogue([
               {speaker:'值班醫師',text:'「不要回頭。一直走到天橋另一端。」'}
             ],()=>{ void this.completeBeat(); });
+          },
+          onSecondary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
+            this.uiManager.showDialogue([
+              {speaker:'安妮',text:'「抓到了。」'},
+              {speaker:'現場',text:'病床輪子的聲音從身後逼近。白色腕帶扣上手腕：409-A。'}
+            ],()=>{
+              this.onEnding({type:'BAD_END',reason:'BRIDGE_LOOKBACK_PATIENTIZATION'});
+            });
           }
         });
         return;
@@ -759,6 +759,13 @@ export class IdentityRouteDirector {
   qaInteractCurrentBeat() {
     if (this.busy || this.manager.runSave.runEnded || this.uiManager.dialogueSequence) return false;
     const binding = this.bindingFor();
+    if(binding.officeEntry){
+      this.gameState.setFlag('FOUND_316_SPARE_KEY',true);
+      this.gameState.setFlag('OPENED_316',true);
+      this.m1EntryTriggered=true;
+      this.inspect();
+      return true;
+    }
     if (binding.auto) {
       this.inspect();
       return true;
