@@ -42,7 +42,7 @@ const B2_FIRE_BEATS=Object.freeze([
     stamp:'現在 · B2',
     title:'UNKNOWN SESSION / OVERWRITE ACTIVE',
     body:'終端畫面上的姓名、員編與事故索引正在被重新塗黑。新的覆寫工作階段已經登入，但操作者身分被隱藏。',
-    evidence:'有人正在再次覆蓋這一切。快離開 B2，回到 316，用正確權限阻止紀錄覆寫。',
+    evidence:'有人正在再次覆蓋這一切。快離開 B2，把封存底稿與院史資料交叉核對，再完成最後交班。',
     mode:'overwrite',cue:'beep'
   })
 ]);
