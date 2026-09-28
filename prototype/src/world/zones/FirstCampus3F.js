@@ -351,7 +351,7 @@ export class FirstCampus3F {
       interactable:true,
       id:'ARCHIVE_HISTORY_PHOTO_WALL',
       type:'archive_document',
-      label:'查看文史館院史影像牆',
+      label:'翻閱：文史館院史影像牆',
       documentTitle:'文史館｜院史影像牆',
       pages:[
         '院史影像牆把 1998 年兩院區、空中天橋、舊技能中心與警衛門禁配置放在同一張時間軸上。',
