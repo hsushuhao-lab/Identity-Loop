@@ -12,6 +12,10 @@ jobs:
   four-routes:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [local, public]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,16 +32,19 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: prototype
       - name: Local four routes and name-leak gate
+        if: matrix.target == 'local'
         run: node scripts/test-identity-routes-browser.mjs qa-results/identity-v03-local
         working-directory: prototype
       - name: Verify published main SHA
+        if: matrix.target == 'public'
         run: node scripts/verify-live-build.mjs https://hsushuhao-lab.github.io/Identy-Loop/
         working-directory: prototype
       - name: Public four routes and mobile wrong ending
+        if: matrix.target == 'public'
         run: node scripts/test-identity-routes-browser.mjs qa-results/identity-v03-public https://hsushuhao-lab.github.io/Identy-Loop/
         working-directory: prototype
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: identity-v03-browser-evidence
+          name: identity-v03-browser-evidence-${{ matrix.target }}
           path: prototype/qa-results/

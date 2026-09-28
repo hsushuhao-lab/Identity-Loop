@@ -36,7 +36,7 @@ export class IdentityLoopPanel{
     this.root.querySelector('[data-identity-detail]').textContent='核對你的夜班記憶，選擇自己的身分。每輪只能正式提交一次。';
     this.root.scrollTop=0;
     const choices=this.root.querySelector('[data-identity-choices]');choices.replaceChildren();
-    for(const candidate of getM9Candidates()){const button=document.createElement('button');button.type='button';button.className='identity-choice';button.textContent=`${candidate.name}｜${candidate.employeeId}`;button.addEventListener('click',()=>this.commit(candidate.identity));choices.append(button);}
+    for(const candidate of getM9Candidates()){const button=document.createElement('button');button.type='button';button.className='identity-choice';button.textContent=`${candidate.name}｜${candidate.role}｜${candidate.employeeId}`;button.addEventListener('click',()=>this.commit(candidate.identity));choices.append(button);}
     this.render();
   }
   commit(identity){const result=this.manager.commitM9(identity);if(!result.ok)return result;this.root?.classList.remove('m9-open');this.root?.querySelector('[data-identity-choices]')?.replaceChildren();this.render();this.showEnding(result);this.onCommit?.(result);return result;}

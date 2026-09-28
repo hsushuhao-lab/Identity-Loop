@@ -87,6 +87,7 @@ assert.equal(restored.runSave.runEnded,false);
 console.log('PASS good and wrong endings survive restore; only explicit new run replaces ended state');
 
 const privateNames=['張守恆','李承禮','周啟文','陳柏勳','林婉真','王世榮','謝玉琴','劉志遠'];
+assert.equal(anonymousNarrative('終身奉獻獎 蔡護理督導'),'終身奉獻獎 未辨識護理督導');
 const placeholderNames=['陳○○','林○○','葉○○','許○○','郭○○','鄭○○','王○○'];
 for(const name of placeholderNames){
   const redacted=anonymousNarrative(`名冊：${name}／316`);

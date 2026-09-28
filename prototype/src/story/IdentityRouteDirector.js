@@ -141,7 +141,7 @@ export class IdentityRouteDirector {
       texture = new THREE.CanvasTexture(canvas);
     }
     if (texture) texture.colorSpace = THREE.SRGBColorSpace;
-    const geometry = photoUrl ? new THREE.PlaneGeometry(1.25, .78) : beat.art === 'coffee'
+    const geometry = photoUrl ? new THREE.PlaneGeometry(1.25, 1.25 * 2 / 3) : beat.art === 'coffee'
       ? new THREE.CylinderGeometry(.15, .12, .24, 20) : new THREE.BoxGeometry(.32, .24, .018);
     const material = new THREE.MeshBasicMaterial(texture ? { map: texture, side: THREE.DoubleSide } : { color: beat.art === 'coffee' ? 0x503022 : 0xc2ae76 });
     const anchor = new THREE.Mesh(geometry, material);

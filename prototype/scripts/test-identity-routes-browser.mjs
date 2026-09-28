@@ -14,14 +14,14 @@ const report={url:base,sha:process.env.GITHUB_SHA||'local',routes:[],errors:[],s
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'chromium',args:['--use-angle=d3d11']}:{})});
 const context=await browser.newContext({viewport:{width:1440,height:900}});
-const forbidden=/張守恆|李承禮|周啟文|陳柏勳|林婉真|王世榮|謝玉琴|劉志遠|陳怡君|守恆|[\u4e00-\u9fff]○+|[張李周陳林王謝劉許江方](?:住院|主治)?醫師|姓氏[：:]|ZHANG|ZHOU|CHEN/;
+const forbidden=/張守恆|李承禮|周啟文|陳柏勳|林婉真|王世榮|謝玉琴|劉志遠|陳怡君|守恆|蔡護理督導|[\u4e00-\u9fff]○+|[張李周陳林王謝劉許江方](?:住院|主治)?醫師|姓氏[：:]|ZHANG|ZHOU|CHEN/;
 await context.addInitScript(()=>{
  window.__drawnText=[];
  const draw=CanvasRenderingContext2D.prototype.fillText;
  CanvasRenderingContext2D.prototype.fillText=function(text,...args){window.__drawnText.push(String(text));return draw.call(this,text,...args);};
 });
 let page;
-async function shot(name){await page.screenshot({path:`${out}/${name}.png`,timeout:60000});report.screenshots.push(`${name}.png`);}
+async function shot(name){await page.waitForFunction(()=>getComputedStyle(document.getElementById('identity-loop-panel')).opacity==='1');await page.screenshot({path:`${out}/${name}.png`,timeout:60000});report.screenshots.push(`${name}.png`);}
 async function ready(){await page.waitForFunction(()=>window.__storyQA?.identityRouteDirector&&!window.__storyQA.identityRouteDirector.busy&&!!window.__storyQA.worldRouter.activeZoneInstance,{},{timeout:120000});}
 async function fresh(identity,width=1440){
  if(page)await page.close();
@@ -34,13 +34,16 @@ async function fresh(identity,width=1440){
 }
 async function walk(identity,{wrong=false,mobile=false}={}){
  await fresh(identity,mobile?390:1440);
- const run={identity,width:mobile?390:1440,steps:[],actions:0,wrong};
+ const run={identity,width:mobile?390:1440,steps:[],photos:[],actions:0,wrong};
  assert.match(await page.title(),/Identy Loop/);
  for(let action=0;action<600;action++){
   await ready();
   const state=await page.evaluate(()=>({step:window.__storyQA.identityManager.currentRouteStep,zone:window.__storyQA.worldRouter.activeZoneId,run:window.__storyQA.identityManager.snapshot(),text:document.body.innerText,canvasText:window.__drawnText.join('\n'),body:document.body.scrollWidth,width:innerWidth}));
   assert.equal(state.body,state.width,'no horizontal overflow');
   const choiceVisible=await page.locator('[data-identity-choices] .identity-choice').count();
+  const photoNode=page.locator('[data-identity-detail] img');
+  const photo=await photoNode.count()?await photoNode.getAttribute('src'):null;
+  if(photo&&!run.photos.includes(photo)){run.photos.push(photo);await shot(`${identity}-inspected-photo-${run.photos.length}`);}
   if(!choiceVisible){assert.doesNotMatch(state.text,forbidden,`visible leak before M9 choice ${identity}/${state.step}`);assert.doesNotMatch(state.canvasText,forbidden,`world canvas name leak: ${state.canvasText.split('\\n').filter(text=>forbidden.test(text)).join(' | ')}`);}
   if(run.steps.at(-1)!==state.step){
    run.steps.push(state.step);assert.deepEqual(run.steps,IDENTITY_ROUTES[identity].slice(0,run.steps.length));
@@ -54,6 +57,8 @@ async function walk(identity,{wrong=false,mobile=false}={}){
   }
   if(choiceVisible){
    assert.equal(state.step,'M9');assert.equal(choiceVisible,4);
+   const optionsText=await page.locator('[data-identity-choices]').innerText();
+   for(const profile of Object.values(IDENTITY_PROFILES))assert.ok(optionsText.includes(profile.role),'final name must be mapped to its anonymous role');
    await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-four-choices`);
    const selected=wrong?Object.keys(IDENTITY_PROFILES).find(x=>x!==identity):identity;
    await page.locator('[data-identity-choices] .identity-choice').filter({hasText:IDENTITY_PROFILES[selected].name}).click();
