@@ -446,6 +446,7 @@ export class FirstCampus3F {
     this.currentGamePhase=phase;
     if(this.phaseRedLight)this.phaseRedLight.intensity=0;
     if(this.phaseWetMarks)this.phaseWetMarks.visible=false;
+    if(this.phaseWetMarks&&state.getFlag('LI_2117_ENV_DRIFT')===true)this.phaseWetMarks.visible=true;
 
     if(phase==='Phase0_1700_FirstArrival'){
       return;
