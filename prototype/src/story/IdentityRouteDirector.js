@@ -1,24 +1,47 @@
 import * as THREE from 'three';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
+import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
 
-const PHOTO_FILES = { history_group_1998: 'history-group.png', guard_reflection_1998: 'history-reflection.png' };
+const PHOTO_FILES = {
+  history_group_1998: 'history-group.png',
+  guard_reflection_1998: 'history-reflection.png'
+};
 
+const NAVIGATION_TYPES = new Set([
+  'access_door',
+  'duty_door',
+  'ward_gate',
+  'acute_gate',
+  'elevator',
+  'travel_selector',
+  'exit_door',
+  'closed_door'
+]);
+
+/**
+ * V2 uses the original DutyNight world as the interaction surface.
+ * The route director must never create a visible generic "quest card" in front
+ * of the player. Existing beds, doors, phones, terminals and CCTV stations are
+ * preferred. When no suitable source-world object exists, an invisible hitbox
+ * is mounted at the contextual prop/bed location.
+ */
 export class IdentityRouteDirector {
   constructor({ manager, panel, worldRouter, controller, gameState, uiManager, prepareZone, onEnding = () => {}, onRouteStep = () => {} }) {
     Object.assign(this, { manager, panel, worldRouter, controller, gameState, uiManager, prepareZone, onEnding, onRouteStep });
     this.step = null;
     this.beats = [];
     this.beatIndex = 0;
-    this.lineIndex = -1;
     this.anchor = null;
+    this.boundTarget = null;
     this.busy = false;
     this.revision = 0;
+    this.autoTimer = null;
   }
 
   get currentRouteStep() { return this.step; }
   get currentScene() { return this.step ? { step: this.step, ...ROUTE_STEPS[this.step], beats: this.beats } : null; }
-  get currentBeat() { return this.beats[this.beatIndex] ? { ...this.beats[this.beatIndex], index: this.beatIndex, lineIndex: this.lineIndex } : null; }
+  get currentBeat() { return this.beats[this.beatIndex] ? { ...this.beats[this.beatIndex], index: this.beatIndex } : null; }
 
   async start() { return this.resume(); }
 
@@ -46,7 +69,7 @@ export class IdentityRouteDirector {
   async restoreEnding() {
     const route = ROUTE_STEPS.M9;
     await this.prepareZone(route.zoneId);
-    this.removeAnchor();
+    this.removeInteractionTarget();
     this.worldRouter.loadZone(route.zoneId, route.spawn);
     this.step = this.manager.currentRouteStep;
     this.beats = [];
@@ -73,228 +96,417 @@ export class IdentityRouteDirector {
   }
 
   async loadCurrentStep() {
-    this.removeAnchor();
+    this.removeInteractionTarget();
     this.step = this.manager.currentRouteStep;
     const route = ROUTE_STEPS[this.step];
     this.beats = getIdentityRouteScene(this.step, this.manager.currentIdentity);
     this.beatIndex = 0;
-    this.lineIndex = -1;
     this.revision += 1;
+
     if (route.time === '16:50') {
       this.gameState.gameTime = route.time;
       this.gameState.storyTimeIndex = -1;
       this.gameState.notify('time_changed', route.time);
-    } else if (route.time) this.gameState.setGameTime(route.time);
+    } else if (route.time) {
+      this.gameState.setGameTime(route.time);
+    }
+
     const firstBeat = this.beats[0];
     this.worldRouter.loadZone(firstBeat.zoneId || route.zoneId, firstBeat.spawn || route.spawn);
     await this.onRouteStep(this.step);
+
     if (this.step === 'B2') {
       if (!this.manager.runSave.b2Entered) this.manager.enterB2();
-      this.controller.teleport(0, 1.7, -1, 0);
-      this.controller.updateCameraRotation();
-      this.worldRouter.activeZoneInstance.beginExitClosure();
+      this.worldRouter.activeZoneInstance.beginExitClosure?.();
     }
     if (this.step === 'M8') this.gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE', true);
+
+    // The evidence panel is a journal/deduction surface, not the dialogue box.
+    if (!['B2', 'M9'].includes(this.step)) {
+      this.panel.root?.classList.remove('visible', 'archive-open', 'm9-open');
+    }
+
     await this.placeBeat();
-    this.render();
+    this.renderObjective();
+  }
+
+  bindingFor(step = this.step, index = this.beatIndex) {
+    const identity = this.manager.currentIdentity;
+    if (step === 'ZHANG_OPEN_4F') return { auto: true };
+    if (step === 'ZHOU_OPEN_8F') return index === 0
+      ? { contextual: true, fromSpawn: true, distance: 1.7, photo: true, prompt: '查看院史長廊大型合照' }
+      : { auto: true };
+    if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
+
+    if (step === 'M1') {
+      if (index === 0) return { auto: true };
+      if (index === 1) return { type: 'workstation', prompt: '使用 316 電腦核對名冊與 HIS' };
+      if (identity === 'ZHANG' && index === 2) return { type: 'office_phone_316', prompt: '接起 316 電話' };
+    }
+
+    if (step === 'M2') {
+      if (index === 0) return { auto: true };
+      if (index === 1 || index === 2) return { contextual: true, prompt: index === 1 ? '和 403 病人確認今晚狀況' : '查看 408C 與隔壁聲音' };
+      if (index === 3) return { id: 'BED33_409_SEALED', prompt: '靠近 409 確認敲擊來源' };
+      if (index === 4) return { id: 'BED33_ASSIGNMENT', prompt: '查看 409-A／Bed 33 臨時床位單' };
+      if (identity === 'ZHANG' && index === 5) return { contextual: true, useSpawn: true, prompt: '回護理站向護理師確認' };
+    }
+
+    if (step === 'M3') {
+      if (index === 0) return { id: '2F_JANE_DOE_ASSESSMENT', prompt: '評估急診身分待確認男性' };
+      if (index === 1) return { id: 'ER_GHOST_REGISTRATION', prompt: '查詢 00:33 異常掛號' };
+      if (index === 2) return { type: 'legacy_terminal_316', prompt: '在 316 舊終端查詢 Legacy Index' };
+    }
+
+    if (step === 'M4') {
+      if (index === 0) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
+      if (index === 1) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 504B 預填轉院單' };
+    }
+
+    if (step === 'ZHANG_SECOND_CAMPUS_SECURITY') {
+      return {
+        contextual: true,
+        point: index === 0 ? [74.0, 1.24, -4.35] : [75.0, 1.22, -4.45],
+        art: index === 0 ? 'coffee' : null,
+        prompt: index === 0 ? '查看警衛桌上的黑咖啡' : '翻閱警衛訪客簿'
+      };
+    }
+
+    if (step === 'M5') {
+      if (index === 0) return { id: 'SECOND_2F_CCTV_SELF', prompt: '查看第二院區監視畫面' };
+      if (index === 1) return { contextual: true, point: [30, 1.45, 0], prompt: '沿天橋走到異常回聲最清楚的位置' };
+    }
+
+    if (step === 'ZHANG_6F_FORESHADOW') return { auto: true };
+
+    if (step === 'ZHOU_1F_PHOTO') {
+      return { contextual: true, point: [-10.5, 1.55, 2.25], photo: true, prompt: '查看警衛台旁的事故前設備照片' };
+    }
+
+    if (step === 'ZHOU_SECURITY_TALK') return { id: 'OLD_GUARD_POST', prompt: '和警衛談談老照片' };
+    if (step === 'ZHOU_2117_RETURN') return { id: 'GUARD_SIGN_2117', prompt: '查看 21:17 查哨板' };
+
+    if (step === 'M6') {
+      if (index === 0) return { auto: true };
+      if (index === 1) return { id: 'FLOOR6_STETHOSCOPE_SEARCH', prompt: '靠近焦黑器材與記憶錨點' };
+    }
+
+    if (step === 'M7') {
+      if (index === 0) return { id: 'OLD_GUARD_POST', prompt: '檢查一樓舊警衛台與十字鑰匙' };
+      return { id: '1F_HIDDEN_SERVICE_DOOR', prompt: index === 1 ? '查看警衛台後的 B-Panel 舊門框' : '操作 B-Panel 備援控制' };
+    }
+
+    if (step === 'B2') {
+      if (index === 0) return { auto: true };
+      if (index === 1) return { id: 'B2_ARCHIVE_TERMINAL', prompt: '啟動 B2 封存驗證終端' };
+    }
+
+    if (step === 'M8') return { auto: true };
+    if (step === 'M9') return { type: 'legacy_terminal_316', prompt: '使用 316 舊終端完成最後交班' };
+
+    return { contextual: true, fromSpawn: true, distance: 1.45, prompt: this.beats[index]?.review || this.beats[index]?.label || '查看' };
+  }
+
+  findExistingTarget(binding) {
+    if (!binding?.id && !binding?.type) return null;
+    const list = this.worldRouter.activeZoneInstance?.interactables || this.controller.interactables || [];
+    const candidates = list.filter(object => {
+      const data = object?.userData || object;
+      return (!binding.id || data.id === binding.id) && (!binding.type || data.type === binding.type);
+    });
+    if (!candidates.length) return null;
+    const p = this.controller.position;
+    candidates.sort((a, b) => {
+      const pa = a.getWorldPosition ? a.getWorldPosition(new THREE.Vector3()) : a.position || new THREE.Vector3();
+      const pb = b.getWorldPosition ? b.getWorldPosition(new THREE.Vector3()) : b.position || new THREE.Vector3();
+      return pa.distanceToSquared(p) - pb.distanceToSquared(p);
+    });
+    return candidates[0];
+  }
+
+  targetPosition(beat, binding) {
+    if (binding.point) return new THREE.Vector3(...binding.point);
+
+    const zone = this.worldRouter.activeZoneInstance;
+    if (beat.bed) {
+      const bed = zone?.bedAreas?.find(item => item.id === beat.bed);
+      if (bed?.position) return new THREE.Vector3(bed.position[0], 1.15, bed.position[2]);
+    }
+    if (beat.room) {
+      const room = zone?.roomAreas?.find(item => item.id === beat.room);
+      if (room?.point) return new THREE.Vector3(room.point[0], 1.15, room.point[2]);
+    }
+
+    const spawnId = binding.useSpawn ? beat.spawn : (beat.spawn || ROUTE_STEPS[this.step].spawn);
+    const spawn = WORLD_SPAWNS[spawnId];
+    if (spawn?.pos) {
+      const position = new THREE.Vector3(...spawn.pos);
+      if (binding.fromSpawn) {
+        const yaw = spawn.yaw || 0;
+        const distance = binding.distance || 1.5;
+        position.x += -Math.sin(yaw) * distance;
+        position.z += -Math.cos(yaw) * distance;
+        position.y = 1.45;
+      }
+      return position;
+    }
+
+    const forward = new THREE.Vector3();
+    this.worldRouter.camera.getWorldDirection(forward);
+    forward.y = 0;
+    forward.normalize();
+    return this.controller.position.clone().addScaledVector(forward, binding.distance || 1.5);
   }
 
   async placeBeat() {
+    this.removeInteractionTarget();
     const beat = this.beats[this.beatIndex];
-    const zoneId = beat.zoneId || ROUTE_STEPS[this.step].zoneId;
+    const route = ROUTE_STEPS[this.step];
+    const zoneId = beat.zoneId || route.zoneId;
+
     if (this.worldRouter.activeZoneId !== zoneId) {
       await this.prepareZone(zoneId);
-      this.removeAnchor();
-      this.worldRouter.loadZone(zoneId, beat.spawn || ROUTE_STEPS[this.step].spawn);
+      this.worldRouter.loadZone(zoneId, beat.spawn || route.spawn);
       await this.onRouteStep(this.step);
-    } else if (beat.spawn) this.worldRouter.teleportToSpawn(beat.spawn);
-    if (beat.room) {
-      const zone = this.worldRouter.activeZoneInstance;
-      const room = zone.roomAreas.find(item => item.id === beat.room);
-      const bed = zone.bedAreas?.find(item => item.id === beat.bed);
-      const [x, y, z] = room.point;
-      const yaw = bed ? Math.atan2(x - bed.position[0], z - bed.position[2]) : beat.yaw || 0;
-      this.controller.teleport(x, y, z, yaw);
     }
-    await this.installAnchor();
+
+    const binding = this.bindingFor();
+    const existing = this.findExistingTarget(binding);
+    if (existing) {
+      const data = existing.userData || existing;
+      this.boundTarget = {
+        object: existing,
+        originalInteractable: data.interactable,
+        originalLabel: data.label
+      };
+      data.interactable = true;
+      data.label = binding.prompt || beat.review || beat.label;
+    } else if (binding.contextual || binding.photo || binding.art) {
+      await this.installContextTarget(binding);
+    }
+
+    this.renderObjective();
+
+    if (binding.auto) {
+      clearTimeout(this.autoTimer);
+      this.autoTimer = setTimeout(() => {
+        if (!this.busy && !this.manager.runSave.runEnded) this.inspect();
+      }, 180);
+    }
   }
 
   photoUrl(beat) {
     return beat.photoId ? `${import.meta.env.BASE_URL}assets/identity-v03/${PHOTO_FILES[beat.photoId]}` : null;
   }
 
-  async installAnchor() {
-    this.removeAnchor();
+  async installContextTarget(binding) {
     const beat = this.beats[this.beatIndex];
     const photoUrl = this.photoUrl(beat);
-    let texture = photoUrl ? await new THREE.TextureLoader().loadAsync(photoUrl) : null;
-    if (!photoUrl && beat.art !== 'coffee') {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512; canvas.height = 384;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#d8ceb1'; ctx.fillRect(0, 0, 512, 384);
-      ctx.strokeStyle = '#716c59'; ctx.strokeRect(18, 18, 476, 348);
-      ctx.fillStyle = '#333b31'; ctx.font = 'bold 28px sans-serif';
-      ctx.fillText('夜班現場紀錄', 38, 65);
-      ctx.font = '22px sans-serif'; ctx.fillText(beat.label, 38, 118, 432);
-      for (let y = 166; y < 335; y += 37) {ctx.beginPath();ctx.moveTo(38,y);ctx.lineTo(474,y);ctx.stroke();}
-      texture = new THREE.CanvasTexture(canvas);
+    const position = this.targetPosition(beat, binding);
+
+    let geometry;
+    let material;
+
+    if (photoUrl || binding.photo) {
+      const texture = photoUrl ? await new THREE.TextureLoader().loadAsync(photoUrl) : null;
+      if (texture) texture.colorSpace = THREE.SRGBColorSpace;
+      geometry = new THREE.PlaneGeometry(1.25, 1.25 * 2 / 3);
+      material = texture
+        ? new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
+        : new THREE.MeshStandardMaterial({ color: 0x625a48, roughness: .9, side: THREE.DoubleSide });
+    } else if (binding.art === 'coffee' || beat.art === 'coffee') {
+      geometry = new THREE.CylinderGeometry(.11, .09, .18, 18);
+      material = new THREE.MeshStandardMaterial({ color: 0x4c2d1c, roughness: .82 });
+    } else {
+      geometry = new THREE.BoxGeometry(.85, 1.35, .55);
+      material = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
     }
-    if (texture) texture.colorSpace = THREE.SRGBColorSpace;
-    const geometry = photoUrl ? new THREE.PlaneGeometry(1.25, 1.25 * 2 / 3) : beat.art === 'coffee'
-      ? new THREE.CylinderGeometry(.15, .12, .24, 20) : new THREE.BoxGeometry(.32, .24, .018);
-    const material = new THREE.MeshBasicMaterial(texture ? { map: texture, side: THREE.DoubleSide } : { color: beat.art === 'coffee' ? 0x503022 : 0xc2ae76 });
+
     const anchor = new THREE.Mesh(geometry, material);
-    anchor.name = 'identity_route_event';
-    const camera = this.worldRouter.camera;
-    const forward = new THREE.Vector3();
-    camera.getWorldDirection(forward);
-    forward.y = 0;
-    forward.normalize();
-    anchor.position.copy(this.controller.position).addScaledVector(forward, photoUrl ? 1.65 : 1.55);
-    if (!photoUrl) anchor.position.y -= .28;
-    anchor.quaternion.copy(camera.quaternion);
-    anchor.userData = { type: 'identity_route_event', interactable: true, label: beat.label, step: this.step, beatIndex: this.beatIndex, photoUrl, art: beat.art || 'record' };
+    anchor.name = `IdentityContextTarget_${this.step}_${this.beatIndex}`;
+    anchor.position.copy(position);
+
+    if (photoUrl || binding.photo) {
+      anchor.position.y = Math.max(anchor.position.y, 1.45);
+      anchor.lookAt(this.controller.position.x, anchor.position.y, this.controller.position.z);
+    } else if (binding.art === 'coffee' || beat.art === 'coffee') {
+      anchor.position.y = Math.max(.95, anchor.position.y);
+    }
+
+    anchor.userData = {
+      type: 'identity_route_context_event',
+      interactable: true,
+      label: binding.prompt || beat.review || beat.label,
+      step: this.step,
+      beatIndex: this.beatIndex
+    };
+
     this.worldRouter.scene.add(anchor);
     this.controller.interactables.push(anchor);
     this.anchor = anchor;
   }
 
-  removeAnchor() {
+  releaseBoundTarget() {
+    if (!this.boundTarget) return;
+    const { object, originalInteractable, originalLabel } = this.boundTarget;
+    const data = object?.userData || object;
+    if (data) {
+      data.interactable = originalInteractable;
+      data.label = originalLabel;
+    }
+    this.boundTarget = null;
+  }
+
+  removeInteractionTarget() {
+    clearTimeout(this.autoTimer);
+    this.autoTimer = null;
+    this.releaseBoundTarget();
     if (!this.anchor) return;
     const index = this.controller.interactables.indexOf(this.anchor);
     if (index >= 0) this.controller.interactables.splice(index, 1);
     this.anchor.removeFromParent();
-    this.anchor.geometry.dispose();
-    this.anchor.material.map?.dispose();
-    this.anchor.material.dispose();
+    this.anchor.geometry?.dispose?.();
+    this.anchor.material?.map?.dispose?.();
+    this.anchor.material?.dispose?.();
     this.anchor = null;
+  }
+
+  matchesBinding(data) {
+    const binding = this.bindingFor();
+    if (binding.id && data?.id === binding.id) return true;
+    if (binding.type && data?.type === binding.type) return true;
+    return data?.type === 'identity_route_context_event' &&
+      data?.step === this.step &&
+      data?.beatIndex === this.beatIndex;
   }
 
   handleInteract(interactable) {
     const data = interactable?.userData || interactable;
-    if (data?.type !== 'identity_route_event') return false;
-    if (!this.busy && !this.manager.runSave.runEnded && data.step === this.step && data.beatIndex === this.beatIndex) this.inspect();
+    if (!data) return false;
+    if (!this.matchesBinding(data)) return false;
+    if (!this.busy && !this.manager.runSave.runEnded) this.inspect();
     return true;
+  }
+
+  allowWorldInteraction(interactable) {
+    const data = interactable?.userData || interactable;
+    return NAVIGATION_TYPES.has(data?.type);
+  }
+
+  dialogueLines(beat) {
+    return beat.lines.map(raw => {
+      const text = String(raw).trim();
+      const match = text.match(/^([^：]{1,18})：「?(.+?)」?$/);
+      if (match) {
+        const speaker = match[1] === '我' ? '值班醫師' : match[1];
+        const spoken = match[2].startsWith('「') ? match[2] : `「${match[2]}」`;
+        return { speaker, text: spoken };
+      }
+      if (/^(我|玩家)/.test(text)) return { speaker: '值班醫師', text };
+      if (/護理師|學長|警衛|第二院區|急診/.test(text)) return { speaker: '現場', text };
+      return { speaker: /記得|熟悉|回聲|閃|心跳|手指|身體/.test(text) ? '記憶' : '現場', text };
+    });
   }
 
   inspect() {
     if (this.busy || this.manager.runSave.runEnded) return;
+    const beat = this.beats[this.beatIndex];
+    if (!beat) return;
     document.exitPointerLock?.();
     this.controller.enabled = false;
-    if (this.lineIndex < 0) this.lineIndex = 0;
-    this.render();
+
+    this.uiManager.showDialogue(this.dialogueLines(beat), () => {
+      if (beat.puzzle) {
+        this.uiManager.openStoryChoice({
+          title: 'B-Panel 備援控制',
+          body: '舊手冊要求 1 → 3 → 4；現場紀錄卻顯示這個順序會鎖死防火門並停止排煙。你要採取哪個操作？',
+          primaryText: '啟動紫色備援排煙',
+          secondaryText: '依舊手冊拉下 1 → 3 → 4',
+          onPrimary: () => {
+            this.uiManager.closeStoryChoice(false);
+            void this.completeBeat();
+          },
+          onSecondary: () => {
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('M7_WRONG_PROCEDURE_SEEN', true);
+            this.uiManager.showDialogue(
+              (beat.wrongLines || ['防火門鎖死，排煙停止。這正是歷史錯誤。']).map(text => ({ speaker: '現場', text })),
+              () => { this.controller.enabled = true; this.renderObjective(); }
+            );
+          }
+        });
+        return;
+      }
+      void this.completeBeat();
+    });
   }
 
-  render() {
+  renderObjective() {
     this.panel.render();
-    const root = this.panel.root;
-    if (!root) return;
-    root.classList.add('visible');
-    root.dataset.routeStep = this.step;
-    const body = root.querySelector('[data-identity-detail]');
-    const choices = root.querySelector('[data-identity-choices]');
-    choices?.replaceChildren();
-    body.replaceChildren();
     const beat = this.beats[this.beatIndex];
-    this.uiManager.renderTaskBoard('目前', [{ id: 'identity-route-objective', state: 'active', text: `${ROUTE_STEPS[this.step].label}：${beat.label}` }]);
-    const title = document.createElement('h3');
-    title.textContent = `${ROUTE_STEPS[this.step].label} · ${beat.label}`;
-    body.append(title);
-    const progress = document.createElement('p');
-    progress.textContent = `現場紀錄 ${this.beatIndex + 1} / ${this.beats.length}`;
-    body.append(progress);
-    const revision = this.revision;
-    const lineIndex = this.lineIndex;
-    const beatIndex = this.beatIndex;
-    const button = (label, action, routeAction) => {
-      const node = document.createElement('button');
-      node.type = 'button';
-      node.className = 'identity-choice';
-      node.textContent = label;
-      node.dataset.routeAction = routeAction;
-      node.addEventListener('click', () => {
-        if (this.busy || this.manager.runSave.runEnded || revision !== this.revision || beatIndex !== this.beatIndex || lineIndex !== this.lineIndex) return;
-        document.exitPointerLock?.();
-        Promise.resolve().then(action).catch(error => {
-          console.error('[IdentityRouteDirector] Scene action failed', error);
-          this.render();
-          const alert = document.createElement('p');
-          alert.setAttribute('role', 'alert');
-          alert.textContent = '場景未能載入，請再次確認以重試。';
-          body.append(alert);
-        });
-      });
-      body.append(node);
-    };
-    if (this.lineIndex < 0) {
-      button(`檢視：${beat.label}`, () => this.inspect(), 'inspect');
-      return;
-    }
-    if (beat.photoId) {
-      const img = document.createElement('img');
-      img.src = this.photoUrl(beat);
-      img.alt = beat.photoId === 'history_group_1998' ? '1998 年夜班團隊合照，攝影者不在畫面中' : '設備合照玻璃中的相機、手腕與拍攝者反射';
-      img.style.cssText = 'display:block;width:100%;height:auto;max-height:32vh;object-fit:contain';
-      body.append(img);
-    }
-    for (const line of beat.lines.slice(0, this.lineIndex + 1)) {
-      const p = document.createElement('p');
-      p.textContent = line;
-      body.append(p);
-    }
-    if (this.lineIndex < beat.lines.length - 1) {
-      button('下一段對話', () => { this.lineIndex += 1; this.render(); }, 'next');
-    } else {
-      button('重新閱讀現場紀錄', () => { this.lineIndex = 0; this.render(); }, 'reread');
-      if (beat.puzzle) button(beat.wrong, () => {
-        this.gameState.setFlag('M7_WRONG_PROCEDURE_SEEN', true);
-        this.render();
-        const warning = document.createElement('p');
-        warning.setAttribute('role', 'alert');
-        warning.textContent = beat.wrongLines.join(' ');
-        body.append(warning);
-      }, 'wrong');
-      button(beat.review, () => this.completeBeat(), 'review');
-    }
+    if (!beat || !this.step) return;
+    this.uiManager.renderTaskBoard('目前任務', [
+      {
+        id: 'identity-route-objective',
+        state: 'active',
+        text: beat.review || beat.label
+      }
+    ]);
   }
 
   async completeBeat() {
     const beat = this.beats[this.beatIndex];
-    if (this.busy || this.manager.runSave.runEnded || this.lineIndex !== beat.lines.length - 1) return false;
+    if (!beat || this.busy || this.manager.runSave.runEnded) return false;
+
     if (this.step === 'M9') {
-      this.removeAnchor();
+      this.removeInteractionTarget();
       this.controller.enabled = false;
       this.panel.openM9({ onCommit: result => this.finishEnding(result) });
       return true;
     }
+
     this.busy = true;
     this.controller.enabled = false;
+    this.removeInteractionTarget();
+
     try {
       if (beat.flag) this.gameState.setFlag(beat.flag, true);
-      this.manager.recordEvidence({ id: `route:${this.step}:${this.beatIndex}`, category: 'route', milestone: this.step, visibleText: `${beat.label}：${beat.lines.at(-1)}` });
+      this.manager.recordEvidence({
+        id: `route:${this.step}:${this.beatIndex}`,
+        category: 'route',
+        milestone: this.step,
+        visibleText: `${beat.label}：${beat.lines.at(-1)}`
+      });
+
+      if (this.step === 'B2' && this.beatIndex === 0) {
+        this.panel.openB2Archive();
+      }
+
       if (this.beatIndex + 1 < this.beats.length) {
         this.beatIndex += 1;
-        this.lineIndex = -1;
         await this.placeBeat();
-        this.render();
       } else {
-        const nextStep = this.manager.route[this.manager.route.indexOf(this.step) + 1];
-        const nextBeat = getIdentityRouteScene(nextStep, this.manager.currentIdentity)[0];
-        await this.prepareZone(nextBeat.zoneId || ROUTE_STEPS[nextStep].zoneId);
+        const routeIndex = this.manager.route.indexOf(this.step);
+        const nextStep = this.manager.route[routeIndex + 1];
         if (!this.manager.completeRouteStep(this.step)) throw new Error('Route completion rejected');
-        await this.loadCurrentStep();
+        if (nextStep) {
+          const nextBeat = getIdentityRouteScene(nextStep, this.manager.currentIdentity)[0];
+          await this.prepareZone(nextBeat.zoneId || ROUTE_STEPS[nextStep].zoneId);
+          await this.loadCurrentStep();
+        }
       }
+
       return true;
     } finally {
       this.busy = false;
-      this.controller.enabled = !this.manager.runSave.runEnded;
+      this.controller.enabled = !this.manager.runSave.runEnded && !this.uiManager.dialogueSequence;
+      this.renderObjective();
     }
   }
 
   finishEnding(result) {
     if (!result.ok) return;
-    this.removeAnchor();
+    this.removeInteractionTarget();
     this.controller.enabled = false;
     if (result.type === 'GOOD_END') {
       this.gameState.setFlag('FINAL_SUCCESS_RECAP_MANAGED', true);
