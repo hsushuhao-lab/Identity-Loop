@@ -1102,6 +1102,50 @@ export class IdentityRouteDirector {
         this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:900,hold:650});
         return;
       }
+      if(beat.chenCctvCg){
+        void soundManager.ensureRunning().then(ready=>{
+          if(!ready)return;
+          soundManager.playComputerBeep();
+          setTimeout(()=>soundManager.playWheelchairRattle(.12),420);
+        });
+        const sequence={
+          id:'CHEN_CCTV_WHEELCHAIR_DOPPELGANGER',
+          title:'第二院區 2F｜跨院監控異常',
+          mode:'CCTV',
+          source:'LIVE CCTV / SKYBRIDGE BUFFER',
+          frames:[
+            {stamp:'CAM BR-02 / 17:18:42',title:'天橋中央',caption:'一名灰滾邊白袍醫師推著老舊輪椅往第一院區方向前進。',narration:'輪椅左前輪每跨過一道金屬接縫，就固定抖三下。'},
+            {stamp:'CAM BR-02 / 17:18:46',title:'門禁矛盾',caption:'畫面人物沒有刷卡，天橋門禁卻已自行開啟。',narration:'同一時間，5F 分機仍顯示值班室通話中。'},
+            {stamp:'CAM BR-03 / 17:18:50',title:'人物比對失敗',caption:'STAFF MATCH = PARTIAL｜ROLE: CROSS-CAMPUS SUPPORT｜ID PREFIX: MED-89••••',narration:'完整姓名與照片欄無法解析。'},
+            {stamp:'CAM BR-03 / 17:18:53',title:'輪椅消失',caption:'畫面跳格後，只剩空輪椅停在天橋中央。',narration:'監控主機反覆播放三聲「喀啦、喀啦、喀啦」。'}
+          ]
+        };
+        this.gameState.setFlag('CHEN_CCTV_WHEELCHAIR_SEEN',true);
+        this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:930,hold:700});
+        return;
+      }
+      if(beat.chenM6Cg){
+        void soundManager.ensureRunning().then(ready=>{
+          if(!ready)return;
+          soundManager.playWheelchairRattle(.11);
+          setTimeout(()=>soundManager.playDoorLockClack(),380);
+        });
+        const sequence={
+          id:'CHEN_6F_PROCEDURAL_REPLAY',
+          title:'6F｜程序性記憶重播',
+          mode:'CCTV',
+          source:'PROCEDURAL MEMORY / SENSORIMOTOR REPLAY',
+          frames:[
+            {stamp:'MEMORY 01',title:'5042',caption:'手指不看刻度就停在 5－0－4－2。',narration:'我今晚已經親手打開那個保險箱。不是猜到，是手先知道。'},
+            {stamp:'MEMORY 02',title:'灰滾邊',caption:'MED-89••••／跨院支援住院醫師／姓名欄被救護出入戳印覆蓋。',narration:'這張證件就在我身上。它能打開只有跨院支援人員才會使用的通道。'},
+            {stamp:'MEMORY 03',title:'偏軸輪椅',caption:'左輪卡住；握把抵著髖骨；跨接縫三聲喀啦。',narration:'監控裡那個人和我推輪椅的手感完全一樣。'},
+            {stamp:'MEMORY 04',title:'目的地',caption:'409-A 出現在轉送醫囑、臨時床位與急診轉送聯。',narration:'每一次「流程往下走」，都把人推向同一個不存在的目的地。'}
+          ]
+        };
+        this.gameState.setFlag('CHEN_M6_PROCEDURAL_MEMORY_CONFIRMED',true);
+        this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:900,hold:750});
+        return;
+      }
       if(beat.accidentCg){
         const sequence={
           id:'ZHANG_6F_ACCIDENT_MEMORY',
