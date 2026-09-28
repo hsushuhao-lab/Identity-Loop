@@ -1512,6 +1512,11 @@ controller.onInteract = async (interactable) => {
       uiManager.showSubtitle('門禁','「電梯與安全梯尚未授權。先到總醫師辦公室領取感應卡。」',2800);
       return;
     }
+    if(identityLoopMode&&identityRouteDirector.currentRouteStep==='LI_OUTBOUND_8F'&&interactable.kind==='stairs'){
+      soundManager.playDoorLockClack();
+      uiManager.showSubtitle('內心','「剛才電話叫我走八樓天橋。這次搭電梯上去。」',3000);
+      return;
+    }
     if(interactable.kind==='stairs'&&worldRouter.activeZoneId==='first_campus_3f'&&!gameState.getFlag('STAIR_SHORTCUT_3F_4F')){
       soundManager.playDoorLockClack();
       uiManager.showSubtitle('值班醫師','「逃生梯從另一側用插銷鎖住了。」',2800);
