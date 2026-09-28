@@ -187,6 +187,9 @@ assert.match(routeSceneSource,/需要黑咖啡|警衛台永遠有一壺煮過頭
 assert.match(routeSceneSource,/剛才監視器有點怪/);
 assert.match(routeSceneSource,/畫面裡好像多了一個人/);
 assert.match(routeSceneSource,/監控室電話/);
+assert.match(routeSceneSource,/cctvCg: identity==='ZHANG'/);
+assert.match(routeDirectorSource,/ZHANG_CCTV_DOPPELGANGER/);
+assert.match(routeDirectorSource,/STAFF MATCH = NONE/);
 assert.match(routeSceneSource,/第一院區 2F 急診/);
 assert.match(routeSceneSource,/erRegistrationChoice: identity==='ZHANG'/);
 assert.match(routeSceneSource,/forcedBridgeReveal:true/);
