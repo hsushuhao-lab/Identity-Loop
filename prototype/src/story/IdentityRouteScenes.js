@@ -4,10 +4,13 @@ export function getIdentityRouteScene(step, identity) {
   const reaction = choices => choices[identity];
   const scenes = {
     ZHANG_OPEN_4F: [
-      event('抵達四樓護理站', [
-        {speaker:'內心',text:'16:50。正式交班還沒開始。護理站裡已經有人在忙。'},
-        {speaker:'內心',text:'先找到護理師，問清楚 408C 的狀況。'}
-      ], '找到四樓護理站護理師')
+      event('提早到四樓護理站', [
+        {speaker:'晚班護理師',text:'「值班醫師您好。你今天又提早來了，現在才 16:50 耶。」'},
+        {speaker:'值班醫師',text:'「交班還沒開始？」'},
+        {speaker:'晚班護理師',text:'「還沒啊。你每次都先跑來病房。」'},
+        {speaker:'晚班護理師',text:'「既然來了，先拿 4F 這組備用鑰匙跟臨時感應卡。408C 一直說隔壁有規律敲牆。」'},
+        {speaker:'值班醫師',text:'「好，我先去看 408C。」'}
+      ], '使用護理站電腦聯絡晚班護理師', { flag:'ZHANG_4F_SPARE_KEY_BORROWED' })
     ],
     ZHOU_OPEN_8F: [
       event('檢視 1998 團隊合照', ['院史長廊最底非常安靜。大型照片裡是 1998 年青嶺醫療中心的核心夜班團隊。攝影者不在畫面中，角落只有相機包的影子。', '我：「光圈開太大了。後排有點糊。」', '往前一步。「拍的人站得太靠牆。」', '再一步。「如果退半步，右邊就不會切到門牌。」', '我停住：「……我為什麼一直在挑照片？」'], '記下構圖與缺席的攝影者', { art: 'photo', photoId: 'history_group_1998' }),
@@ -61,31 +64,23 @@ export function getIdentityRouteScene(step, identity) {
       ], '由 8F 天橋前往第二院區')
     ],
     M2: [
-      event('四樓護理站', reaction({
-        ZHANG:[
-          {speaker:'晚班護理師',text:'「值班醫師您好。你還沒去 316 正式交班吧？」'},
-          {speaker:'值班醫師',text:'「還沒。我先來看病房。」'},
-          {speaker:'晚班護理師',text:'「那先拿 4F 這組備用鑰匙跟臨時感應卡，只在這層用。」'},
-          {speaker:'晚班護理師',text:'「408C 一直說隔壁有規律敲牆。你先去確認。」'}
-        ],
-        LI:[
-          {speaker:'晚班護理師',text:'「值班醫師您好。408C 又在說隔壁有人敲牆。」'},
-          {speaker:'值班醫師',text:'「我去確認。」'}
-        ],
-        ZHOU:[
-          {speaker:'晚班護理師',text:'「值班醫師您好。408C 從剛才一直說隔壁有聲音。」'},
-          {speaker:'值班醫師',text:'「先看 408C。」'}
-        ],
-        CHEN:[
-          {speaker:'晚班護理師',text:'「值班醫師您好。408C 又在敲鈴，說隔壁有規律敲牆。」'},
-          {speaker:'值班醫師',text:'「我去看。」'},
-          {speaker:'內心',text:'504B 那張寫著 409-A 的轉院單還留在腦中。'}
-        ]
-      }), identity==='ZHANG'
-        ? '向護理師拿 4F 備用鑰匙與臨時感應卡'
-        : '向護理師確認 408C 狀況', {
-          flag: identity==='ZHANG'?'ZHANG_4F_SPARE_KEY_BORROWED':null
-        }),
+      ...(identity==='ZHANG' ? [] : [
+        event('四樓護理站', reaction({
+          LI:[
+            {speaker:'晚班護理師',text:'「值班醫師您好。408C 又在說隔壁有人敲牆。」'},
+            {speaker:'值班醫師',text:'「我去確認。」'}
+          ],
+          ZHOU:[
+            {speaker:'晚班護理師',text:'「值班醫師您好。408C 從剛才一直說隔壁有聲音。」'},
+            {speaker:'值班醫師',text:'「先看 408C。」'}
+          ],
+          CHEN:[
+            {speaker:'晚班護理師',text:'「值班醫師您好。408C 又在敲鈴，說隔壁有規律敲牆。」'},
+            {speaker:'值班醫師',text:'「我去看。」'},
+            {speaker:'內心',text:'504B 那張寫著 409-A 的轉院單還留在腦中。'}
+          ]
+        }), '使用護理站電腦聯絡晚班護理師，確認 408C 狀況')
+      ]),
       event('408C 確認', [
         {speaker:'408C 老先生',text:'「醫師，又來了。」'},
         {speaker:'值班醫師',text:'「哪裡？」'},
@@ -107,7 +102,7 @@ export function getIdentityRouteScene(step, identity) {
       event('核對 409-A 臨時床位單', [
         {speaker:'晚班護理師',text:'「值班醫師您好。剛才系統又印出一張臨時床位單，麻煩你確認一下。」'},
         {speaker:'內心',text:'單張寫著「Bed 33／409-A」，但 409 明明仍封閉整修。'},
-        {speaker:'值班醫師',text:'「先核對這張，不能直接當成正常床位。」'}
+        {speaker:'內心',text:'如果直接覆核，等於把一間不存在的病房重新寫回正式流程。'}
       ], '回護理站確認 409-A／Bed 33 臨時床位分配單')
     ],
     M3: [
@@ -187,12 +182,12 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'第二院區護理師',text:'「病人穩定一些了。這張轉院單已經先印出來。」'},
         {speaker:'內心',text:'病人尚未完成身分核對，轉院單卻已填好「409-A」。目的地早於評估出現。'},
         {speaker:'值班醫師',text:reaction({
-          ZHANG:'「先確認病人身分與目的地，這張不能直接簽。」',
+          ZHANG:'「先確認病人身分與目的地。這張如果簽下去，就會真的把人送進 409-A。」',
           LI:'「表格完整不代表流程正確。這份先暫停。」',
           ZHOU:'「這張單的時間，我要和剛才看到的影像對一下。」',
           CHEN:'「……409-A。為什麼這個目的地這麼熟？」'
         })}
-      ], '覆核 409-A 預填轉院單'),
+      ], '決定是否簽署 409-A 預填轉院單', { transferSignChoice: identity==='ZHANG' }),
       event('回 5F 護理站交代', reaction({
         ZHANG:[
           {speaker:'值班醫師',text:'「504B 已評估，409-A 轉院單先不要執行。」'},
@@ -239,6 +234,10 @@ export function getIdentityRouteScene(step, identity) {
         : '前往第二院區 2F 監視器室查看異常')
     ],
     ZHANG_SECOND_CAMPUS_SECURITY: [
+      event('警衛台舊相簿', [
+        {speaker:'內心',text:'警衛桌角壓著一本舊相簿。裡面都是值夜班時隨手留下的院區照片。'},
+        {speaker:'內心',text:'其中幾張反覆出現一個捲袖白袍、拿黑咖啡的人，但臉總被反光或裁切遮掉。'}
+      ], '翻閱第二院區警衛台舊相簿'),
       event('警衛台的黑咖啡', [
         {speaker:'值班醫師',text:'「警衛大哥，還有咖啡嗎？」'},
         {speaker:'警衛',text:'「有啊。你們值班醫師都一樣，晚上都來找這壺。」'},
@@ -326,13 +325,13 @@ export function getIdentityRouteScene(step, identity) {
       ], '插入十字鑰匙，啟動紫色備援排煙', {
         puzzle:'b-panel',
         wrong:'依舊手冊拉下 1 → 3 → 4',
-        wrongLines:['防火門鎖死，排煙停止。這正是歷史錯誤。','停止操作，重新比對監控與紫色備援旋鈕。'],
+        wrongLines:['防火門鎖死，排煙停止。你重演了 1998 年的錯誤程序。','走廊警鈴瞬間失真，視野開始下墜。'],
         flag:'M7_B2_OPEN'
       })
     ] : [
       event('02:17 警衛鑰匙', ['警衛設備櫃留著 B-Panel 十字鑰匙。它屬於門禁設備，不能用一張表格代替。'], '拿取十字鑰匙', { flag: 'B_PANEL_KEY' }),
       event('閱讀 B-Panel 工務紀錄', ['舊工務手冊要求依序拉下 1 → 3 → 4。監控卻顯示這個動作讓防火門鎖死、備援排煙停止。', '旁邊是必須插入十字鑰匙才能轉動的紫色備援排煙旋鈕。', reaction({ ZHANG: '這段記憶來自門的另一側。門關上後，裡面仍有人。', LI: '我的身體記住的正是 1 → 3 → 4。最熟悉的程序，竟是當年的錯誤。', ZHOU: '照片裡的設備終於在眼前。光是記錄警告，不能讓警告及時送達。', CHEN: '不能再只因為知道下一步去哪裡，就把人推向同一個目的地。' })], '對照手冊與監控後操作面板'),
-      event('操作 B-Panel', ['02:17。選擇實際操作；錯誤程序不能打開服務門。'], '插入十字鑰匙，啟動紫色備援排煙', { puzzle: 'b-panel', wrong: '依舊手冊拉下 1 → 3 → 4', wrongLines: ['防火門鎖死，排煙停止。這正是歷史錯誤。', '停止操作，重新比對監控與紫色備援旋鈕。'], flag: 'M7_B2_OPEN' })
+      event('操作 B-Panel', ['02:17。選擇實際操作；錯誤程序不能打開服務門。'], '插入十字鑰匙，啟動紫色備援排煙', { puzzle: 'b-panel', wrong: '依舊手冊拉下 1 → 3 → 4', wrongLines: ['防火門鎖死，排煙停止。你重演了 1998 年的錯誤程序。', '走廊警鈴瞬間失真，視野開始下墜。'], flag: 'M7_B2_OPEN' })
     ],
     B2: [
       event('單向封存檔案', ['服務門在身後關閉。這是一次性的封存檔案接觸，不能回到面板重選。', 'CURRENT SELF = CORRUPTED。四名候選職務：第一線住院醫師、夜間總醫師、第二線住院醫師、第二院區支援醫師。', '客觀檔案已恢復，當前身分仍未判定。沒有姓名可以替你直接作答。'], '閱讀四名匿名候選職務'),
@@ -365,12 +364,18 @@ export function getIdentityRouteScene(step, identity) {
       { zoneId:'first_campus_8f', spawn:'first_8f_lift' },
       { zoneId:'skybridge', spawn:'bridge_from_first' }
     ],
-    M2: [
-      { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' },
-      { room:'408', bed:'408C' },
-      { zoneId:'first_campus_4f', spawn:'m2_4f_409' },
-      { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' }
-    ],
+    M2: identity==='ZHANG'
+      ? [
+          { room:'408', bed:'408C' },
+          { zoneId:'first_campus_4f', spawn:'m2_4f_409' },
+          { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' }
+        ]
+      : [
+          { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' },
+          { room:'408', bed:'408C' },
+          { zoneId:'first_campus_4f', spawn:'m2_4f_409' },
+          { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' }
+        ],
     ZHANG_3F_ARCHIVE: [
       { zoneId:'first_campus_3f', spawn:'m0_3f_corridor' },
       { zoneId:'first_campus_3f', spawn:'m0_3f_corridor' }
