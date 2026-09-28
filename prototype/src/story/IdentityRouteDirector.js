@@ -137,6 +137,19 @@ export class IdentityRouteDirector {
     const min=Math.floor(remaining/60000);
     const sec=Math.floor((remaining%60000)/1000);
     if(overlay)overlay.textContent=`04:09 系統總核銷｜剩餘 ${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}｜ARCHIVE PURGE PENDING`;
+    if(
+      remaining<=0 &&
+      !this.gameState.getFlag('ZHANG_ARCHIVE_PURGE_TRIGGERED') &&
+      !this.manager.runSave.runEnded
+    ){
+      this.gameState.setFlag('ZHANG_ARCHIVE_PURGE_TRIGGERED',true);
+      this.stopZhangArchivePressure();
+      this.uiManager.showDialogue([
+        {speaker:'院內廣播',text:'「04:09。夜間資料總核銷完成。」'},
+        {speaker:'內心',text:'所有未封存的姓名欄同時變成空白。我的 Staff ID 也從畫面上消失了。'}
+      ],()=>this.onEnding({type:'BAD_END',reason:'ARCHIVE_PURGE_PATIENTIZATION'}));
+      return;
+    }
     if(this.archivePressureLight){
       this.archivePressureLight.position.copy(this.controller.position);
       this.archivePressureLight.position.y+=2.2;
@@ -149,6 +162,7 @@ export class IdentityRouteDirector {
         if(!ready)return;
         soundManager.playFootstep();
         setTimeout(()=>soundManager.playFootstep(),360);
+        setTimeout(()=>soundManager.playCartWheelRattle(),620);
         if(Math.floor(now/7200)%2===0)setTimeout(()=>soundManager.playDoorLockClack(),900);
       });
     }
