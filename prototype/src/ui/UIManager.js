@@ -607,7 +607,9 @@ export class UIManager {
     const defer=document.getElementById('btn-bed33-defer');
     if(defer)defer.hidden=true;
     const warning=document.getElementById('bed33-warning-text');
-    if(warning)warning.textContent='急診留置床系統卡住，請值班醫師確認過床。';
+    if(warning)warning.textContent=isIdentityRouteMode()
+      ? '409 已封閉整修。按下「確認」會把 Bed 33／409-A 正式寫回收治流程；請先判斷這張單是否可信。'
+      : '急診留置床系統卡住，請值班醫師確認過床。';
     this.bed33Modal?.classList.add('active');
   }
 
