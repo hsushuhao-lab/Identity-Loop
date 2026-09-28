@@ -550,6 +550,7 @@ export class IdentityRouteDirector {
         if(index===1) return { id:'IDENTITY_SECOND_2F_CCTV_PHONE', prompt:'接聽正在響的監控室電話' };
         if(index===2) return { proximityBridge:true, prompt:'穿越天橋返回第一院區；保持視線向前' };
       }
+      if(identity==='CHEN'&&index===1) return { proximityBridge:true, prompt:'穿越天橋返回第一院區；身後的輪椅聲越來越近' };
       if(index===1) return { id:'BRIDGE_LOOP_EVENT', prompt:'走到天橋中段，確認異常回聲與白袍人影' };
     }
 
@@ -1325,6 +1326,26 @@ export class IdentityRouteDirector {
           await this.prepareZone('first_campus_3f');
           this.worldRouter.loadZone('first_campus_3f','m0_316_office');
           this.renderObjective();
+        });
+        return;
+      }
+      if(beat.chenDispatchServiceLift){
+        void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playDoorLockClack();});
+        this.gameState.setFlag('CHEN_DISPATCH_ROUTE_VERIFIED',true);
+        persistentMemory.addJournalNote(
+          'CHEN_DISPATCH_ROUTE_VERIFIED',
+          'B1 調度白板、灰滾邊證件與車次 094 交接簽名完成三合一核對；後勤工務電梯已解鎖返回 3F／316。'
+        );
+        void (async()=>{
+          this.busy=true;
+          this.controller.enabled=false;
+          await this.prepareZone('first_campus_3f');
+          this.worldRouter.loadZone('first_campus_3f','m0_316_office');
+          await this.completeBeat();
+        })().catch(error=>{
+          console.error('[IdentityRouteDirector] Chen dispatch lift failed',error);
+          this.busy=false;
+          this.controller.enabled=true;
         });
         return;
       }
