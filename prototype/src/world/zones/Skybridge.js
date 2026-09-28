@@ -316,11 +316,11 @@ export class Skybridge {
 
     const deviation=Math.abs(Math.atan2(Math.sin(camera.rotation.y-Math.PI/2),Math.cos(camera.rotation.y-Math.PI/2)));
     if(!this.lookbackArmed){
-      if(deviation<70*Math.PI/180){this.lookbackArmed=true;this.lookbackTimer=0;}
+      if(deviation<45*Math.PI/180){this.lookbackArmed=true;this.lookbackTimer=0;}
       return;
     }
-    this.lookbackTimer=deviation>110*Math.PI/180?this.lookbackTimer+delta:0;
-    if(this.lookbackTimer<.45)return;
+    this.lookbackTimer=deviation>95*Math.PI/180?this.lookbackTimer+delta:0;
+    if(this.lookbackTimer<.40)return;
 
     this.lookbackTimer=0;this.lookbackArmed=false;this.lookbackCount++;
     soundManager.playDoorLockClack();
