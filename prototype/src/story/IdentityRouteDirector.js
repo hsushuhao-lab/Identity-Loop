@@ -215,7 +215,7 @@ export class IdentityRouteDirector {
       if (index === 1) return { id: 'BRIDGE_LOOP_EVENT', prompt: '走到天橋中段，確認異常回聲與白袍人影' };
     }
 
-    if (step === 'ZHANG_6F_FORESHADOW') return { contextual: true, useSpawn: true, prompt: '走到電梯前查看異常樓層顯示' };
+    if (step === 'ZHANG_6F_FORESHADOW') return { id: 'IDENTITY_6F_DISPLAY', prompt: '查看電梯樓層顯示' };
 
     if (step === 'ZHOU_1F_PHOTO') {
       return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛台上的事故前設備照片' };
