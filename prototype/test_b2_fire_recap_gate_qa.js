@@ -9,11 +9,15 @@ const director=readFileSync('./src/story/B2FireRecapDirector.js','utf8');
 for(const token of [
   '警衛台後方的 B-Panel',
   '錯誤程序被執行',
-  '劉志遠試圖恢復排煙',
+  '工務人員試圖恢復排煙',
   '八個人被困在不同位置',
   '院內紀錄開始失真',
   'UNKNOWN SESSION / OVERWRITE ACTIVE'
 ]) assert(director.includes(token),'B2 fire recap missing beat: '+token);
+
+for(const leaked of ['張守恆','李承禮','周啟文','陳柏勳','林婉真','王世榮','謝玉琴','劉志遠']){
+  assert.equal(director.includes(leaked),false,'B2 fire recap must keep personnel names redacted before M9: '+leaked);
+}
 
 assert(main.includes("import { B2FireRecapDirector } from './story/B2FireRecapDirector.js';"),'B2 fire recap director integration missing');
 const terminalStart=main.indexOf("} else if (interactable.type === 'b2_archive_terminal') {");
