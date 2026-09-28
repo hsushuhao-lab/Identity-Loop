@@ -983,7 +983,7 @@ export class IdentityRouteDirector {
         document.body.classList.add('his-flicker');
         setTimeout(()=>document.body.classList.remove('his-flicker'),420);
         const sequence={
-          id:'ZHANG_6F_GLIMPSE',
+          id:'IDENTITY_6F_GLIMPSE',
           title:'3F → 8F 電梯｜6F 一閃',
           mode:'CCTV',
           source:'ELEVATOR MEMORY / TRANSIENT FRAME',
@@ -1045,6 +1045,7 @@ export class IdentityRouteDirector {
           body:'504B 病況已穩定，但這張醫囑單在醫師重新查核前就預填「轉入第一院區 409-A」。\n\n要簽名確認這筆醫囑，還是拒絕簽名並重新核對？',
           primaryText:'不簽名，退回重核',
           secondaryText:'簽名確認 409-A 醫囑',
+          systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M4_CHEST_RESOLVED',true);
@@ -1069,6 +1070,7 @@ export class IdentityRouteDirector {
           body:'HIS 找不到這名男子的有效掛號。\n\n你要直接建立一筆「無名病人」新病歷，還是先核對他的工務吊牌與既有舊掛號？',
           primaryText:'先核對身分，不新建病歷',
           secondaryText:'建立無名新病歷',
+          systemTrap:this.manager.currentIdentity==='LI'?'secondary':null,
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('ER_IDENTITY_VERIFICATION_CHOSEN',true);
@@ -1091,6 +1093,7 @@ export class IdentityRouteDirector {
           body:'系統已有 1998-ER-0217，建檔時間 00:33；檢傷區、候診區、留觀床卻完全找不到對應的人。\n\n要只查閱既有舊索引，還是把這筆異常直接建立成新的「無名病人」病歷？',
           primaryText:'只查既有紀錄，不新建',
           secondaryText:'建立無名新病歷',
+          systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
@@ -1127,6 +1130,7 @@ export class IdentityRouteDirector {
           body: '舊手冊要求 1 → 3 → 4；現場紀錄卻顯示這個順序會鎖死防火門並停止排煙。你要採取哪個操作？',
           primaryText: '啟動紫色備援排煙',
           secondaryText: '依舊手冊拉下 1 → 3 → 4',
+          systemTrap:this.manager.currentIdentity==='LI'?'secondary':null,
           onPrimary: () => {
             this.uiManager.closeStoryChoice(false);
             void this.completeBeat();
@@ -1248,6 +1252,9 @@ export class IdentityRouteDirector {
       }
       if(this.step==='M4'&&this.beatIndex===this.beats.length-1){
         this.gameState.setFlag('M4_CHEST_RESOLVED',true);
+      }
+      if(this.step==='LI_2117_PATROL'&&this.beatIndex===this.beats.length-1){
+        this.gameState.setFlag('LI_2117_ENV_DRIFT',true);
       }
       if(this.step==='M5'&&this.beatIndex===0){
         this.gameState.setFlag('M5_CCTV_RESOLVED',true);
