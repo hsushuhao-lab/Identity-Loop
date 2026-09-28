@@ -247,7 +247,7 @@ export function getIdentityRouteScene(step, identity) {
           ZHOU:'畫面總在關鍵一格跳掉。手指竟然下意識想按快門。',
           CHEN:'同一條跨院路線，畫面裡的方向和我記得的走法對不上。'
         })}
-      ], '看完監視器異常後，經天橋返回第一院區'),
+      ], '前往 2F 監視器室查看閃爍的異常畫面'),
       event('天橋上的 Annie', [
         {speaker:'內心',text:'走到天橋中段，玻璃倒影裡多出一個穿白袍的女人。'},
         {speaker:'內心',text:'她沒有跟著我的動作。'},
