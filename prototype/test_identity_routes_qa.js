@@ -119,6 +119,26 @@ assert.match(sceneSource,/向 5F 護理站借會診備用鑰匙/);
 assert.match(sceneSource,/歸還 5F 會診備用鑰匙/);
 assert.match(sceneSource,/clearFlag:\(identity==='ZHOU'\|\|identity==='CHEN'\)\?'SECOND_5F_CONSULT_KEY_BORROWED'/);
 console.log('PASS pre-handoff M4: Zhou/Chen borrow 504-only consult key, assess patient, review transfer, return key');
+
+const routeSceneSource=readFileSync(new URL('./src/story/IdentityRouteScenes.js',import.meta.url),'utf8');
+const m1Slice=routeSceneSource.slice(routeSceneSource.indexOf("    M1: ["),routeSceneSource.indexOf("    M2: ["));
+assert.doesNotMatch(m1Slice,/speaker:'學長'/);
+assert.match(m1Slice,/以前.*學長/);
+assert.match(m1Slice,/簽署值班簿/);
+assert.match(m1Slice,/核對 HIS 值班狀態/);
+assert.match(m1Slice,/領取正式值班物品/);
+assert.match(routeDirectorSource,/index===1\) return \{ id:'DUTY_LOG'/);
+assert.match(routeDirectorSource,/index===2\) return \{ type:'workstation'/);
+assert.match(routeDirectorSource,/index===3\) return \{ id:'KEY_PICKUP'/);
+assert.match(routeDirectorSource,/setIdentityDutyItemsVisible/);
+assert.match(routeSceneSource,/監視器室的閃爍/);
+assert.match(routeSceneSource,/bridgeChoice:true/);
+assert.match(routeSceneSource,/安妮.*「回頭啊。」/s);
+assert.match(routeDirectorSource,/primaryText:'不要回頭，繼續走'/);
+assert.match(routeDirectorSource,/secondaryText:'回頭'/);
+assert.match(routeDirectorSource,/BRIDGE_LOOKBACK_PATIENTIZATION/);
+assert.match(routeDirectorSource,/BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION/);
+console.log('PASS M1/M5 regression: empty 316 monologue -> log/HIS/key-card gate; CCTV lead-in -> Annie choice -> lookback patientization');
 for(const [identity,route] of Object.entries(expected))for(const milestone of ['M1','M2','M8','M9','B2']){
   const store=storage();
   store.setItem(IDENTITY_STORAGE_KEY,JSON.stringify({metaSave:{completedGoodEnds:['LI']},runSave:{currentIdentity:identity,currentMilestone:milestone,evidence:{old:{id:'old'}},b2Entered:true}}));
