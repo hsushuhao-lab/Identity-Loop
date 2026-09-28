@@ -1427,7 +1427,9 @@ controller.onInteract = async (interactable) => {
       gameState.setFlag('HIDDEN_SERVICE_DOOR_DISCOVERED',false);
       gameState.setFlag('SECURITY_RECORD_OBJECTIVE',false);
       gameState.setFlag('RECORD_OVERWRITE_ACTIVE',true);
-      gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',true);
+      const exitIdentity=identityLoopMode?identityManager?.currentIdentity:null;
+      gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',identityLoopMode?exitIdentity==='ZHOU':true);
+      gameState.setFlag('M8_CODE_BLACK_ANNOUNCED',identityLoopMode?exitIdentity==='ZHOU':true);
       gameState.setFlag('LAST_CALL_SEEN',true);
       controller.enabled=false;
       worldRouter.activeZoneInstance?.beginExitClosure?.();
