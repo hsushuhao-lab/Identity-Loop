@@ -170,8 +170,8 @@ export class FirstCampus8FBridgeEntry {
     // Keep the 8F transfer lobby and bridge approach clear of loose seating/furniture.
     asset(art,'plant',[-10.5,0,-2.7]);
 
-    // Identy Loop: Zhou's opening clue is a real wall-mounted archival group photo,
-    // not a route-generated quest card. The photographer remains outside the frame.
+    // Identy Loop: Zhou's opening clue is a real wall-mounted archival group photo
+    // on the blank 8F elevator-lobby wall. The photographer remains outside the frame.
     const canLoadIdentityImage=typeof document!=='undefined'&&typeof document.createElementNS==='function';
     const historyTexture=canLoadIdentityImage
       ? new THREE.TextureLoader().load(`${import.meta.env?.BASE_URL || './'}assets/identity-v03/history-group.png`)
@@ -179,8 +179,8 @@ export class FirstCampus8FBridgeEntry {
     if(historyTexture)historyTexture.colorSpace=THREE.SRGBColorSpace;
     const historyFrame=new THREE.Group();
     historyFrame.name='IdentityHistoryGroupPhoto_Frame';
-    historyFrame.position.set(19.78,1.62,0);
-    historyFrame.rotation.y=-Math.PI/2;
+    historyFrame.position.set(-11.77,1.62,0);
+    historyFrame.rotation.y=Math.PI/2;
     const historyBacking=new THREE.Mesh(
       new THREE.BoxGeometry(2.62,1.82,.055),
       new THREE.MeshStandardMaterial({color:0x2a2118,roughness:.78})
@@ -192,7 +192,7 @@ export class FirstCampus8FBridgeEntry {
         ? new THREE.MeshBasicMaterial({map:historyTexture,toneMapped:false})
         : new THREE.MeshBasicMaterial({color:0x5e594e})
     );
-    historyPhoto.position.z=-.031;
+    historyPhoto.position.z=.031;
     historyPhoto.name='IdentityHistoryGroupPhoto';
     historyPhoto.userData={
       interactable:true,

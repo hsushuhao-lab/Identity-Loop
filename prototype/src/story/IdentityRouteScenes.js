@@ -566,6 +566,12 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
           { zoneId:'skybridge', spawn:'bridge_from_second' }
         ]
+      : identity==='LI'
+        ? [
+            { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'201', yaw:0 },
+            { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
+            { zoneId:'skybridge', spawn:'bridge_from_second' }
+          ]
       : [
           { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
           { zoneId:'skybridge', spawn:'bridge_from_second' }

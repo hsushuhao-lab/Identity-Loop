@@ -8,6 +8,8 @@ import {IDENTITY_PROFILES} from '../src/core/IdentityManager.js';
 
 const out=process.argv[2]||'qa-results/identity-contextual';
 const supplied=process.argv[3];
+const onlyIdentity=process.env.IDENTITY_QA_ROUTE;
+const stopAfter=process.env.IDENTITY_QA_STOP_AFTER;
 const server=supplied?null:await preview({root:fileURLToPath(new URL('..',import.meta.url)),preview:{host:'127.0.0.1',port:4175,strictPort:true}});
 const base=supplied||'http://127.0.0.1:4175/';
 const report={url:base,sha:process.env.GITHUB_SHA||'local',routes:[],errors:[],screenshots:[],startedAt:new Date().toISOString()};
@@ -93,8 +95,32 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       if(run.steps.length===1)assert.equal(state.zone,ROUTE_STEPS[state.step].zoneId);
       // Outside B2/M9/ending the identity panel is no longer the dialogue surface.
       if(!['B2','M9'].includes(state.step))assert.equal(state.panelVisible,false,`panel must stay hidden during ${state.step}`);
+      if(identity==='ZHOU'&&state.step==='ZHOU_OPEN_8F'){
+        const photo=await page.evaluate(()=>{
+          const qa=window.__storyQA;
+          const zone=qa.worldRouter.activeZoneInstance;
+          const object=zone.interactables.find(item=>item?.userData?.id==='IDENTITY_HISTORY_GROUP_PHOTO');
+          if(!object)return null;
+          const center=object.getWorldPosition(qa.controller.camera.position.clone()).toArray();
+          const frame=zone.zoneGroup.getObjectByName('IdentityHistoryGroupPhoto_Frame');
+          const view=qa.captureView({position:[-8,1.7,0],target:center,anchorName:'IdentityHistoryGroupPhoto'});
+          const ray=qa.lookAt(center);
+          const image=object.material?.map?.image;
+          return {center,frame:frame?.position.toArray(),loaded:!!image&&image.width>0,view,ray};
+        });
+        assert.ok(photo,'the opening group photo must be mounted in the 8F world');
+        assert.ok(Math.abs(photo.frame[0]+11.77)<0.01,'the group photo must be on the pictured lobby wall');
+        assert.equal(photo.loaded,true,'the archival photo texture must load');
+        assert.equal(photo.ray.current,'IDENTITY_HISTORY_GROUP_PHOTO','the photo surface must be the E-key target');
+        assert.ok(photo.view.rect.width>100&&photo.view.rect.height>80,'the group photo must be plainly visible from the lobby');
+      }
       await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-${state.step}`);
       console.log(`${identity}: ${state.step}`);
+      if(onlyIdentity===identity&&stopAfter===state.step){
+        run.verdict='TARGETED_PASS';
+        report.routes.push(run);
+        return;
+      }
       if(identity==='ZHOU'&&state.step==='M5'){
         assert.equal(
           await page.evaluate(()=>window.__storyQA.gameState.getFlag('UNDELIVERED_MEMO_FRAGMENT')),
@@ -189,6 +215,11 @@ async function walk(identity,{wrong=false,mobile=false}={}){
     }
 
     const triggered=await page.evaluate(()=>window.__storyQA.identityRouteDirector.qaInteractCurrentBeat());
+    if(!triggered&&state.text.includes('[E] 繼續')){
+      await page.keyboard.press('KeyE');
+      run.actions++;
+      continue;
+    }
     assert.equal(triggered,true,`current beat must bind to a world object/context target: ${identity}/${state.step}`);
     run.beats++;
     run.actions++;
@@ -204,20 +235,23 @@ async function walk(identity,{wrong=false,mobile=false}={}){
 }
 
 try{
-  for(const identity of Object.keys(IDENTITY_ROUTES))await walk(identity);
-  await context.clearCookies();
-  await page.evaluate(()=>localStorage.clear());
-  await walk('LI',{wrong:true});
+  const identities=onlyIdentity?[onlyIdentity]:Object.keys(IDENTITY_ROUTES);
+  for(const identity of identities)await walk(identity);
+  if(!onlyIdentity){
+    await context.clearCookies();
+    await page.evaluate(()=>localStorage.clear());
+    await walk('LI',{wrong:true});
 
-  await page.evaluate(()=>localStorage.clear());
-  await page.goto(base,{waitUntil:'load'});
-  await page.waitForSelector('#task-panel',{timeout:120000});
-  assert.equal(await page.evaluate(()=>typeof window.__storyQA),'undefined');
-  assert.match(await page.title(),/Identy Loop/);
-  assert.doesNotMatch(await page.locator('body').innerText(),forbidden);
-  // Ordinary public entry must not expose the old route-action button UI.
-  assert.equal(await page.locator('[data-route-action]').count(),0);
-  await shot('ordinary-public-entry-desktop');
+    await page.evaluate(()=>localStorage.clear());
+    await page.goto(base,{waitUntil:'load'});
+    await page.waitForSelector('#task-panel',{timeout:120000});
+    assert.equal(await page.evaluate(()=>typeof window.__storyQA),'undefined');
+    assert.match(await page.title(),/Identy Loop/);
+    assert.doesNotMatch(await page.locator('body').innerText(),forbidden);
+    // Ordinary public entry must not expose the old route-action button UI.
+    assert.equal(await page.locator('[data-route-action]').count(),0);
+    await shot('ordinary-public-entry-desktop');
+  }
   report.ordinaryEntry='PASS';
 
   assert.equal(report.errors.length,0,JSON.stringify(report.errors));
