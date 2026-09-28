@@ -22,6 +22,7 @@ import { SecondCampusStandardFloor } from './zones/SecondCampusStandardFloor.js'
 import { SecondCampus1F } from './zones/SecondCampus1F.js';
 import { Phantom6F } from './zones/Phantom6F.js';
 import { B2Archive } from './zones/B2Archive.js';
+import { B1DispatchHub } from './zones/B1DispatchHub.js';
 
 export class WorldRouter {
   constructor(scene, camera, controller) {
@@ -57,7 +58,8 @@ export class WorldRouter {
       'second_campus_std': SecondCampusStandardFloor,
       'second_campus_1f': SecondCampus1F,
       'phantom_6f': Phantom6F,
-      'b2_archive': B2Archive
+      'b2_archive': B2Archive,
+      'b1_dispatch_hub': B1DispatchHub
     };
 
     this.zoneLabels = {
@@ -73,7 +75,8 @@ export class WorldRouter {
       'second_campus_std': '第二院區 5F 病房護理站',
       'second_campus_1f': '第二院區 1F 警衛台',
       'phantom_6f': '6F 臨床技能中心',
-      'b2_archive': 'B2 封存隔離層'
+      'b2_archive': 'B2 封存隔離層',
+      'b1_dispatch_hub': 'B1 地下救護車接駁調度室'
     };
 
     this.lightingGroup = new THREE.Group();
