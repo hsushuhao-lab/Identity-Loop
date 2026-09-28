@@ -167,9 +167,27 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
     gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',false);
     persistentMemory.completePerfectEnding();
     controller.enabled=false;
-  }else{
-    triggerFinalPatientizationFailure(()=>identityLoopPanel.newRun());
+    return;
   }
+  if(result.type==='WRONG_MEMORY_BAD_END'){
+    triggerFinalPatientizationFailure(()=>identityLoopPanel.newRun());
+    return;
+  }
+  const identity=identityManager.currentIdentity;
+  const reasonText={
+    M2_BED33_APPROVAL_PATIENTIZATION:'你把不存在的 Bed 33／409-A 正式寫回收治流程。',
+    ER_UNVERIFIED_RECORD_PATIENTIZATION:'你在身分未核對前建立了新的無名病歷。',
+    ER0033_DUPLICATE_RECORD_PATIENTIZATION:'現場沒有病人，你卻讓異常舊紀錄製造出新的無名病歷。',
+    M4_409A_ORDER_PATIENTIZATION:'你簽下了來源未核對、目的地卻已預填 409-A 的醫囑。',
+    BRIDGE_LOOKBACK_PATIENTIZATION:'你在天橋上回頭確認了不該被確認的人影。',
+    BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION:'你已選擇不回頭，卻在離開天橋前再次轉身。',
+    M7_HISTORICAL_PROCEDURE_PATIENTIZATION:'你照著熟悉的舊程序重演了 1 → 3 → 4。'
+  }[result.reason]||'你重演了會把值班醫師重新分類成 409-A 病人的錯誤。';
+  persistentMemory.recordOverride(result.reason||'IDENTITY_ROUTE');
+  uiManager.playLegendOverride({legend:'409 PATIENTIZATION',reason:reasonText},()=>{
+    identityManager.startNewRun({forceIdentity:identity,restart:true});
+    location.reload();
+  });
 }});
 
 const actPresentationDirector=new ActPresentationDirector({
