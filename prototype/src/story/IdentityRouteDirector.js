@@ -79,6 +79,7 @@ export class IdentityRouteDirector {
     this.m1GateState = null;
     this.archivePressureDeadline = 0;
     this.archivePressureLastCue = 0;
+    this.archivePressureLight = null;
   }
 
   get currentRouteStep() { return this.step; }
@@ -95,6 +96,11 @@ export class IdentityRouteDirector {
     this.archivePressureDeadline=startedAt+12*60*1000;
     this.gameState.setFlag('ZHANG_ARCHIVE_PRESSURE_ACTIVE',true);
     document.body.classList.add('zhang-archive-pressure-active');
+    if(!this.archivePressureLight){
+      this.archivePressureLight=new THREE.PointLight(0x9b1515,.72,34,1.6);
+      this.archivePressureLight.name='ZhangArchiveEmergencyRed';
+      this.worldRouter.scene.add(this.archivePressureLight);
+    }
 
     if(!document.getElementById('zhang-archive-pressure-style')){
       const style=document.createElement('style');
@@ -131,6 +137,11 @@ export class IdentityRouteDirector {
     const min=Math.floor(remaining/60000);
     const sec=Math.floor((remaining%60000)/1000);
     if(overlay)overlay.textContent=`04:09 系統總核銷｜剩餘 ${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}｜ARCHIVE PURGE PENDING`;
+    if(this.archivePressureLight){
+      this.archivePressureLight.position.copy(this.controller.position);
+      this.archivePressureLight.position.y+=2.2;
+      this.archivePressureLight.intensity=.58+.16*Math.sin(Date.now()/620);
+    }
     const now=Date.now();
     if(force||now-this.archivePressureLastCue>7200){
       this.archivePressureLastCue=now;
@@ -147,6 +158,11 @@ export class IdentityRouteDirector {
     this.gameState.setFlag('ZHANG_ARCHIVE_PRESSURE_ACTIVE',false);
     document.body.classList.remove('zhang-archive-pressure-active');
     document.getElementById('zhang-archive-pressure')?.remove();
+    if(this.archivePressureLight){
+      this.archivePressureLight.removeFromParent();
+      this.archivePressureLight.dispose?.();
+      this.archivePressureLight=null;
+    }
     this.archivePressureDeadline=0;
   }
 
