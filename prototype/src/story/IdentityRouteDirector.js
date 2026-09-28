@@ -511,7 +511,7 @@ export class IdentityRouteDirector {
           : '按下 5F 護理站對講機完成聯絡報到'
       };
       if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
-      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 409-A 醫囑單' };
+      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 409-A 轉送醫囑單' };
       if (index === 3) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
@@ -1264,10 +1264,10 @@ export class IdentityRouteDirector {
       }
       if(beat.transferSignChoice){
         this.uiManager.openStoryChoice({
-          title:'第二院區｜409-A 醫囑單',
-          body:'504B 病況已穩定，但這張 409-A 醫囑單在醫師重新查核前就已填好目的地。\n\n要簽名確認這筆醫囑，還是拒絕簽名並重新核對？',
+          title:'第二院區｜409-A 轉送醫囑單',
+          body:'504B 病況已穩定，但這張 409-A 轉送醫囑單在醫師重新查核前就已填好目的地。\n\n要簽名核准這次轉送醫囑，還是拒絕簽名並重新核對？',
           primaryText:'不簽名，退回重核',
-          secondaryText:'簽名確認 409-A 醫囑',
+          secondaryText:'簽名核准 409-A 轉送醫囑',
           systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
@@ -1280,7 +1280,7 @@ export class IdentityRouteDirector {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M4_SIGNED_409A_ORDER',true);
             this.uiManager.showDialogue([
-              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從醫囑單反向寫進自己的值班身分。'},
+              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從轉送醫囑單反向寫進自己的值班身分。'},
               {speaker:'現場',text:'ORDER SIGNED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
             ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_ORDER_PATIENTIZATION'}));
           }
