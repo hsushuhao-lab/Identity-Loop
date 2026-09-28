@@ -1341,6 +1341,7 @@ export class IdentityRouteDirector {
           this.controller.enabled=false;
           await this.prepareZone('first_campus_3f');
           this.worldRouter.loadZone('first_campus_3f','m0_316_office');
+          this.busy=false;
           await this.completeBeat();
         })().catch(error=>{
           console.error('[IdentityRouteDirector] Chen dispatch lift failed',error);
