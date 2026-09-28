@@ -11,6 +11,7 @@ for(const step of IDENTITY_ROUTES.LI)assert.ok(ROUTE_STEPS[step],step);
 const scenes=readFileSync('./src/story/IdentityRouteScenes.js','utf8');
 const director=readFileSync('./src/story/IdentityRouteDirector.js','utf8');
 const main=readFileSync('./src/main.js','utf8');
+const ui=readFileSync('./src/ui/UIManager.js','utf8');
 
 assert.match(scenes,/LI_DUTY_CALL_2000:[\s\S]*值班室電話/);
 assert.match(scenes,/LI_ER_2005:[\s\S]*急診醫師電腦｜書寫紀錄[\s\S]*erRegistrationChoice:true/);
@@ -21,6 +22,8 @@ assert.match(scenes,/LI_ER_0033:[\s\S]*ghostRegistrationChoice:true/);
 assert.match(scenes,/LI_316_ARCHIVE:[\s\S]*316 舊終端查詢[\s\S]*第二院區/);
 assert.match(scenes,/LI_OUTBOUND_8F:[\s\S]*六樓開門後/);
 assert.match(director,/SECOND_CAMPUS_ACCESS/);
+assert.match(ui,/playElevatorGlimpse/);
+assert.match(main,/currentRouteStep==='LI_OUTBOUND_8F'[\s\S]*interactable\.kind==='stairs'/);
 assert.match(scenes,/LI_3F_EVIDENCE:[\s\S]*行政辦公室[\s\S]*文史室[\s\S]*evidenceSweep:true/);
 
 assert.match(scenes,/核對 409-A 轉送醫囑單/);
