@@ -696,16 +696,21 @@ export class IdentityRouteDirector {
   playAutoMemorySequence(sequence,onComplete,{interval=900,hold=850}={}){
     let timer=null;
     let closing=false;
+    this.busy=true;
+    const done=()=>{
+      this.busy=false;
+      onComplete?.();
+    };
     const finish=()=>{
       if(closing)return;
       closing=true;
       if(timer)clearInterval(timer);
       setTimeout(()=>{
         if(this.uiManager.memorySequence===sequence)this.uiManager.closeMemorySequence(false);
-        else onComplete?.();
+        else done();
       },hold);
     };
-    this.uiManager.openMemorySequence(sequence,()=>{if(timer)clearInterval(timer);onComplete?.();});
+    this.uiManager.openMemorySequence(sequence,()=>{if(timer)clearInterval(timer);done();});
     timer=setInterval(()=>{
       if(this.uiManager.memorySequence!==sequence){clearInterval(timer);return;}
       if(this.uiManager.memoryFrameIndex<sequence.frames.length-1)this.uiManager.stepMemory(1);
@@ -717,6 +722,7 @@ export class IdentityRouteDirector {
     const bridge=this.worldRouter.activeZoneInstance;
     const annie=bridge?.bridgeDoppelganger;
     const startYaw=this.controller.yaw;
+    this.busy=true;
     const startX=annie?.position.x ?? 46;
     const startZ=annie?.position.z ?? 0;
     if(annie){
@@ -744,6 +750,7 @@ export class IdentityRouteDirector {
         this.controller.yaw=startYaw;
         this.controller.updateCameraRotation?.();
         if(annie){annie.position.x=Math.max(33.5,annie.position.x);annie.position.z=startZ;}
+        this.busy=false;
         onComplete?.();
       }
     };
@@ -1045,6 +1052,12 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('FOUND_316_SPARE_KEY',true);
       this.gameState.setFlag('OPENED_316',true);
       this.m1EntryTriggered=true;
+      this.inspect();
+      return true;
+    }
+    if(binding.proximityBridge){
+      this.gameState.setFlag('BRIDGE_REFLECTION_NOTICE_PENDING',false);
+      this.gameState.setFlag('BRIDGE_REFLECTION_NOTICE_SEEN',true);
       this.inspect();
       return true;
     }
