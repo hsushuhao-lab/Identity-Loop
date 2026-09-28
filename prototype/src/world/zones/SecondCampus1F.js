@@ -119,6 +119,24 @@ export class SecondCampus1F {
     };
     this.interactables.push(guardLogbook);
 
+    // Zhang route: an old photo album must be inspected before the coffee/CCTV clue.
+    // It is a real desk prop and opens through the archive-document UI.
+    const photoAlbum=solid(art,this.gf.materials.doorWood,[73.45,1.19,-4.48],[.46,.045,.34]);
+    photoAlbum.name='Second1F_GuardPhotoAlbum';
+    photoAlbum.userData={
+      interactable:true,
+      id:'SECOND_GUARD_PHOTO_ALBUM',
+      type:'archive_document',
+      label:'翻閱：警衛台舊相簿',
+      documentTitle:'第二院區 1F｜警衛台舊相簿',
+      pages:[
+        '夜班隨手照。警衛桌、天橋門禁、值班電話、保溫壺。照片大多沒有標註日期。',
+        '有幾張照片反覆拍到一名捲袖白袍醫師拿著黑咖啡。臉總被玻璃反光、門框或裁切遮住，看不出姓名。',
+        '最後一頁夾著便條：「如果監視器又多出不在值勤表上的人，先看 2F 監控室的即時主機。」'
+      ]
+    };
+    this.interactables.push(photoAlbum);
+
     const coffee=new THREE.Group();
     coffee.name='Second1F_IdentityBlackCoffee';
     coffee.position.set(74.45,1.23,-4.42);
