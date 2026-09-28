@@ -1078,6 +1078,21 @@ controller.onInteract = async (interactable) => {
       uiManager.showSubtitle('316 舊資料終端','「ARCHIVE CLIENT｜目前沒有待查的舊索引。」',2600);
       return;
     }
+    if(identityLoopMode){
+      if(gameState.getFlag('M3_316_DECODED')){
+        uiManager.showSubtitle('316 舊資料終端','「1998-ER-0217｜工務識別 ENG-860214｜責任醫師員編前綴 MED-87｜完整姓名欄受損。」',3600);
+        return;
+      }
+      gameState.setFlag('M3_316_DECODED',true);
+      gameState.setFlag('LEGEND_ER0033_RESOLVED',true);
+      gameState.setFlag('ER0033_INDEX_MATCH',true);
+      gameState.setFlag('B2_LEGACY_SOURCE',true);
+      persistentMemory.rememberEvidence('M3_316_LEGACY_INDEX');
+      persistentMemory.addJournalNote('ER0033_DECODED_IDENTITY_LOOP','316 舊終端解出 1998-ER-0217：工務識別 ENG-860214；責任醫師員編前綴 MED-87，完整姓名欄受損。');
+      soundManager.playComputerBeep();
+      uiManager.showSubtitle('316 舊資料終端','「ARCHIVE LINK ESTABLISHED｜1998-ER-0217｜ENG-860214｜RESPONSIBLE PHYSICIAN: MED-87••••／NAME FIELD CORRUPTED。」',5200);
+      return;
+    }
     if(gameState.getFlag('M3_316_DECODED')){
       uiManager.showSubtitle('316 舊資料終端','「1998-ER-0217｜病人：劉志遠／ENG-860214｜責任醫師員編前綴 MED-87｜姓氏：張。」',3600);
       return;
