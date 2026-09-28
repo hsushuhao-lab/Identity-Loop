@@ -823,7 +823,11 @@ export class UIManager {
       if(btn){btn.disabled=false;btn.textContent='確認電子交班';}
       if(msg)msg.textContent='系統連線正常 ｜ 夜班資料節點：時間欄位待同步';
       if(isIdentityRouteMode()){
-        this.showSubtitle('HIS','電子交班已送出。下一步：解鎖 316 值班物品櫃。',2600);
+        this.showSubtitle(
+          'HIS',
+          '「電子交班已送出。」\n\nSYSTEM WARNING：CURRENT DUTY PHYSICIAN 與歷史值班索引不一致。NAME SOURCE：CORRUPTED。\n\n值班物品櫃仍可獨立操作。',
+          4600
+        );
       }else{
         this.showAnomalyMessage();
       }
