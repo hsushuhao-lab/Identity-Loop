@@ -78,7 +78,8 @@ async function walk(identity,{wrong=false,mobile=false}={}){
     assert.equal(state.body,state.width,'no horizontal overflow');
 
     const choiceVisible=await page.locator('[data-identity-choices] .identity-choice').count();
-    if(!choiceVisible){
+    const manualEntryVisible=await page.locator('[data-identity-choices] .identity-entry-form').count();
+    if(!choiceVisible&&!manualEntryVisible){
       assert.doesNotMatch(state.text,forbidden,`visible leak before M9 choice ${identity}/${state.step}`);
       assert.doesNotMatch(state.canvasText,forbidden,`world canvas name leak before M9 ${identity}/${state.step}`);
     }
@@ -100,14 +101,14 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       }
     }
 
-    if(choiceVisible){
+    if(manualEntryVisible){
       assert.equal(state.step,'M9');
-      assert.equal(choiceVisible,4);
-      const optionsText=await page.locator('[data-identity-choices]').innerText();
-      for(const profile of Object.values(IDENTITY_PROFILES))assert.ok(optionsText.includes(profile.role),'final name must be mapped to anonymous role');
-      await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-four-choices`);
+      assert.equal(choiceVisible,0,'M9 must not expose answer buttons');
       const selected=wrong?Object.keys(IDENTITY_PROFILES).find(x=>x!==identity):identity;
-      await page.locator('[data-identity-choices] .identity-choice').filter({hasText:IDENTITY_PROFILES[selected].name}).click();
+      await page.locator('.identity-entry-form input[aria-label="姓名"]').fill(IDENTITY_PROFILES[selected].name);
+      await page.locator('.identity-entry-form input[aria-label="員編"]').fill(IDENTITY_PROFILES[selected].employeeId);
+      await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-manual-entry`);
+      await page.locator('.identity-entry-submit').click();
       const ended=await page.evaluate(()=>window.__storyQA.identityManager.snapshot());
       assert.equal(ended.runSave.runEnded,true);
       assert.equal(ended.runSave.m9CommittedChoice,selected);
