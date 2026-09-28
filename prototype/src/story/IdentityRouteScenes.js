@@ -47,9 +47,47 @@ export function getIdentityRouteScene(step, identity) {
       ], '拿取值班室鑰匙與感應卡')
     ],
     M2: [
-      { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' },
-      { room:'408', bed:'408C' },
-      { zoneId:'first_campus_4f', spawn:'m2_4f_409' }
+      event('四樓護理站', reaction({
+        ZHANG:[
+          {speaker:'林婉真',text:'「你還沒去 316 正式交班吧？」'},
+          {speaker:'值班醫師',text:'「還沒。我先來看病房。」'},
+          {speaker:'林婉真',text:'「那先拿 4F 這組備用鑰匙跟臨時感應卡，只在這層用。」'},
+          {speaker:'林婉真',text:'「408C 一直說隔壁有規律敲牆。你先去確認。」'}
+        ],
+        LI:[
+          {speaker:'林婉真',text:'「408C 又在說隔壁有人敲牆。」'},
+          {speaker:'值班醫師',text:'「我去確認。」'}
+        ],
+        ZHOU:[
+          {speaker:'林婉真',text:'「你來了。408C 從剛才一直說隔壁有聲音。」'},
+          {speaker:'值班醫師',text:'「先看 408C。」'}
+        ],
+        CHEN:[
+          {speaker:'林婉真',text:'「408C 又在敲鈴，說隔壁有規律敲牆。」'},
+          {speaker:'值班醫師',text:'「我去看。」'},
+          {speaker:'內心',text:'504B 那張寫著 409-A 的轉院單還留在腦中。'}
+        ]
+      }), identity==='ZHANG'
+        ? '向護理師拿 4F 備用鑰匙與臨時感應卡'
+        : '向護理師確認 408C 狀況'),
+      event('408C 確認', [
+        {speaker:'408C 老先生',text:'「醫師，又來了。」'},
+        {speaker:'值班醫師',text:'「哪裡？」'},
+        {speaker:'408C 老先生',text:'「隔壁。四下，停一下，再九下。」'},
+        {speaker:'聲音',text:'咚。咚。咚。咚。'},
+        {speaker:'聲音',text:'……'},
+        {speaker:'聲音',text:'咚。咚。咚。咚。咚。咚。咚。咚。咚。'},
+        {speaker:'值班醫師',text:'「是 409 那個方向。」'}
+      ], '到 408C 確認 4—停—9 的敲牆聲'),
+      event('409 封閉房', [
+        {speaker:'內心',text:'409 仍是封閉房。敲擊卻清楚地從門後傳出來。'},
+        {speaker:'內心',text:reaction({
+          ZHANG:'沒有確認裡面是誰以前，不能把這種聲音當成不存在。',
+          LI:'封閉房間不該出現在任何正常床位流程裡。',
+          ZHOU:'我見過有人站在這個角度記錄這扇門。',
+          CHEN:'409-A。這個位置和第二院區那張轉送單對上了。'
+        })}
+      ], '確認 409 封閉房與敲擊來源')
     ],
     M3: [
       event('急診無名掛號', [
@@ -231,14 +269,9 @@ export function getIdentityRouteScene(step, identity) {
   if (!scenes[step]) throw new Error(`Unknown route scene: ${step}`);
   const locations = {
     M2: [
-      {},
-      { room: '403', bed: '403A' },
-      { room: '408', bed: '408C' },
-      { spawn: 'm2_4f_409' },
-      { spawn: 'm3_4f_nursing_station' },
-      { spawn: 'm3_4f_nursing_station' },
-      { spawn: 'm3_4f_nursing_station' },
-      { spawn: 'm3_4f_nursing_station' }
+      { zoneId:'first_campus_4f', spawn:'m3_4f_nursing_station' },
+      { room:'408', bed:'408C' },
+      { zoneId:'first_campus_4f', spawn:'m2_4f_409' }
     ],
     M3: [{ spawn: 'm4_2f_er_triage' }, { spawn: 'm4_2f_er_bays' }, { zoneId: 'first_campus_3f', spawn: 'm0_316_office' }],
     M4: [
