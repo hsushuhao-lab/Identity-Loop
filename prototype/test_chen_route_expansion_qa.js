@@ -66,7 +66,8 @@ assert.match(director,/CHEN_6F_PROCEDURAL_REPLAY/);
 assert.match(director,/5042[\s\S]*灰滾邊[\s\S]*偏軸輪椅/);
 
 assert.match(scenes,/CHEN_M8_DISPATCH:[\s\S]*車次 094/);
-assert.match(scenes,/陳○○｜MED-89••••/);
+assert.match(scenes,/\[姓名欄磨損\]｜MED-89••••/);
+assert.doesNotMatch(scenes,/陳○○/);
 assert.match(scenes,/chenDispatchBadgeSwipe:true/);
 assert.match(scenes,/CHEN_DISPATCH_LOG_VERIFIED/);
 assert.match(scenes,/chenDispatchServiceLift:true/);
