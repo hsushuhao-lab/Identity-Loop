@@ -296,8 +296,8 @@ export class IdentityRouteDirector {
       if (index === 0) return {
         id: 'IDENTITY_4F_NURSE_STATION',
         prompt: identity==='ZHANG'
-          ? '和護理師說話，領取 4F 備用鑰匙與臨時感應卡'
-          : '和護理師確認 408C 狀況'
+          ? '使用護理站電腦聯絡晚班護理師，領取 4F 備用鑰匙與臨時感應卡'
+          : '使用護理站電腦聯絡晚班護理師，確認 408C 狀況'
       };
       if (index === 1) return { id: '408C_BED_PLAQUE', prompt: '到 408C 確認敲牆聲' };
       if (index === 2) return { id: 'BED33_409_SEALED', prompt: '確認 409 封閉房與敲擊來源' };
@@ -319,16 +319,16 @@ export class IdentityRouteDirector {
       if (index === 0) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
-          ? '向第二院區 5F 護理站借會診備用鑰匙'
-          : '向第二院區 5F 護理站報到'
+          ? '使用 5F 護理站電腦聯絡護理師，借會診備用鑰匙'
+          : '使用 5F 護理站電腦完成聯絡報到'
       };
       if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
       if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 504B 預填轉院單' };
       if (index === 3) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
-          ? '回護理站歸還會診備用鑰匙'
-          : '回護理站交代 504B 處置'
+          ? '回 5F 護理站電腦聯絡護理師並歸還會診備用鑰匙'
+          : '回 5F 護理站電腦回報 504B 處置'
       };
       if(index===4) return { auto:true };
     }
@@ -859,6 +859,19 @@ export class IdentityRouteDirector {
     }
     if (binding.auto) {
       this.inspect();
+      return true;
+    }
+    if(binding.passthrough){
+      if(binding.completeTask&&!this.gameState.isTaskComplete(binding.completeTask)){
+        this.gameState.markTaskComplete(binding.completeTask);
+      }
+      if(binding.completeFlag&&!this.gameState.getFlag(binding.completeFlag)){
+        this.gameState.setFlag(binding.completeFlag,true);
+        if(binding.completeFlag==='LOCKER_OPENED'){
+          this.worldRouter.activeZoneInstance?.markLockerOpen?.(true);
+        }
+      }
+      void this.completeBeat();
       return true;
     }
     const target = this.boundTarget?.object || this.anchor;
