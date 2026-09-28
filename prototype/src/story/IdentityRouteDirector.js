@@ -54,7 +54,8 @@ const IDENTITY_STORY_CRITICAL_TYPES = new Set([
   'locker_316',
   'bed33_409_sealed',
   'bed33_assignment',
-  'identity_cctv_phone'
+  'identity_cctv_phone',
+  'identity_er_doctor_charting'
 ]);
 
 /**
@@ -254,6 +255,11 @@ export class IdentityRouteDirector {
       this.ensureIdentityDutyAccess();
     }
 
+    if(this.manager.currentIdentity==='LI'){
+      this.gameState.setFlag('LI_2117_PATROL_ACTIVE',this.step==='LI_2117_PATROL');
+      if(this.step==='LI_3F_EVIDENCE')this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
+    }
+
     if(this.step==='ZHANG_3F_ARCHIVE'){
       this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
       this.startZhangArchivePressure();
@@ -319,8 +325,7 @@ export class IdentityRouteDirector {
     this.updateZhangArchivePressure();
     if(
       this.step==='M5' &&
-      this.manager.currentIdentity==='ZHANG' &&
-      this.beatIndex===2 &&
+      this.beats[this.beatIndex]?.forcedBridgeReveal &&
       this.gameState.getFlag('BRIDGE_REFLECTION_NOTICE_PENDING') &&
       !this.busy &&
       !this.uiManager.dialogueSequence
@@ -335,8 +340,8 @@ export class IdentityRouteDirector {
       this.step==='LI_3F_EVIDENCE' &&
       !this.busy &&
       !this.manager.runSave.runEnded &&
-      this.gameState.getFlag('B2_ADMIN_SOURCE') &&
-      this.gameState.getFlag('B2_HISTORY_SOURCE')
+      this.gameState.getFlag('ADMIN_OFFICE_ENTERED') &&
+      this.gameState.getFlag('ARCHIVE_ROOM_ENTERED')
     ){
       this.inspect();
       return;
@@ -423,7 +428,7 @@ export class IdentityRouteDirector {
       if(index===3) return { type:'workstation', prompt:'使用 316 HIS 工作站完成電子交班', passthrough:true, completeTask:'E_HANDOFF' };
       if(index===4) return { type:'locker_316', prompt:'在電子櫃輸入 1700 解鎖', passthrough:true, completeFlag:'LOCKER_OPENED' };
       if(index===5) return { id:'KEY_PICKUP', prompt:'從電子櫃內拿取正式值班鑰匙與感應卡', passthrough:true, completeTask:'KEY_PICKUP' };
-      if(identity==='ZHANG'&&index===6) return { id:'316_PHONE', prompt:'接聽正在響的 316 電話' };
+      if((identity==='ZHANG'||identity==='LI')&&index===6) return { id:'316_PHONE', prompt:'接聽正在響的 316 電話' };
     }
 
     if(step==='ZHANG_OUTBOUND_8F'){
@@ -434,7 +439,7 @@ export class IdentityRouteDirector {
       const offset=identity==='ZHANG'?0:1;
       if(identity!=='ZHANG'&&index===0) return {
         id:'IDENTITY_4F_NURSE_STATION',
-        prompt:'按下 4F 護理站對講機，確認 408C 狀況'
+        prompt:'使用 4F 護理站電腦，確認 408C 狀況'
       };
       if(index===offset) return { id:'408C_BED_PLAQUE', prompt:'到 408C 確認敲牆聲' };
       if(index===offset+1) return { id:'BED33_409_SEALED', prompt:'確認 409 封閉房與敲擊來源' };
@@ -446,7 +451,14 @@ export class IdentityRouteDirector {
       };
     }
 
-    if(step==='LI_ER_2005') return { id:'2F_JANE_DOE_ASSESSMENT', prompt:'評估急診身分待確認男性' };
+    if(step==='LI_DUTY_CALL_2000'){
+      if(index===0)return {auto:true};
+      return {id:'4F_DUTY_PHONE',prompt:'接聽值班室電話'};
+    }
+    if(step==='LI_ER_2005'){
+      if(index===0)return {id:'2F_JANE_DOE_ASSESSMENT',prompt:'評估新病人'};
+      return {id:'ER_DOCTOR_CHARTING',prompt:'到急診醫師電腦書寫紀錄'};
+    }
     if(step==='LI_RETURN_DUTY_2117'){
       if(index===0)return {auto:true};
       return {id:'4F_DUTY_PHONE',prompt:'接聽值班室電話，前往三樓查哨'};
@@ -504,6 +516,11 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M5') {
+      if(identity==='LI'){
+        if(index===0)return {id:'LI_GUARD_LOUNGE_CCTV_CLUE',prompt:'查看警衛休息室桌上的監視錄影帶'};
+        if(index===1)return {id:'SECOND_2F_CCTV_DESK',prompt:'到隔壁監控室查看錄影帶與即時回放'};
+        if(index===2)return {proximityBridge:true,prompt:'穿越天橋；到中段時保持視線向前'};
+      }
       if(index===0) return { id:'SECOND_2F_CCTV_DESK', prompt:'使用桌上監控電腦查看即時異常' };
       if(identity==='ZHANG'){
         if(index===1) return { id:'IDENTITY_SECOND_2F_CCTV_PHONE', prompt:'接聽正在響的監控室電話' };
