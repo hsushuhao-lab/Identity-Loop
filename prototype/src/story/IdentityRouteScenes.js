@@ -103,7 +103,7 @@ export function getIdentityRouteScene(step, identity) {
           {speaker:'內心',text:reaction({
             ZHANG:'沒有確認裡面是誰以前，不能把這種聲音當成不存在。',
             ZHOU:'我見過有人站在這個角度記錄這扇門。',
-            CHEN:'409-A。這個位置和第二院區那張醫囑單對上了。'
+            CHEN:'409-A。這個位置和第二院區那張「409-A 轉送醫囑單」對上了。'
           })}
         ], '確認 409 封閉房與敲擊來源', { knock409:true }),
         event('核對 409-A 臨時床位單', [
@@ -214,8 +214,12 @@ export function getIdentityRouteScene(step, identity) {
           LI:'哪一個步驟先錯了，後面的資料才會全部跟著錯。',
           ZHOU:'剛才照片裡的設備背景，和他說的位置接起來了。',
           CHEN:'同一個人被兩個院區的流程反覆建立，才會變成幽靈紀錄。'
-        })}
-      ], '核對病人、吊牌與掛號流水號', { erRegistrationChoice: identity==='ZHANG' }),
+        })},
+        ...(identity==='CHEN' ? [
+          {speaker:'傳真機',text:'喀噠、喀噠……【院區間緊急轉送交接聯：無名男性留觀個案 → 409-A 隔離觀察】'},
+          {speaker:'急診護理師',text:'「對面連轉送聯都開過來了。急診今晚很塞，要不要直接叫工友把他推上 409-A？手續剛好對平。」'}
+        ] : [])
+      ], '核對病人、吊牌與掛號流水號', { erRegistrationChoice: identity==='ZHANG', chenTransportChoice: identity==='CHEN' }),
       event('00:33 時間異常', [
         {speaker:'急診護理師',text:'「00:33 這筆掛號有編號，可是檢傷區、候診區、留觀床都找不到對應的人。」'},
         {speaker:'值班醫師',text:'「先不要再建新病歷。把 1998-ER-0217 這張掛號聯印給我。」'},
@@ -272,24 +276,24 @@ export function getIdentityRouteScene(step, identity) {
           {speaker:'內心',text:'房間配置、床位、器材位置熟得不合理。'}
         ]
       }), '完成 504B 床邊評估'),
-      event('核對預填醫囑單', [
-        {speaker:'第二院區護理師',text:'「病人穩定一些了。這張醫囑單已經先印出來。」'},
-        {speaker:'內心',text:'病人尚未完成身分核對，醫囑單卻已填好「409-A」。目的地早於評估出現。'},
-        ...(identity==='LI'?[{speaker:'內心',text:'手指先把醫囑單邊緣和桌面對齊，又把翹起的頁角壓平。未結案的文件讓人煩躁；也正因如此，更不能為了讓它看起來完整就簽下去。'}]:[]),
+      event('核對 409-A 轉送醫囑單', [
+        {speaker:'第二院區護理師',text:'「病人穩定一些了。這張 409-A 轉送醫囑單已經先印出來。」'},
+        {speaker:'內心',text:'病人尚未完成身分核對，409-A 轉送醫囑單卻已先填好目的地。目的地早於評估出現。'},
+        ...(identity==='LI'?[{speaker:'內心',text:'手指先把轉送醫囑單邊緣和桌面對齊，又把翹起的頁角壓平。未結案的文件讓人煩躁；也正因如此，更不能為了讓它看起來完整就簽下去。'}]:[]),
         {speaker:'值班醫師',text:reaction({
           ZHANG:'「先確認病人身分與目的地。這張如果簽下去，就會真的把人送進 409-A。」',
           LI:'「表格完整不代表流程正確。這份先暫停。」',
           ZHOU:'「這張單的時間，我要和剛才看到的影像對一下。」',
           CHEN:'「……409-A。為什麼這個目的地這麼熟？」'
         })}
-      ], '決定是否簽署 409-A 預填醫囑單', { transferSignChoice:true }),
+      ], '決定是否簽署 409-A 轉送醫囑單', { transferSignChoice:true }),
       event('回 5F 護理站交代', reaction({
         ZHANG:[
-          {speaker:'值班醫師',text:'「504B 已評估，409-A 醫囑單先不要執行。」'},
+          {speaker:'值班醫師',text:'「504B 已評估，409-A 轉送醫囑單先不要執行。」'},
           {speaker:'第二院區護理師',text:'「收到。」'}
         ],
         LI:[
-          {speaker:'值班醫師',text:'「病人先留觀，醫囑單暫停。」'},
+          {speaker:'值班醫師',text:'「病人先留觀，轉送醫囑單暫停。」'},
           {speaker:'第二院區護理師',text:'「好。」'}
         ],
         ZHOU:[
@@ -306,6 +310,27 @@ export function getIdentityRouteScene(step, identity) {
       }), (identity==='ZHOU'||identity==='CHEN')?'歸還 5F 會診備用鑰匙':'向護理站交代 504B 處置', {
         clearFlag:(identity==='ZHOU'||identity==='CHEN')?'SECOND_5F_CONSULT_KEY_BORROWED':null
       }),
+      ...(identity==='CHEN' ? [
+        event('5F 值班室私人金屬保險箱', [
+          {speaker:'內心',text:'值班室桌下有一個灰綠色手提保險箱。這不是護理站公物。'},
+          {speaker:'內心',text:'「四位數密碼……腦袋一片空白，手指卻像已經知道要撥 5－0－4－2。」'}
+        ], '在 5F 值班室親手輸入 5042', { chenLockbox:true }),
+        event('灰滾邊跨院支援識別證', [
+          {speaker:'內心',text:'箱裡只有一張厚灰色防撞滾邊的識別證。姓名與照片被救護出入戳印蓋掉，只剩 MED-89•••• 與「跨院支援住院醫師」。'},
+          {speaker:'內心',text:'背面貼著手寫標籤：第二院區急診室 專用通行憑證。'}
+        ], '旋轉檢查保險箱內的灰滾邊識別證', { chenBadgeInspect:true }),
+        event('5F 值班室電話', [
+          {speaker:'電話',text:'鈴——鈴——鈴——'},
+          {speaker:'警衛',text:'「醫師？你不是剛推著輪椅走上天橋嗎？我看監視器你人明明在天橋中央，怎麼二院區 5F 的分機顯示通話中？！」'},
+          {speaker:'值班醫師',text:'「……我現在就在 5F。」'},
+          {speaker:'警衛',text:'「那監視器裡推輪椅的到底是誰？」'}
+        ], '接聽 5F 值班室電話，確認監控裡的另一個人'),
+        event('走廊裡的舊輪椅', [
+          {speaker:'內心',text:'值班室外的通道正中央停著一輛老舊金屬輪椅，擋住往電梯的路。'},
+          {speaker:'內心',text:'「左前輪的偏軸阻力……我推過這種輪椅很多次。握把高度甚至剛好卡在髖骨。」'},
+          {speaker:'內心',text:'輪子壓過地面接縫時，固定發出三聲：喀啦、喀啦、喀啦。'}
+        ], '親手把輪椅往前推開兩公尺', { chenWheelchairPush:true, flag:'CHEN_WHEELCHAIR_BLOCKING' })
+      ] : []),
       event(identity==='ZHANG'?'離開 5F 護理站':'監視器室的閃爍', reaction({
         ZHANG:[
           {speaker:'內心',text:'走出 504B，太陽穴忽然一陣一陣抽痛，視野邊緣微微發黑。'},
@@ -322,8 +347,8 @@ export function getIdentityRouteScene(step, identity) {
           {speaker:'內心',text:'「先去二樓看看。」'}
         ],
         CHEN:[
-          {speaker:'內心',text:'回程原本應該很熟，監視器室的燈卻突然閃爍。'},
-          {speaker:'內心',text:'「先確認一下。」'}
+          {speaker:'內心',text:'剛才電話說監視器拍到另一個「我」正在天橋上推輪椅。'},
+          {speaker:'內心',text:'「先去二樓監控室把那段畫面看清楚。」'}
         ]
       }), identity==='ZHANG'
         ? '前往第二院區 1F 警衛台找咖啡'
@@ -445,8 +470,29 @@ export function getIdentityRouteScene(step, identity) {
           ? '終端最後指向 3F 文史館：先核對院史影像與 1998 人員檔案，再回 316。'
           : identity==='LI'
             ? 'B2 只證明四種職務都和事故有關，沒有替我決定我是誰。回三樓確認行政辦公室與文史室，再回 316。'
-            : 'OVERWRITE IN PROGRESS。CURRENT SHIFT NEXT。STOP THE OVERWRITE。RETURN TO 316。'
-      ], identity==='ZHANG'?'離開 B2，前往 3F 文史館':identity==='LI'?'離開 B2，回 3F 打開行政辦公室與文史室':'讀完回放，帶著證據返回 316')
+            : identity==='CHEN'
+              ? 'B2 位置圖只留下：MED-89••••／第二院區支援醫師／最後位置：空中天橋。常規逃生門封死，地下後勤線仍有一條路通往 B1 救護調度室。'
+              : 'OVERWRITE IN PROGRESS。CURRENT SHIFT NEXT。STOP THE OVERWRITE。RETURN TO 316。'
+      ], identity==='ZHANG'?'離開 B2，前往 3F 文史館':identity==='LI'?'離開 B2，回 3F 打開行政辦公室與文史室':identity==='CHEN'?'離開 B2，進入 B1 地下救護調度室':'讀完回放，帶著證據返回 316')
+    ],
+    CHEN_M8_DISPATCH: [
+      event('救護調度白板', [
+        {speaker:'內心',text:'B1 調度室的白板還停在 1998。最後一趟跨院車次沒有完整姓名。'},
+        {speaker:'內心',text:'「車次 094｜23:40 第二院區 → 第一院區｜隨車支援醫師：陳○○｜MED-89••••。」'},
+        {speaker:'內心',text:'姓氏只剩一個字，員編仍被遮掉後四碼。還不能直接作答。'}
+      ], '核對 1998 跨院救護調度白板'),
+      event('灰滾邊證件刷卡', [
+        {speaker:'內心',text:'調度鎖櫃的讀卡器仍有電。手上的灰滾邊證件磁條正好能刷。'}
+      ], '用灰滾邊跨院支援證件刷開調度鎖櫃', { chenDispatchBadgeSwipe:true }),
+      event('救護車司機交接簽名冊', [
+        {speaker:'內心',text:'櫃內的司機交接簽名冊記著車次 094。隨車醫師簽名的收筆，和 M4 那張 409-A 轉送醫囑單上的筆跡完全一致。'},
+        {speaker:'內心',text:'「天橋、5042、灰滾邊證件、輪椅偏軸、跨院車次……全院只有一名 MED-89•••• 支援醫師一直在兩棟樓之間奔跑。」'},
+        {speaker:'內心',text:'「我已經知道這一輪屬於哪一種人。最後的名字，回 316 親手輸入。」'}
+      ], '翻閱車次 094 救護車司機交接簽名冊', { flag:'CHEN_DISPATCH_LOG_VERIFIED' }),
+      event('後勤工務電梯', [
+        {speaker:'現場',text:'調度室後方的工務電梯綠燈亮起：3F／316 ACCESS。'},
+        {speaker:'內心',text:'「最後交班在 316。」'}
+      ], '搭乘後勤工務電梯返回 3F 316')
     ],
     ZHANG_3F_ARCHIVE: [
       event('文史館院史影像牆', [
@@ -463,7 +509,7 @@ export function getIdentityRouteScene(step, identity) {
     ],
     M8: [
       event('拒絕被指派的病人身分', ['IDENTITY REJECTION。系統試圖把值班醫師寫成 409 的病人。', '我握著自己的夜班記憶。床號、表格與流程都不能代替我是誰。'], '拒絕覆寫，保留已核對的證據', { flag: 'M8_IDENTITY_REJECTED' }),
-      event('覆核這一夜的路徑', [reaction({ ZHANG: '先查病人，再接班；拒絕 409-A；在意姓名；知道警衛咖啡；黑咖啡與藍印泥；門另一側的記憶。', LI: '交班、查房、急診、會診，全依順序。最大的矛盾是身體記住了錯誤的 1 → 3 → 4。', ZHOU: '八樓構圖、一樓反射、警衛口中的攝影習慣、相機與 Casio。我一直不在自己拍的照片裡，也一直太晚回到工作。', CHEN: '天橋開場、第二院區格局、5042、醫囑單、409-A、輪椅與灰滾邊白袍。我總知道目的地，卻沒有先確認方向。' })], '帶著路徑證據進入最後交班')
+      event('覆核這一夜的路徑', [reaction({ ZHANG: '先查病人，再接班；拒絕 409-A；在意姓名；知道警衛咖啡；黑咖啡與藍印泥；門另一側的記憶。', LI: '交班、查房、急診、會診，全依順序。最大的矛盾是身體記住了錯誤的 1 → 3 → 4。', ZHOU: '八樓構圖、一樓反射、警衛口中的攝影習慣、相機與 Casio。我一直不在自己拍的照片裡，也一直太晚回到工作。', CHEN: '天橋開場、5042、灰滾邊證件、409-A 轉送醫囑單、輪椅偏軸與跨院車次。我總知道目的地，卻沒有先確認方向。' })], '帶著路徑證據進入最後交班')
     ],
     M9: [event('316 最後身分核對', ['夜班的路徑、動作與記憶已經留下證據。', '最後交班只允許正式提交一次。請手動輸入你認為屬於自己的姓名與員編。'], '在 316 最後交班終端手動輸入姓名與員編')]
   };
