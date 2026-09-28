@@ -13,6 +13,7 @@ add('bridge_from_second','skybridge',[58.4,1.7,0],Math.PI/2,'天橋第二院區�
 add('second_bridge_return','second_campus_2f',[61.6,1.7,0],-Math.PI/2,'第二院區 2F 連通口');
 add('phantom_6f_lift','phantom_6f',[0,1.7,1.0],0,'不存在的 6F 電梯口');
 add('b2_archive_entry','b2_archive',[0,1.7,1.0],Math.PI,'B2 封存隔離層入口');
+add('chen_b1_dispatch','b1_dispatch_hub',[0,1.7,1.2],Math.PI,'B1 救護車接駁調度室');
 add('first_1f_guard_back','first_campus_1f',[-12.55,1.7,4.55],Math.PI/2,'第一院區 1F 警衛台後方');
 
 export const ROUTE_PORTALS=[
