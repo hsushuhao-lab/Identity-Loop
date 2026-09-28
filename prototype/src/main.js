@@ -1452,7 +1452,7 @@ controller.onInteract = async (interactable) => {
           : identity==='ZHANG'
             ? {zone:'first_campus_3f',spawn:'m0_3f_corridor',message:'「04:09 系統資料總核銷即將封存。立即前往文史館取得最後歷史拼圖。」'}
             : identity==='LI'
-              ? {zone:'first_campus_3f',spawn:'m0_3f_corridor',message:'「返回 3F：行政辦公室與文史室仍有兩個獨立資料來源。」'}
+              ? {zone:'first_campus_3f',spawn:'m0_3f_corridor',message:'「返回 3F：打開行政辦公室與文史室確認後，回 316。」'}
               : identity==='ZHOU'
                 ? {zone:'first_campus_4f',spawn:'m3_4f_nursing_station',message:'「IDENTITY REJECTION ACTIVE。值班身分正在被重新分類。」'}
                 : {zone:'first_campus_3f',spawn:'m0_316_office',message:'「RECORD OVERWRITE ACTIVE。請立即返回 316。」'};
