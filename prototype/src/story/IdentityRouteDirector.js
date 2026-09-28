@@ -331,6 +331,17 @@ export class IdentityRouteDirector {
       return;
     }
 
+    if(
+      this.step==='LI_3F_EVIDENCE' &&
+      !this.busy &&
+      !this.manager.runSave.runEnded &&
+      this.gameState.getFlag('B2_ADMIN_SOURCE') &&
+      this.gameState.getFlag('B2_HISTORY_SOURCE')
+    ){
+      this.inspect();
+      return;
+    }
+
     if(this.gameState.getFlag('BRIDGE_OVERRIDE_PENDING')&&!this.manager.runSave.runEnded){
       this.gameState.setFlag('BRIDGE_OVERRIDE_PENDING',false);
       this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',false);
@@ -434,6 +445,24 @@ export class IdentityRouteDirector {
         completeFlag:'BED33_RESOLVED'
       };
     }
+
+    if(step==='LI_ER_2005') return { id:'2F_JANE_DOE_ASSESSMENT', prompt:'評估急診身分待確認男性' };
+    if(step==='LI_RETURN_DUTY_2117'){
+      if(index===0)return {auto:true};
+      return {id:'4F_DUTY_PHONE',prompt:'接聽值班室電話，前往三樓查哨'};
+    }
+    if(step==='LI_2117_PATROL') return { id:'GUARD_SIGN_2117', prompt:'查看 21:17 三樓查哨板' };
+    if(step==='LI_RETURN_DUTY_0033'){
+      if(index===0)return {auto:true};
+      return {id:'4F_DUTY_PHONE',prompt:'接聽 00:30 急診來電'};
+    }
+    if(step==='LI_ER_0033') return { id:'ER_GHOST_REGISTRATION', prompt:'查看 00:33 有紀錄但沒有人的掛號' };
+    if(step==='LI_316_ARCHIVE'){
+      if(index===0)return {type:'legacy_terminal_316',prompt:'在 316 舊終端查 1998-ER-0217',passthrough:true,completeFlag:'M3_316_DECODED'};
+      return {id:'316_PHONE',prompt:'接聽 316 電話，前往第二院區'};
+    }
+    if(step==='LI_OUTBOUND_8F')return {auto:true};
+    if(step==='LI_3F_EVIDENCE')return {evidenceSweep:true};
 
     if (step === 'M3') {
       if (index === 0) return { id: '2F_JANE_DOE_ASSESSMENT', prompt: '評估急診身分待確認男性' };
@@ -651,9 +680,20 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_ANSWERED',false);
       this.gameState.setFlag('PHONE_RING_ACTIVE',true);
     }
+    const liPhoneBeat=
+      (this.step==='LI_RETURN_DUTY_2117'&&this.beatIndex===1) ||
+      (this.step==='LI_RETURN_DUTY_0033'&&this.beatIndex===1) ||
+      (this.step==='LI_316_ARCHIVE'&&this.beatIndex===1);
+    if(liPhoneBeat){
+      this.gameState.setFlag('PHONE_CALL_KIND',this.step);
+      this.gameState.setFlag('PHONE_ANSWERED',false);
+      this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.startPhoneRing();});
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
+    }
 
     const binding = this.bindingFor();
-    if (binding.officeEntry || binding.proximityBridge) {
+    if (binding.officeEntry || binding.proximityBridge || binding.evidenceSweep) {
       this.renderObjective();
       return;
     }
@@ -911,7 +951,10 @@ export class IdentityRouteDirector {
     if(
       (this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1) ||
       (this.step==='M1'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===6) ||
-      (this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1)
+      (this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1) ||
+      (this.step==='LI_RETURN_DUTY_2117'&&this.beatIndex===1) ||
+      (this.step==='LI_RETURN_DUTY_0033'&&this.beatIndex===1) ||
+      (this.step==='LI_316_ARCHIVE'&&this.beatIndex===1)
     ){
       this.gameState.setFlag('PHONE_RING_ACTIVE',false);
       this.gameState.setFlag('PHONE_ANSWERED',true);
@@ -976,24 +1019,24 @@ export class IdentityRouteDirector {
       }
       if(beat.transferSignChoice){
         this.uiManager.openStoryChoice({
-          title:'第二院區｜409-A 預填轉院單',
-          body:'504B 病況已穩定，但這張轉院單的目的地早已填成第一院區 409-A。\n\n你要簽名核准轉送，還是拒絕簽名並重新查核？',
-          primaryText:'不簽名，暫停轉送',
-          secondaryText:'簽名核准 409-A',
+          title:'第二院區｜409-A 預填醫囑單',
+          body:'504B 病況已穩定，但這張醫囑單在醫師重新查核前就預填「轉入第一院區 409-A」。\n\n要簽名確認這筆醫囑，還是拒絕簽名並重新核對？',
+          primaryText:'不簽名，退回重核',
+          secondaryText:'簽名確認 409-A 醫囑',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M4_CHEST_RESOLVED',true);
             this.gameState.setFlag('CHEST_RECORD_MATCH',true);
-            this.gameState.setFlag('ZHANG_TRANSFER_REJECTED',true);
+            this.gameState.setFlag('M4_409A_ORDER_REJECTED',true);
             void this.completeBeat();
           },
           onSecondary:()=>{
             this.uiManager.closeStoryChoice(false);
-            this.gameState.setFlag('ZHANG_SIGNED_409A_TRANSFER',true);
+            this.gameState.setFlag('M4_SIGNED_409A_ORDER',true);
             this.uiManager.showDialogue([
-              {speaker:'內心',text:'筆尖落下的瞬間，目的地「409-A」像從紙面滲進自己的值班身分。'},
-              {speaker:'現場',text:'TRANSFER APPROVED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
-            ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_TRANSFER_PATIENTIZATION'}));
+              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從醫囑欄反向寫進自己的值班身分。'},
+              {speaker:'現場',text:'ORDER SIGNED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
+            ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_ORDER_PATIENTIZATION'}));
           }
         });
         return;
@@ -1016,6 +1059,30 @@ export class IdentityRouteDirector {
               {speaker:'HIS',text:'TEMPORARY UNKNOWN PATIENT RECORD CREATED.'},
               {speaker:'內心',text:'畫面上的姓名欄突然開始反向覆寫到我的值班身分。'}
             ],()=>this.onEnding({type:'BAD_END',reason:'ER_UNVERIFIED_RECORD_PATIENTIZATION'}));
+          }
+        });
+        return;
+      }
+      if(beat.ghostRegistrationChoice){
+        this.uiManager.openStoryChoice({
+          title:'00:33｜有紀錄，但沒有病人',
+          body:'系統已有 1998-ER-0217，建檔時間 00:33；檢傷區、候診區、留觀床卻完全找不到對應的人。\n\n要只查閱既有舊索引，還是把這筆異常直接建立成新的「無名病人」病歷？',
+          primaryText:'只查既有紀錄，不新建',
+          secondaryText:'建立無名新病歷',
+          onPrimary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
+            this.gameState.setFlag('LI_0033_NO_DUPLICATE_RECORD',true);
+            void this.completeBeat();
+          },
+          onSecondary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('ER0033_DUPLICATE_RECORD_CREATED',true);
+            this.uiManager.showDialogue([
+              {speaker:'HIS',text:'NEW UNKNOWN PATIENT RECORD CREATED｜SOURCE: 1998-ER-0217.'},
+              {speaker:'內心',text:'現場明明沒有人。新增的病人欄位卻開始反向套用到我的值班身分。'},
+              {speaker:'現場',text:'PATIENT LOCATION ASSIGNED｜409-A.'}
+            ],()=>this.onEnding({type:'BAD_END',reason:'ER0033_DUPLICATE_RECORD_PATIENTIZATION'}));
           }
         });
         return;
