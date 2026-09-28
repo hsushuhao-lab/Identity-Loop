@@ -247,7 +247,7 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'值班醫師',text:'「怎麼怪？」'},
         {speaker:'警衛',text:'「畫面裡好像多了一個人。不是病人，也不像我們的人。我重播幾次都還在。」'},
         {speaker:'值班醫師',text:'「我也去看看。」'}
-      ], '喝完咖啡後，前往第二院區 2F CCTV 監控室', { art:'coffee' })
+      ], '喝完咖啡後，前往第二院區 2F CCTV 監控室', { art:'coffee', flag:'ZHANG_CCTV_HINT_RECEIVED' })
     ],
     M5: [
       event('監視器室回放', [
