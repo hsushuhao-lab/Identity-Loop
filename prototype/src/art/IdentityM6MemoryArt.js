@@ -85,7 +85,7 @@ export function drawIdentityM6Memory(ctx, sequence, frame, width, height, elapse
       rect(173,188,607,73,'#aeb7a7',ink);line(174,168,174,329);line(780,176,780,329);line(185,265,773,265);rect(191,183,113,42,'#d4d6c5');
       text('408C',105,89,45);circle(854,156,16+Math.sin(t*10)*4,'#d6bc8b');paper(567,278,'NOT SENT');break;
     case 'lower':
-      doorway(38);camera(500,205+t*214,1.2);paper(68,286,'WARNING');text('DELIVER THE WARNING',621,91,26);break;
+      doorway(38);camera(500,205+t*214,1.2);paper(68,286,'WARNING');text('SEND / DO NOT DELAY',621,91,26);break;
   }
   if(!li&&['viewfinder','camera'].includes(frame.m6Shot)&&elapsedMs<240){
     rect(0,0,1000,380,`rgba(248,247,233,${.45*(1-elapsedMs/240)})`);

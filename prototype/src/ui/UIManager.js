@@ -1,3 +1,4 @@
+import { drawIdentityM6Memory } from '../art/IdentityM6MemoryArt.js';
 // UIManager.js - Handles HUD, HIS computer terminal, Duty Log, and Elevator transition
 import { playElevatorGlimpse } from '../story/ElevatorGlimpseScene.js';
 import {isIdentityRouteMode,anonymousNarrative} from '../story/IdentityPrivacy.js';
@@ -859,7 +860,7 @@ export class UIManager {
     this.memoryFrameIndex=next;soundManager.playClick();this.renderMemoryFrame();
   }
 
-  renderMemoryFrame(){
+  renderMemoryFrame(elapsedMs=0){
     const sequence=this.memorySequence,frame=sequence?.frames?.[this.memoryFrameIndex];
     if(!frame||!this.memoryFrameCanvas)return;
     const canvas=this.memoryFrameCanvas,ctx=canvas.getContext('2d'),cctv=sequence.mode==='CCTV',w=canvas.width,h=canvas.height;
@@ -922,6 +923,7 @@ export class UIManager {
     }else{
       ctx.fillStyle=cctv?'#405044':'#7a684c';ctx.fillRect(210,240,w-420,260);
     }
+    drawIdentityM6Memory(ctx,sequence,frame,w,h,elapsedMs);
     if(cctv){ctx.globalAlpha=.18;ctx.fillStyle='#d9f1df';for(let y=54;y<h-54;y+=8)ctx.fillRect(50,y,w-100,2);ctx.globalAlpha=1;ctx.fillStyle='#c6d9c8';ctx.font='23px ui-monospace,monospace';ctx.fillText('REC ●',w-170,92);}
     else{ctx.globalAlpha=.12;ctx.fillStyle='#3b2d1f';for(let i=0;i<55;i++){const x=(i*97)%w,y=(i*53)%h;ctx.fillRect(x,y,2+(i%3),2+(i%4));}ctx.globalAlpha=1;}
     document.getElementById('memory-stamp').textContent=frame.stamp||'';document.getElementById('memory-frame-title').textContent=frame.title||'';document.getElementById('memory-caption').textContent=frame.caption||'';document.getElementById('memory-narration').textContent=frame.narration||'';

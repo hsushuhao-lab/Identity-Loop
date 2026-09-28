@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { playIdentityM6Memory } from './IdentityM6Memories.js';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
@@ -1193,6 +1194,10 @@ export class IdentityRouteDirector {
         };
         this.gameState.setFlag('CHEN_CCTV_WHEELCHAIR_SEEN',true);
         this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:930,hold:700});
+        return;
+      }
+      if(beat.identityM6Cg){
+        playIdentityM6Memory(this,soundManager);
         return;
       }
       if(beat.chenM6Cg){

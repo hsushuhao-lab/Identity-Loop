@@ -15,10 +15,10 @@ const html=`<!doctype html><meta charset="utf-8"><title>M6 production CG integra
 import {UIManager} from '/src/ui/UIManager.js';
 import {IdentityRouteDirector} from '/src/story/IdentityRouteDirector.js';
 import {getIdentityRouteScene} from '/src/story/IdentityRouteScenes.js';
-window.__drawn=[];const original=CanvasRenderingContext2D.prototype.fillText;
-CanvasRenderingContext2D.prototype.fillText=function(text,...args){window.__drawn.push(String(text));return original.call(this,text,...args);};
+window.__drawn=new Set();const original=CanvasRenderingContext2D.prototype.fillText;
+CanvasRenderingContext2D.prototype.fillText=function(text,...args){window.__drawn.add(String(text));return original.call(this,text,...args);};
 function start(identity){
-  window.__drawn=[];
+  window.__drawn=new Set();
   const ui=Object.create(UIManager.prototype);
   ui.memoryModal=document.getElementById('memory-modal');ui.memoryFrameCanvas=document.getElementById('memory-frame');
   ui.showDialogue=(lines,done)=>{window.__dialogue=lines;done();};
@@ -52,7 +52,7 @@ try{
       await page.waitForFunction(index=>window.__cg.ui.memoryFrameIndex===index,index,{timeout:10000});
       assert.equal(await page.evaluate(()=>window.__cg.director.controller.enabled),false);
       assert.doesNotMatch(await page.locator('#memory-modal').innerText(),forbidden);
-      assert.doesNotMatch(await page.evaluate(()=>window.__drawn.join('\n')),forbidden);
+      assert.doesNotMatch(await page.evaluate(()=>[...window.__drawn].join('\n')),forbidden);
       await page.waitForTimeout(300);
       if(width===1280||index===0||index===5)await page.screenshot({path:`${out}/${identity}-${width}-frame-${index+1}.png`,fullPage:true});
       if(width===390&&index<5)await page.locator('#btn-memory-next').click();

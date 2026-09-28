@@ -30,6 +30,7 @@ for(const [identity,sequence] of Object.entries(IDENTITY_M6_MEMORIES)){
       return JSON.stringify(calls);
     };
     assert.notEqual(draw(400),draw(2300),`${identity}/${frame.m6Shot} must animate`);
+    assert.doesNotMatch(draw(1800),forbidden,`${identity}/${frame.m6Shot}: canvas identity/ending spoiler`);
     visuals.push(draw(1800));
   }
 }
