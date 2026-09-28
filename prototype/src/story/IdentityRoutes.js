@@ -9,7 +9,7 @@ export const ROUTE_STEPS=Object.freeze({
   ZHANG_OPEN_4F:{zoneId:'first_campus_4f',spawn:'m3_4f_nursing_station',label:'護理站報到',time:'16:50'},
   ZHOU_OPEN_8F:{zoneId:'first_campus_8f',spawn:'m6_8f_bridge_entry',label:'院史長廊',time:'16:50'},
   CHEN_OPEN_SKYBRIDGE:{zoneId:'skybridge',spawn:'m7_skybridge_mid',label:'天橋來電',time:'16:50'},
-  M1:{zoneId:'first_campus_3f',spawn:'m0_316_office',label:'316 交班',time:'17:00'},
+  M1:{zoneId:'first_campus_3f',spawn:'m0_316_entrance',label:'316 交班',time:'17:00'},
   M2:{zoneId:'first_campus_4f',spawn:'m3_4f_nursing_station',label:'病房查房',time:null},
   M3:{zoneId:'first_campus_2f',spawn:'m4_2f_er_arrival',label:'急診會診',time:null},
   M4:{zoneId:'second_campus_5f',spawn:'second_5f_lift',label:'504B 會診',time:null},
