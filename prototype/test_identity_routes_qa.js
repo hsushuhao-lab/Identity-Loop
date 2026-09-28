@@ -157,6 +157,8 @@ assert.match(routeDirectorSource,/freeTypes=new Set\(\['duty_log','credential_dr
 assert.match(routeDirectorSource,/完成 316 交班（可自由操作）/);
 assert.match(uiManagerSource,/SYSTEM WARNING：CURRENT DUTY PHYSICIAN 與歷史值班索引不一致/);
 assert.match(uiManagerSource,/錯誤：未插入夜間值班醫師登入卡｜終端處於待機鎖定/);
+assert.match(uiManagerSource,/我沒有密碼。登入卡應該還在這間辦公室裡/);
+assert.match(uiManagerSource,/CURRENT DUTY PHYSICIAN：PRESENT｜NAME SOURCE：NULL｜HISTORICAL POINTER：409-A／CORRUPTED/);
 assert.match(uiManagerSource,/請輸入交班時間代碼（HHMM）/);
 assert.match(routeDirectorSource,/bindingCompletionReady/);
 assert.match(routeDirectorSource,/setIdentityDutyItemsVisible/);
