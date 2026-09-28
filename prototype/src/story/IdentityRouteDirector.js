@@ -295,7 +295,10 @@ export class IdentityRouteDirector {
 
   bindingFor(step = this.step, index = this.beatIndex) {
     const identity = this.manager.currentIdentity;
-    if (step === 'ZHANG_OPEN_4F') return { auto: true };
+    if (step === 'ZHANG_OPEN_4F') return {
+      id:'IDENTITY_4F_NURSE_STATION',
+      prompt:'使用護理站電腦聯絡晚班護理師'
+    };
     if (step === 'ZHOU_OPEN_8F') return index === 0
       ? { id: 'IDENTITY_HISTORY_GROUP_PHOTO', prompt: '查看院史長廊大型合照' }
       : { auto: true };
@@ -316,15 +319,14 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M2') {
-      if (index === 0) return {
-        id: 'IDENTITY_4F_NURSE_STATION',
-        prompt: identity==='ZHANG'
-          ? '使用護理站電腦聯絡晚班護理師，領取 4F 備用鑰匙與臨時感應卡'
-          : '使用護理站電腦聯絡晚班護理師，確認 408C 狀況'
+      const offset=identity==='ZHANG'?0:1;
+      if(identity!=='ZHANG'&&index===0) return {
+        id:'IDENTITY_4F_NURSE_STATION',
+        prompt:'使用護理站電腦聯絡晚班護理師，確認 408C 狀況'
       };
-      if (index === 1) return { id: '408C_BED_PLAQUE', prompt: '到 408C 確認敲牆聲' };
-      if (index === 2) return { id: 'BED33_409_SEALED', prompt: '確認 409 封閉房與敲擊來源' };
-      if (index === 3) return {
+      if(index===offset) return { id:'408C_BED_PLAQUE', prompt:'到 408C 確認敲牆聲' };
+      if(index===offset+1) return { id:'BED33_409_SEALED', prompt:'確認 409 封閉房與敲擊來源' };
+      if(index===offset+2) return {
         id:'BED33_ASSIGNMENT',
         prompt:'回護理站確認 409-A／Bed 33 臨時床位分配單',
         passthrough:true,
@@ -362,7 +364,13 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'ZHANG_SECOND_CAMPUS_SECURITY') {
-      return { id:'IDENTITY_SECOND_GUARD_COFFEE', prompt:'到一樓警衛台喝咖啡並詢問監控異常' };
+      if(index===0) return {
+        id:'SECOND_GUARD_PHOTO_ALBUM',
+        prompt:'先翻閱警衛台舊相簿',
+        passthrough:true,
+        completeFlag:'ZHANG_GUARD_ALBUM_REVIEWED'
+      };
+      return { id:'IDENTITY_SECOND_GUARD_COFFEE', prompt:'到警衛台喝咖啡並詢問監控異常' };
     }
 
     if (step === 'M5') {
@@ -677,6 +685,12 @@ export class IdentityRouteDirector {
   allowWorldInteraction(interactable) {
     const data = interactable?.userData || interactable;
     if (NAVIGATION_TYPES.has(data?.type)) return true;
+
+    if(this.step==='M1'&&this.beatIndex>0){
+      const freeTypes=new Set(['duty_log','credential_drawer_316','workstation','locker_316','key']);
+      if(freeTypes.has(data?.type)) return true;
+    }
+
     const binding=this.bindingFor();
     if(binding?.passthrough && this.matchesBinding(data)) return true;
     return !IDENTITY_STORY_CRITICAL_TYPES.has(data?.type);
@@ -848,6 +862,30 @@ export class IdentityRouteDirector {
         this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:950,hold:900});
         return;
       }
+      if(beat.transferSignChoice){
+        this.uiManager.openStoryChoice({
+          title:'第二院區｜409-A 預填轉院單',
+          body:'504B 病況已穩定，但這張轉院單的目的地早已填成第一院區 409-A。\n\n你要簽名核准轉送，還是拒絕簽名並重新查核？',
+          primaryText:'不簽名，暫停轉送',
+          secondaryText:'簽名核准 409-A',
+          onPrimary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('M4_CHEST_RESOLVED',true);
+            this.gameState.setFlag('CHEST_RECORD_MATCH',true);
+            this.gameState.setFlag('ZHANG_TRANSFER_REJECTED',true);
+            void this.completeBeat();
+          },
+          onSecondary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('ZHANG_SIGNED_409A_TRANSFER',true);
+            this.uiManager.showDialogue([
+              {speaker:'內心',text:'筆尖落下的瞬間，目的地「409-A」像從紙面滲進自己的值班身分。'},
+              {speaker:'現場',text:'TRANSFER APPROVED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
+            ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_TRANSFER_PATIENTIZATION'}));
+          }
+        });
+        return;
+      }
       if(beat.erRegistrationChoice){
         this.uiManager.openStoryChoice({
           title:'2F 急診｜身分待確認',
@@ -896,8 +934,8 @@ export class IdentityRouteDirector {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M7_WRONG_PROCEDURE_SEEN', true);
             this.uiManager.showDialogue(
-              (beat.wrongLines || ['防火門鎖死，排煙停止。這正是歷史錯誤。']).map(text => ({ speaker: '現場', text })),
-              () => { this.controller.enabled = true; this.renderObjective(); }
+              (beat.wrongLines || ['防火門鎖死，排煙停止。你重演了歷史錯誤。']).map(text => ({ speaker: '現場', text })),
+              () => this.onEnding({type:'BAD_END',reason:'M7_HISTORICAL_PROCEDURE_PATIENTIZATION'})
             );
           }
         });
@@ -927,6 +965,8 @@ export class IdentityRouteDirector {
     let objective;
     if(this.step==='M6'&&this.awaitingZone==='phantom_6f'){
       objective='回 4F 值班室；搭乘一般電梯';
+    }else if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex>0&&this.beatIndex<6){
+      objective='完成 316 交班（可自由操作）：值班簿／HIS 登入卡／HIS 電子交班／1700 值班櫃／正式鑰匙與感應卡';
     }else if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex===0){
       if(!this.gameState.getFlag('FOUND_316_SPARE_KEY')) objective='前往三樓警衛查哨點，取得 316 備援鑰匙';
       else if(!this.gameState.getFlag('OPENED_316')) objective='回到 316 門口，用備援鑰匙開門';
@@ -977,14 +1017,24 @@ export class IdentityRouteDirector {
         );
       }
 
-      if(this.step==='M2'&&this.beatIndex===0){
+      if(this.step==='ZHANG_OPEN_4F'&&this.manager.currentIdentity==='ZHANG'){
         if(!this.gameState.isTaskComplete('P1_4F_REPORT'))this.gameState.markTaskComplete('P1_4F_REPORT');
+        this.gameState.setFlag('IDENTITY_4F_TEMP_ACCESS_CARD',true);
       }
-      if(this.step==='M2'&&this.beatIndex===1){
-        if(!this.gameState.isTaskComplete('P1_NORMAL_EVENT_DONE'))this.gameState.markTaskComplete('P1_NORMAL_EVENT_DONE');
-      }
-      if(this.step==='M2'&&this.beatIndex===2){
-        this.gameState.setFlag('FOURF_409_SEAL_CHECKED_AFTER_408C',true);
+      if(this.step==='M2'){
+        const zhang=this.manager.currentIdentity==='ZHANG';
+        const reportBeat=zhang?-1:0;
+        const normalBeat=zhang?0:1;
+        const sealBeat=zhang?1:2;
+        if(this.beatIndex===reportBeat&&reportBeat>=0&&!this.gameState.isTaskComplete('P1_4F_REPORT')){
+          this.gameState.markTaskComplete('P1_4F_REPORT');
+        }
+        if(this.beatIndex===normalBeat&&!this.gameState.isTaskComplete('P1_NORMAL_EVENT_DONE')){
+          this.gameState.markTaskComplete('P1_NORMAL_EVENT_DONE');
+        }
+        if(this.beatIndex===sealBeat){
+          this.gameState.setFlag('FOURF_409_SEAL_CHECKED_AFTER_408C',true);
+        }
       }
       if(this.step==='M4'&&this.beatIndex===this.beats.length-1){
         this.gameState.setFlag('M4_CHEST_RESOLVED',true);
@@ -1048,6 +1098,12 @@ export class IdentityRouteDirector {
       this.controller.enabled = !this.manager.runSave.runEnded && !this.uiManager.dialogueSequence;
       this.renderObjective();
     }
+  }
+
+  triggerPatientization(reason='IDENTITY_ROUTE_PATIENTIZATION'){
+    if(this.manager.runSave.runEnded)return false;
+    this.onEnding({type:'BAD_END',reason});
+    return true;
   }
 
   qaInteractCurrentBeat() {
