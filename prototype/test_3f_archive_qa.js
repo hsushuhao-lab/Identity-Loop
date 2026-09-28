@@ -25,9 +25,10 @@ assert(zone.levelInstance?.lockerMesh?.userData?.type==='locker_316','316 keypad
 assert(zone.levelInstance?.credentialDrawerMesh?.userData?.type==='credential_drawer_316','316 under-desk credential drawer missing');
 
 const docs=zone.interactables.filter(o=>o.userData?.type==='archive_document');
-assert.equal(docs.length,10,'3F must expose five museum files (including the 4+3 personnel archive), two office secrets and three 1F hint files');
+assert.equal(docs.length,11,'3F must expose five museum files, the interactive history-photo wall, two office secrets and three 1F hint files');
 assert.equal(zone.officeSecrets?.count,2,'316 must contain two optional secret clues');
 assert(zone.secretArchive?.documentIds.includes('ARCHIVE_PERSONNEL_1998'),'3F archive must include the 1998 4+3 personnel file');
+assert(zone.interactables.some(o=>o.userData?.id==='ARCHIVE_HISTORY_PHOTO_WALL'),'3F archive must expose the history photo wall for the Zhang post-B2 route');
 assert.equal(zone.secretArchive?.documentIds.length,5);
 for(const doc of docs){
   assert(doc.userData.documentTitle);
