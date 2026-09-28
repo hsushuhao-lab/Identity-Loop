@@ -935,7 +935,7 @@ controller.onInteract = async (interactable) => {
       }
     }
   } else if (interactable.type === 'locker_316') {
-    if(!gameState.isTaskComplete('DUTY_LOG')){
+    if(!identityLoopMode&&!gameState.isTaskComplete('DUTY_LOG')){
       soundManager.playClick();
       uiManager.showSubtitle('值班醫師','「四位數電子鎖……先看看桌上的值班手冊有沒有寫什麼。」',3000);
       return;
