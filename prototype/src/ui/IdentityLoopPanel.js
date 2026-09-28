@@ -33,10 +33,32 @@ export class IdentityLoopPanel{
     if(this.manager.runSave.runEnded)return;
     this.onCommit=onCommit;this.root.classList.add('visible','m9-open');
     this.root.classList.remove('archive-open');
-    this.root.querySelector('[data-identity-detail]').textContent='核對你的夜班記憶，選擇自己的身分。每輪只能正式提交一次。';
+    this.root.querySelector('[data-identity-detail]').textContent='最後交班不再替你列答案。請手動輸入你認為屬於這一輪記憶的姓名與員編；有效身分一旦正式提交就不能更改。';
     this.root.scrollTop=0;
-    const choices=this.root.querySelector('[data-identity-choices]');choices.replaceChildren();
-    for(const candidate of getM9Candidates()){const button=document.createElement('button');button.type='button';button.className='identity-choice';button.textContent=`${candidate.name}｜${candidate.role}｜${candidate.employeeId}`;button.addEventListener('click',()=>this.commit(candidate.identity));choices.append(button);}
+    const choices=this.root.querySelector('[data-identity-choices]');
+    choices.replaceChildren();
+
+    const form=document.createElement('div');form.className='identity-entry-form';
+    const name=document.createElement('input');name.type='text';name.autocomplete='off';name.placeholder='姓名，例如：張守恆';name.setAttribute('aria-label','姓名');
+    const employeeId=document.createElement('input');employeeId.type='text';employeeId.autocomplete='off';employeeId.placeholder='員編，例如：MED-870409';employeeId.setAttribute('aria-label','員編');
+    const status=document.createElement('div');status.className='identity-entry-status';status.setAttribute('aria-live','polite');
+    const submit=document.createElement('button');submit.type='button';submit.className='identity-entry-submit';submit.textContent='這是我的名字';
+
+    const normalize=value=>String(value||'').trim().toUpperCase().replace(/－|—/g,'-');
+    submit.addEventListener('click',()=>{
+      const typedName=String(name.value||'').trim();
+      const typedId=normalize(employeeId.value);
+      const candidate=getM9Candidates().find(item=>item.name===typedName&&normalize(item.employeeId)===typedId);
+      if(!candidate){
+        status.textContent='查無相符的人事資料，或姓名與員編不屬於同一筆紀錄。請重新核對。';
+        return;
+      }
+      status.textContent='IDENTITY RECORD MATCHED｜正式提交中…';
+      this.commit(candidate.identity);
+    });
+    for(const input of [name,employeeId])input.addEventListener('keydown',event=>{if(event.key==='Enter')submit.click();});
+    form.append(name,employeeId,submit,status);
+    choices.append(form);
     this.render();
   }
   commit(identity){const result=this.manager.commitM9(identity);if(!result.ok)return result;this.root?.classList.remove('m9-open');this.root?.querySelector('[data-identity-choices]')?.replaceChildren();this.render();this.showEnding(result);this.onCommit?.(result);return result;}
