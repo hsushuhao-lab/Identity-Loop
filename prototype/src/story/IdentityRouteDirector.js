@@ -43,6 +43,7 @@ export class IdentityRouteDirector {
     this.revision = 0;
     this.autoTimer = null;
     this.awaitingZone = null;
+    this.m1GateState = null;
   }
 
   get currentRouteStep() { return this.step; }
@@ -167,6 +168,18 @@ export class IdentityRouteDirector {
     ) {
       void this.onArriveTargetZone().catch(error => console.error('[IdentityRouteDirector] arrival binding failed', error));
       return;
+    }
+
+    if(this.step==='M1'&&!this.awaitingZone){
+      const gateState=!this.gameState.getFlag('FOUND_316_SPARE_KEY')
+        ? 'GET_KEY'
+        : !this.gameState.getFlag('OPENED_316')
+          ? 'OPEN_DOOR'
+          : 'ENTER_OFFICE';
+      if(gateState!==this.m1GateState){
+        this.m1GateState=gateState;
+        this.renderObjective();
+      }
     }
 
     // M1 handoff is spatial, not a desk checklist. The player begins outside
