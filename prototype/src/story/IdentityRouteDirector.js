@@ -937,6 +937,9 @@ export class IdentityRouteDirector {
   playForcedBridgeReveal(onComplete){
     const bridge=this.worldRouter.activeZoneInstance;
     const annie=bridge?.bridgeDoppelganger;
+    if(this.manager.currentIdentity==='CHEN'){
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playWheelchairApproach();});
+    }
     const startYaw=this.controller.yaw;
     this.busy=true;
     const startX=annie?.position.x ?? 46;
@@ -1017,6 +1020,8 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_RING_ACTIVE',false);
       this.gameState.setFlag('PHONE_ANSWERED',true);
       this.gameState.setFlag('PHONE_CALL_KIND',null);
+      soundManager.stopPhoneRing();
+      this.worldRouter.activeZoneInstance?.syncStoryState?.();
     }
     if (!beat) return;
     const activeBinding=this.bindingFor();
@@ -1099,12 +1104,93 @@ export class IdentityRouteDirector {
         this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:950,hold:900});
         return;
       }
+      if(beat.chenLockbox){
+        if(this.gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')){
+          this.worldRouter.activeZoneInstance?.syncStoryState?.();
+          void this.completeBeat();
+          return;
+        }
+        this.uiManager.openChen5042Lockbox({
+          onUnlock:()=>{
+            this.gameState.setFlag('CHEN_5042_PROCEDURAL_MEMORY',true);
+            persistentMemory.addJournalNote('CHEN_5042_MEMORY','5F 私人金屬保險箱：手指在沒有名字記憶的情況下仍能輸入 5042。');
+            this.worldRouter.activeZoneInstance?.syncStoryState?.();
+            void this.completeBeat();
+          }
+        });
+        return;
+      }
+      if(beat.chenBadgeInspect){
+        this.uiManager.openChenBadgeInspection({
+          onComplete:()=>{
+            this.worldRouter.activeZoneInstance?.syncStoryState?.();
+            void this.completeBeat();
+          }
+        });
+        return;
+      }
+      if(beat.chenWheelchairPush){
+        this.gameState.setFlag('CHEN_WHEELCHAIR_BLOCKING',true);
+        this.worldRouter.activeZoneInstance?.syncStoryState?.();
+        void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playWheelchairRattle(.16);});
+        this.worldRouter.activeZoneInstance?.pushChenWheelchair?.(()=>{
+          this.gameState.setFlag('CHEN_WHEELCHAIR_MOTOR_MEMORY',true);
+          persistentMemory.addJournalNote('CHEN_WHEELCHAIR_MEMORY','老舊輪椅左前輪偏軸；跨過地面接縫時固定發出三聲喀啦。');
+          void this.completeBeat();
+        });
+        return;
+      }
+      if(beat.chenTransportChoice){
+        this.uiManager.openStoryChoice({
+          title:'第一院區 2F 急診｜跨院緊急轉送交接聯',
+          body:'傳真機吐出一張已經填好的「無名男性留觀個案 → 409-A 隔離觀察」轉送聯。\n\n要扣留這張來源可疑的單據，還是順著既有流程簽署轉送？',
+          primaryText:'扣留單據，拒絕盲從轉送',
+          secondaryText:'簽署轉送交接，送往 409-A',
+          systemTrap:'secondary',
+          onPrimary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('CHEN_ER_TRANSFER_REJECTED',true);
+            this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
+            persistentMemory.addJournalNote('CHEN_ER_TRANSFER_REJECTED','急診拒絕把身分未核對的男性沿既有轉送聯送入 409-A；保留 1998-ER-0217 存根回 316 查驗。');
+            this.uiManager.showDialogue([
+              {speaker:'值班醫師',text:'「不行。第二院區怎麼可能事先替第一院區開好 409-A 的轉送聯？」'},
+              {speaker:'值班醫師',text:'「把單據扣下。1998-ER-0217 存根給我，我帶回 316 查。」'}
+            ],()=>{void this.completeBeat();});
+          },
+          onSecondary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('CHEN_ER_TRANSFER_SIGNED',true);
+            void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playWheelchairApproach();});
+            this.uiManager.showDialogue([
+              {speaker:'現場',text:'TRANSFER HANDOFF SIGNED｜DESTINATION 409-A。'},
+              {speaker:'現場',text:'床簾被拉開。剛才躺著劉志遠的位置空了。'},
+              {speaker:'內心',text:'下一秒，推車上的四點約束扣在我自己的手腕與腳踝。'},
+              {speaker:'HIS',text:'PATIENT DISPATCHED TO 409-A｜TRANSIT COMPLETE.'}
+            ],()=>this.onEnding({type:'BAD_END',reason:'CHEN_ER_TRANSFER_PATIENTIZATION'}));
+          }
+        });
+        return;
+      }
+      if(beat.chenDispatchBadgeSwipe){
+        if(!this.gameState.getFlag('CHEN_GREY_BADGE_COLLECTED')){
+          this.uiManager.showDialogue([
+            {speaker:'內心',text:'「讀卡器還有電，但我身上沒有能刷開這個鎖櫃的證件。」'}
+          ],()=>{this.controller.enabled=true;});
+          return;
+        }
+        void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playDoorLockClack();});
+        this.gameState.setFlag('CHEN_DISPATCH_LOCKER_OPENED',true);
+        persistentMemory.addJournalNote('CHEN_DISPATCH_BADGE_MATCH','灰滾邊 MED-89•••• 識別證成功刷開 B1 跨院調度鎖櫃。');
+        this.worldRouter.activeZoneInstance?.syncStoryState?.();
+        void this.completeBeat();
+        return;
+      }
       if(beat.transferSignChoice){
         this.uiManager.openStoryChoice({
-          title:'第二院區｜409-A 預填醫囑單',
-          body:'504B 病況已穩定，但這張醫囑單在醫師重新查核前就預填「轉入第一院區 409-A」。\n\n要簽名確認這筆醫囑，還是拒絕簽名並重新核對？',
+          title:'第二院區｜409-A 轉送醫囑單',
+          body:'504B 病況已穩定，但這張 409-A 轉送醫囑單在醫師重新查核前就已填好目的地。\n\n要簽名核准這次轉送，還是拒絕簽名並重新核對？',
           primaryText:'不簽名，退回重核',
-          secondaryText:'簽名確認 409-A 醫囑',
+          secondaryText:'簽名核准 409-A 轉送醫囑',
           systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
@@ -1117,7 +1203,7 @@ export class IdentityRouteDirector {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M4_SIGNED_409A_ORDER',true);
             this.uiManager.showDialogue([
-              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從醫囑單反向寫進自己的值班身分。'},
+              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從轉送醫囑單反向寫進自己的值班身分。'},
               {speaker:'現場',text:'ORDER SIGNED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
             ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_ORDER_PATIENTIZATION'}));
           }
