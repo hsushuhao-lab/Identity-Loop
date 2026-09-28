@@ -250,8 +250,20 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M4') {
-      if (index === 0) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
-      if (index === 1) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 504B 預填轉院單' };
+      if (index === 0) return {
+        id: 'IDENTITY_SECOND_5F_NURSE_STATION',
+        prompt: (identity==='ZHOU'||identity==='CHEN')
+          ? '向第二院區 5F 護理站借會診備用鑰匙'
+          : '向第二院區 5F 護理站報到'
+      };
+      if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
+      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 504B 預填轉院單' };
+      if (index === 3) return {
+        id: 'IDENTITY_SECOND_5F_NURSE_STATION',
+        prompt: (identity==='ZHOU'||identity==='CHEN')
+          ? '回護理站歸還會診備用鑰匙'
+          : '回護理站交代 504B 處置'
+      };
     }
 
     if (step === 'ZHANG_SECOND_CAMPUS_SECURITY') {
@@ -371,6 +383,11 @@ export class IdentityRouteDirector {
     if(this.worldRouter.activeZoneId==='first_campus_4f'){
       this.worldRouter.activeZoneInstance?.setIdentityWardSpareKeyBorrowed?.(
         this.gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED')
+      );
+    }
+    if(this.worldRouter.activeZoneId==='second_campus_5f'){
+      this.worldRouter.activeZoneInstance?.setIdentitySecondConsultKeyBorrowed?.(
+        this.gameState.getFlag('SECOND_5F_CONSULT_KEY_BORROWED')
       );
     }
 
@@ -619,6 +636,11 @@ export class IdentityRouteDirector {
       if (beat.flag==='ZHANG_4F_SPARE_KEY_BORROWED' || beat.clearFlag==='ZHANG_4F_SPARE_KEY_BORROWED') {
         this.worldRouter.activeZoneInstance?.setIdentityWardSpareKeyBorrowed?.(
           this.gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED')
+        );
+      }
+      if (beat.flag==='SECOND_5F_CONSULT_KEY_BORROWED' || beat.clearFlag==='SECOND_5F_CONSULT_KEY_BORROWED') {
+        this.worldRouter.activeZoneInstance?.setIdentitySecondConsultKeyBorrowed?.(
+          this.gameState.getFlag('SECOND_5F_CONSULT_KEY_BORROWED')
         );
       }
 
