@@ -125,6 +125,11 @@ export class WardFloorplan {
       this.identityWardSpareKey=spareKey;
     }
 
+    // Entrance plant bay beside the ward vestibule (restored after station refactor).
+    asset(this.zoneGroup,'plant',[o+9.4,0,1],[.72,.72,.72]);
+    CollisionFactory.addBox(this.colliders,o+9.4,.45,1,.9,.9,.9);
+    this.entrancePlant=[o+9.4,0,1];
+
     this.wardDoor=new AccessDoor(this,{id:second?'second_ward':'first_ward',x:o,z:2,width:2.4,title:'感應式鐵門'});
     this.innerWardDoor=new AccessDoor(this,{id:second?'second_ward_inner':'first_ward_inner',x:o,z:0,width:2.4,title:'感應式鐵門2'});
     this.glassBypassDoor=new AccessDoor(this,{id:second?'second_ward_glass':'first_ward_glass',x:o+6.0,z:0,width:1.4,title:'感應玻璃門',material:this.gf.materials.glass,readerSide:1});
