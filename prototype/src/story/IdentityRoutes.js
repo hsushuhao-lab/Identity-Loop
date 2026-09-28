@@ -1,5 +1,5 @@
 export const IDENTITY_ROUTES=Object.freeze({
-  ZHANG:Object.freeze(['ZHANG_OPEN_4F','M2','M1','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','ZHANG_6F_FORESHADOW','M3','M6','M7','B2','M8','M9']),
+  ZHANG:Object.freeze(['ZHANG_OPEN_4F','M2','M1','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','M8','M9']),
   LI:Object.freeze(['M1','M2','M3','M4','M5','M6','M7','B2','M8','M9']),
   ZHOU:Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']),
   CHEN:Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','M8','M9'])
