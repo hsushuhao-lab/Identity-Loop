@@ -977,6 +977,54 @@ export class IdentityRouteDirector {
     requestAnimationFrame(tick);
   }
 
+  playZhouBridgePhotoLoop(onComplete){
+    this.gameState.setFlag('ZHOU_BRIDGE_LOOKBACK_SEEN',true);
+    const flash=document.createElement('div');
+    flash.id='zhou-bridge-photo-flash';
+    Object.assign(flash.style,{
+      position:'fixed',inset:'0',zIndex:'12050',background:'#fffef5',
+      opacity:'1',pointerEvents:'none',transition:'opacity 180ms ease'
+    });
+    document.body.appendChild(flash);
+    void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playCameraShutter();});
+    setTimeout(()=>{flash.style.opacity='0';},90);
+    setTimeout(()=>flash.remove(),240);
+
+    const sequence={
+      id:'ZHOU_BRIDGE_PHOTOGRAPHIC_LOOP',
+      title:'空中天橋｜攝影式記憶迴圈',
+      mode:'ALBUM',
+      source:'1998 / FRAME 27 / CONTACT PRINT',
+      frames:[
+        {
+          stamp:'1998 / FRAME 27',
+          title:'天橋盡頭',
+          caption:'高反差黑白影像裡，一個被雨水浸透的白袍人站在天橋盡頭；臉的位置被沖洗水漬侵蝕掉。',
+          narration:'不是黑屏。世界像被快門硬生生切成一張照片。',
+          scene:'bridge'
+        },
+        {
+          stamp:'CONTACT PRINT',
+          title:'過曝',
+          caption:'照片邊緣泛黃，乳劑剝落；白袍輪廓仍然朝鏡頭站著。',
+          narration:'我明明只是回頭，卻像把某個已經發生過的瞬間重新沖洗了一次。',
+          scene:'bridge'
+        },
+        {
+          stamp:'8F / 16:50',
+          title:'院史長廊',
+          caption:'視野忽然回到八樓那張 1998 團隊合照前；攝影者仍然不在照片裡。',
+          narration:'「……又是這張照片。」下一聲快門響起，我才發現這不是回到過去，而是記憶把我拖回原點。',
+          scene:'office'
+        }
+      ]
+    };
+    setTimeout(()=>this.playAutoMemorySequence(sequence,()=>{
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playCameraShutter();});
+      onComplete?.();
+    },{interval:820,hold:620}),190);
+  }
+
   openBridgeChoice(){
     this.uiManager.openStoryChoice({
       title:'空中天橋',
@@ -996,6 +1044,20 @@ export class IdentityRouteDirector {
       },
       onSecondary:()=>{
         this.uiManager.closeStoryChoice(false);
+        if(this.manager.currentIdentity==='ZHOU'){
+          this.playZhouBridgePhotoLoop(()=>{
+            this.gameState.setFlag('M5_BRIDGE_RESOLVED',true);
+            this.gameState.setFlag('M5_BRIDGE_COMMITTED',true);
+            this.gameState.setFlag('M5_ROUTE_CHOICE_RESOLVED',true);
+            this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',true);
+            this.worldRouter.activeZoneInstance?.armManualNoLookbackRule?.();
+            this.uiManager.showDialogue([
+              {speaker:'內心',text:'「我還在天橋。剛才不是回到八樓，是那張照片把我拖回去了。」'},
+              {speaker:'內心',text:'「先往前。不要再用下一張照片拖延。」'}
+            ],()=>{ void this.completeBeat(); });
+          });
+          return;
+        }
         this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
         this.uiManager.showDialogue([
           {speaker:'內心',text:'我還是回頭了。下一秒，視野像被整個拖倒。'},
@@ -1051,6 +1113,9 @@ export class IdentityRouteDirector {
       void soundManager.ensureRunning().then(ready=>{
         if(ready)soundManager.playBed33KnockPattern(.16);
       });
+    }
+    if(beat.cameraMemoryCue){
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playCameraShutter();});
     }
     document.exitPointerLock?.();
     this.controller.enabled = false;
@@ -1361,6 +1426,12 @@ export class IdentityRouteDirector {
           systemTrap:this.manager.currentIdentity==='LI'?'secondary':null,
           onPrimary: () => {
             this.uiManager.closeStoryChoice(false);
+            if(this.manager.currentIdentity==='ZHOU'){
+              this.uiManager.showDialogue([
+                {speaker:'內心',text:'「這次我不拍了。」'}
+              ],()=>{void this.completeBeat();});
+              return;
+            }
             void this.completeBeat();
           },
           onSecondary: () => {

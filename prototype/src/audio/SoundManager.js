@@ -484,6 +484,23 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playCameraShutter() {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const snap=(at,freq,gainValue,duration,type='square')=>{
+        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+        osc.type=type;osc.frequency.setValueAtTime(freq,at);osc.frequency.exponentialRampToValueAtTime(Math.max(90,freq*.38),at+duration);
+        filter.type='bandpass';filter.frequency.value=Math.max(380,freq*.9);filter.Q.value=1.2;
+        gain.gain.setValueAtTime(gainValue,at);gain.gain.exponentialRampToValueAtTime(.001,at+duration);
+        osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);osc.start(at);osc.stop(at+duration+.01);
+      };
+      snap(now,1850,.085,.028,'square');
+      snap(now+.045,760,.065,.052,'triangle');
+      snap(now+.11,1320,.04,.032,'square');
+    }catch(e){}
+  }
+
   playClick() {
     if (!this.ctx || this.isMuted) return;
     try {

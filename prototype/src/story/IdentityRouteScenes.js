@@ -78,7 +78,8 @@ export function getIdentityRouteScene(step, identity) {
             {speaker:'值班醫師',text:'「我去確認。」'}
           ],
           ZHOU:[
-            {speaker:'晚班護理師',text:'「值班醫師您好。408C 從剛才一直說隔壁有聲音。」'},
+            {speaker:'晚班護理師',text:'「值班醫師……你總算上來了。408C 從傍晚就在按鈴，我們已經打了好幾次電話。」'},
+            {speaker:'晚班護理師',text:'「他一直說隔壁有人敲牆，剛才突然敲得更急。」'},
             {speaker:'值班醫師',text:'「先看 408C。」'}
           ],
           CHEN:[
@@ -89,8 +90,13 @@ export function getIdentityRouteScene(step, identity) {
         }), '使用護理站電腦聯絡晚班護理師，確認 408C 狀況')
       ]),
       event('408C 確認', [
-        {speaker:'408C 老先生',text:'「醫師，又來了。」'},
-        {speaker:'值班醫師',text:'「哪裡？」'},
+        ...(identity==='ZHOU' ? [
+          {speaker:'408C 老先生',text:'「醫師……你怎麼現在才來？」'},
+          {speaker:'408C 老先生',text:'「他一直敲、一直敲……剛剛突然停了，我還以為裡面的人出事了。」'}
+        ] : [
+          {speaker:'408C 老先生',text:'「醫師，又來了。」'},
+          {speaker:'值班醫師',text:'「哪裡？」'}
+        ]),
         {speaker:'408C 老先生',text:'「隔壁。四下，停一下，再九下。」'},
         {speaker:'聲音',text:'咚。咚。咚。咚。'},
         {speaker:'聲音',text:'……'},
@@ -309,6 +315,16 @@ export function getIdentityRouteScene(step, identity) {
       }), (identity==='ZHOU'||identity==='CHEN')?'歸還 5F 會診備用鑰匙':'向護理站交代 504B 處置', {
         clearFlag:(identity==='ZHOU'||identity==='CHEN')?'SECOND_5F_CONSULT_KEY_BORROWED':null
       }),
+      ...(identity==='ZHOU' ? [
+        event('黃色便條紙', [
+          {speaker:'內心',text:'護理站桌角壓著一本黃色便條紙。右手食指與拇指先於思考抽出了一張。'},
+          {speaker:'筆尖',text:'「等一下。」'},
+          {speaker:'筆尖',text:'「409-A 先不要——」'},
+          {speaker:'內心',text:'筆尖停住。「……我要叫誰等一下？」'},
+          {speaker:'內心',text:'我把沒有寫完的便條對折，塞進白袍口袋。'},
+          {speaker:'系統',text:'取得：未送達便條碎片'}
+        ], '把未寫完的便條折起來收進白袍口袋', { flag:'UNDELIVERED_MEMO_FRAGMENT' })
+      ] : []),
       ...(identity==='CHEN' ? [
         event('5F 值班室私人金屬保險箱', [
           {speaker:'內心',text:'值班室桌下有一個灰綠色手提保險箱。這不是護理站公物。'},
@@ -457,7 +473,7 @@ export function getIdentityRouteScene(step, identity) {
       })
     ] : [
       event('02:17 警衛鑰匙', ['警衛設備櫃留著 B-Panel 十字鑰匙。它屬於門禁設備，不能用一張表格代替。'], '拿取十字鑰匙', { flag: 'B_PANEL_KEY' }),
-      event('閱讀 B-Panel 工務紀錄', ['舊工務手冊要求依序拉下 1 → 3 → 4。監控卻顯示這個動作讓防火門鎖死、備援排煙停止。', '旁邊是必須插入十字鑰匙才能轉動的紫色備援排煙旋鈕。', ...(identity==='LI'?[{speaker:'內心',text:'右手已經先移向標著 1 的開關，像是做過上百次。手比判斷快了一步。我把手收回來。'}]:[]), reaction({ ZHANG: '這段記憶來自門的另一側。門關上後，裡面仍有人。', LI: '我的身體記住的正是 1 → 3 → 4。最熟悉的程序，竟是當年的錯誤。', ZHOU: '照片裡的設備終於在眼前。光是記錄警告，不能讓警告及時送達。', CHEN: '不能再只因為知道下一步去哪裡，就把人推向同一個目的地。' })], '對照手冊與監控後操作面板'),
+      event('閱讀 B-Panel 工務紀錄', ['舊工務手冊要求依序拉下 1 → 3 → 4。監控卻顯示這個動作讓防火門鎖死、備援排煙停止。', '旁邊是必須插入十字鑰匙才能轉動的紫色備援排煙旋鈕。', ...(identity==='LI'?[{speaker:'內心',text:'右手已經先移向標著 1 的開關，像是做過上百次。手比判斷快了一步。我把手收回來。'}]:[]), reaction({ ZHANG: '這段記憶來自門的另一側。門關上後，裡面仍有人。', LI: '我的身體記住的正是 1 → 3 → 4。最熟悉的程序，竟是當年的錯誤。', ZHOU: '照片裡的設備終於在眼前。右手下意識抬起，像要去找不存在的快門。我把手放下。以前，我只留下證據；這一次不能再等下一張照片。', CHEN: '不能再只因為知道下一步去哪裡，就把人推向同一個目的地。' })], '對照手冊與監控後操作面板', { cameraMemoryCue: identity==='ZHOU' }),
       event('操作 B-Panel', ['02:17。選擇實際操作；錯誤程序不能打開服務門。'], '插入十字鑰匙，啟動紫色備援排煙', { puzzle: 'b-panel', wrong: '依舊手冊拉下 1 → 3 → 4', wrongLines: ['防火門鎖死，排煙停止。你重演了 1998 年的錯誤程序。', '走廊警鈴瞬間失真，視野開始下墜。'], flag: 'M7_B2_OPEN' })
     ],
     B2: [
@@ -465,6 +481,7 @@ export function getIdentityRouteScene(step, identity) {
       event('1998 火災回放', [
         '工程人員提出 B-Panel 危險警告。警衛鑰匙與 409-A 轉送流程交錯。',
         '煙升起。防火門關閉。錯誤程序讓備援排煙失常，紀錄隨後遭到覆寫。',
+        ...(identity==='ZHOU' ? ['封存影像裡，一張被鞋印踩過的便條翻到正面。第一行終於能看清：「守恆，等一下。」起筆和今晚我自己寫下的那張一模一樣。'] : []),
         identity==='ZHANG'
           ? '終端最後指向 3F 文史館：先核對院史影像與 1998 人員檔案，再回 316。'
           : identity==='LI'
