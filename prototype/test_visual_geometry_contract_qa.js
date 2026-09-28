@@ -111,9 +111,10 @@ assert.equal(zone.erNoteInteraction?.interactable,false,'completed ER-note promp
 
 // Second-campus transfer paperwork also belongs on a desk.
 zone=router.loadZone('second_campus_5f');
-const transfer=zone.zoneGroup.getObjectByName('SecondCampus_ChestTransferForm');
-assert(transfer,'Second-campus transfer form missing');
-assert(Math.abs(new THREE.Box3().setFromObject(transfer).min.y-.82)<.005,'Second-campus transfer form must sit on workstation surface');
+const transfer=zone.zoneGroup.getObjectByName('SecondCampus_ChestTreatmentOrder');
+assert(transfer,'Second-campus 409-A treatment order missing');
+assert.equal(transfer.userData.id,'SECOND_CHEST_TRANSFER','Second-campus treatment order must preserve the story interaction id');
+assert(Math.abs(new THREE.Box3().setFromObject(transfer).min.y-.82)<.005,'Second-campus treatment order must sit on workstation surface');
 
 const signAnchor=readFileSync('./src/world/shared/SignAnchor.js','utf8');
 assert(signAnchor.includes("header = '青嶺醫療中心 ｜ 臨床醫療區'"),'Default room signage must use the fictional Qingling name');
