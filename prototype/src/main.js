@@ -746,7 +746,7 @@ controller.onInteract = async (interactable) => {
         uiManager.showSubtitle('門禁','「通往第二院區的門已從另一側鎖上。繼續往第一院區走。」',3200);
         return;
       }
-      if(['BRIDGE_ACCESS','BRIDGE_FIRST','BRIDGE_SECOND'].includes(interactable.doorId)&&!canAccess(gameState,interactable.doorId==='BRIDGE_ACCESS'?'FIRST_TO_SECOND_BRIDGE':'SECOND_TO_FIRST_BRIDGE')){
+      if(!identityLoopMode&&['BRIDGE_ACCESS','BRIDGE_FIRST','BRIDGE_SECOND'].includes(interactable.doorId)&&!canAccess(gameState,interactable.doorId==='BRIDGE_ACCESS'?'FIRST_TO_SECOND_BRIDGE':'SECOND_TO_FIRST_BRIDGE')){
         soundManager.playDoorLockClack();
         uiManager.showSubtitle('門禁','「夜間跨院區權限尚未開啟。」',2800);
         return;
@@ -1792,7 +1792,7 @@ function animate() {
 
   controller.update(delta);
   worldRouter.update(delta);
-  if(identityLoopMode){composer.render();return;}
+  if(identityLoopMode){identityRouteDirector.update();composer.render();return;}
   if(worldRouter.activeZoneId==='first_campus_2f' && controller.enabled && !cinematicDirector.activeId &&
     gameState.getFlag('GHOST_REGISTRATION_AVAILABLE') && !gameState.getFlag('LEGEND_ER0033_RESOLVED') && !gameState.getFlag('CG_00_33_GHOST_REGISTRATION_PLAYED') &&
     controller.position.x>10.5 && controller.position.x<15.5 && controller.position.z>-9.7 && controller.position.z<-4.5){
