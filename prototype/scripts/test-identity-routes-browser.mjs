@@ -95,9 +95,24 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       if(!['B2','M9'].includes(state.step))assert.equal(state.panelVisible,false,`panel must stay hidden during ${state.step}`);
       await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-${state.step}`);
       console.log(`${identity}: ${state.step}`);
+      if(identity==='ZHOU'&&state.step==='M5'){
+        assert.equal(
+          await page.evaluate(()=>window.__storyQA.gameState.getFlag('UNDELIVERED_MEMO_FRAGMENT')),
+          true,
+          'Zhou must carry the unfinished M4 memo into the bridge sequence'
+        );
+      }
       if(state.step==='B2'){
         assert.equal(state.run.runSave.b2Entered,true);
         assert.equal(await page.evaluate(()=>window.__storyQA.identityManager.enterB2()),false);
+        if(identity==='ZHOU'){
+          assert.equal(run.zhouBridgeLoop,true,'Zhou contextual QA must exercise the photographic look-back loop');
+          assert.equal(
+            await page.evaluate(()=>window.__storyQA.gameState.getFlag('ZHOU_BRIDGE_LOOKBACK_SEEN')),
+            true,
+            'Zhou bridge look-back flag must persist through M7 into B2'
+          );
+        }
       }
     }
 
@@ -136,8 +151,27 @@ async function walk(identity,{wrong=false,mobile=false}={}){
     }
 
     if(state.choiceModal){
-      // Correct route QA follows the purple backup ventilation path.
-      await page.locator('#btn-story-primary').click();
+      if(identity==='ZHOU'&&state.step==='M5'&&!run.zhouBridgeLoop){
+        const bridgeZone=state.zone;
+        await page.locator('#btn-story-secondary').click();
+        await page.waitForFunction(
+          ()=>window.__storyQA.gameState.getFlag('M5_BRIDGE_RESOLVED')===true,
+          {},
+          {timeout:15000}
+        );
+        const afterLoop=await runtimeState();
+        assert.equal(afterLoop.step,'M5','Zhou photographic loop must not roll the route backward');
+        assert.equal(afterLoop.zone,bridgeZone,'Zhou photographic loop must return control to the same bridge zone');
+        assert.equal(
+          await page.evaluate(()=>window.__storyQA.gameState.getFlag('ZHOU_BRIDGE_LOOKBACK_SEEN')),
+          true,
+          'Zhou photographic loop must record the look-back memory'
+        );
+        run.zhouBridgeLoop=true;
+      }else{
+        // Correct route QA follows the purple backup ventilation path.
+        await page.locator('#btn-story-primary').click();
+      }
       run.actions++;
       continue;
     }
