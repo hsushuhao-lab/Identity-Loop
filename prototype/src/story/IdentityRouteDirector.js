@@ -1041,10 +1041,10 @@ export class IdentityRouteDirector {
       }
       if(beat.transferSignChoice){
         this.uiManager.openStoryChoice({
-          title:'第二院區｜409-A 預填醫囑單',
-          body:'504B 病況已穩定，但這張醫囑單在醫師重新查核前就預填「轉入第一院區 409-A」。\n\n要簽名確認這筆醫囑，還是拒絕簽名並重新核對？',
+          title:'第二院區｜409-A 預填轉院單',
+          body:'504B 病況已穩定，但這張轉院單在醫師重新查核前就預填「轉入第一院區 409-A」。\n\n要簽名核准這次轉送，還是拒絕簽名並重新核對？',
           primaryText:'不簽名，退回重核',
-          secondaryText:'簽名確認 409-A 醫囑',
+          secondaryText:'簽名核准轉送至 409-A',
           systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
@@ -1057,7 +1057,7 @@ export class IdentityRouteDirector {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M4_SIGNED_409A_ORDER',true);
             this.uiManager.showDialogue([
-              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從醫囑欄反向寫進自己的值班身分。'},
+              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從轉院單反向寫進自己的值班身分。'},
               {speaker:'現場',text:'ORDER SIGNED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
             ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_ORDER_PATIENTIZATION'}));
           }
