@@ -328,7 +328,7 @@ export function getIdentityRouteScene(step, identity) {
           ZHOU:'畫面總在關鍵一格跳掉。手指竟然下意識想按快門。',
           CHEN:'同一條跨院路線，畫面裡的方向和我記得的走法對不上。'
         })}
-      ], '查看第二院區 2F CCTV 監控異常'),
+      ], '查看第二院區 2F CCTV 監控異常', { cctvCg: identity==='ZHANG' }),
       ...(identity==='ZHANG' ? [event('監控室電話', [
         {speaker:'電話',text:'鈴——鈴——鈴——'},
         {speaker:'內心',text:'「監控室的電話？誰會知道我在這裡？」'},
