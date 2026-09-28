@@ -491,7 +491,7 @@ export function getIdentityRouteScene(step, identity) {
       event('後勤工務電梯', [
         {speaker:'現場',text:'調度室後方的工務電梯綠燈亮起：3F／316 ACCESS。'},
         {speaker:'內心',text:'「最後交班在 316。」'}
-      ], '搭乘後勤工務電梯返回 3F 316')
+      ], '搭乘後勤工務電梯返回 3F 316', { chenDispatchServiceLift:true })
     ],
     ZHANG_3F_ARCHIVE: [
       event('文史館院史影像牆', [
