@@ -504,6 +504,31 @@ export class IdentityRouteDirector {
     }
   }
 
+  qaInteractCurrentBeat() {
+    if (this.busy || this.manager.runSave.runEnded || this.uiManager.dialogueSequence) return false;
+    const binding = this.bindingFor();
+    if (binding.auto) {
+      this.inspect();
+      return true;
+    }
+    const target = this.boundTarget?.object || this.anchor;
+    if (!target) return false;
+    return this.handleInteract(target.userData || target);
+  }
+
+  qaInteractionState() {
+    const binding = this.bindingFor();
+    return {
+      step: this.step,
+      beatIndex: this.beatIndex,
+      auto: binding.auto === true,
+      boundToWorldObject: !!this.boundTarget,
+      contextualHitbox: !!this.anchor,
+      visibleSyntheticQuestCard: this.anchor?.name?.startsWith('identity_route_event') === true,
+      targetId: (this.boundTarget?.object?.userData || this.boundTarget?.object)?.id || this.anchor?.userData?.label || null
+    };
+  }
+
   finishEnding(result) {
     if (!result.ok) return;
     this.removeInteractionTarget();
