@@ -69,6 +69,27 @@ assert.match(routeDirectorSource,/走進 316 辦公室，完成交接班/);
 const mainSourceFor316=readFileSync(new URL('./src/main.js',import.meta.url),'utf8');
 assert.match(mainSourceFor316,/identityLoopMode[\s\S]*門開了。進去 316，完成今晚的交接。/);
 console.log('PASS M1 regression: starts outside locked 316, uses real spare-key/door flow, completes on physical entry');
+
+const guardSource=readFileSync(new URL('./src/world/zones/FirstCampus1F.js',import.meta.url),'utf8');
+assert.match(guardSource,/reflectionFrame\.position\.set\(-10\.72,1\.92,7\.76\)/);
+assert.match(guardSource,/new THREE\.PlaneGeometry\(2\.52,1\.62\)/);
+assert.match(guardSource,/id:'IDENTITY_GUARD_PHONE'/);
+assert.match(guardSource,/OldGuardPost_DeskPhone_Handset/);
+assert.doesNotMatch(guardSource,/label:'查看警衛台上的事故前設備照片'/);
+
+const sceneSource=readFileSync(new URL('./src/story/IdentityRouteScenes.js',import.meta.url),'utf8');
+assert.match(sceneSource,/ZHOU_SECURITY_TALK:[\s\S]*接聽警衛台電話/);
+assert.match(sceneSource,/2F 急診有一名身分待確認的男性/);
+assert.match(sceneSource,/ARCHIVE LOOKUP／316 LEGACY CLIENT/);
+assert.match(sceneSource,/316 有舊資料終端。我把這張帶回三樓查/);
+
+assert.match(routeDirectorSource,/PHONE_CALL_KIND','IDENTITY_ZHOU_ER'/);
+assert.match(routeDirectorSource,/id: 'IDENTITY_GUARD_PHONE'/);
+assert.match(routeDirectorSource,/ensureIdentityDutyAccess\(\)/);
+assert.match(routeDirectorSource,/setFlag\('STAFF_ACCESS_CARD', true\)/);
+assert.match(routeDirectorSource,/\['KEY_PICKUP','DUTY_LOG','E_HANDOFF'\]/);
+assert.match(routeDirectorSource,/beat\.review \|\| beat\.label \|\| ROUTE_STEPS\[this\.step\]\.label/);
+console.log('PASS Zhou regression: wall photo -> guard -> ringing phone -> 2F -> explicit 316 legacy lookup; M1 grants durable duty access');
 for(const [identity,route] of Object.entries(expected))for(const milestone of ['M1','M2','M8','M9','B2']){
   const store=storage();
   store.setItem(IDENTITY_STORAGE_KEY,JSON.stringify({metaSave:{completedGoodEnds:['LI']},runSave:{currentIdentity:identity,currentMilestone:milestone,evidence:{old:{id:'old'}},b2Entered:true}}));
