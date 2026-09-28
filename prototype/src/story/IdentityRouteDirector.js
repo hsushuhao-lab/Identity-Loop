@@ -695,6 +695,7 @@ export class IdentityRouteDirector {
     }
 
     this.awaitingZone = null;
+    this.worldRouter.activeZoneInstance?.syncStoryState?.();
 
     if(this.worldRouter.activeZoneId==='first_campus_3f'){
       this.worldRouter.activeZoneInstance?.setIdentityDutyItemsVisible?.(
