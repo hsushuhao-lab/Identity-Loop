@@ -323,6 +323,19 @@ export class FirstCampus2FER {
     const doctorScreen=monitor(this.art,this.gf.materials,13,.76,-8.55,0);
     this.ghostRegistrationScreen=doctorScreen.children.find(child=>child.isMesh&&child.material?.map);
     this.workstations=[{id:'ER_DOCTOR',screen:doctorScreen,chair:[13,0,-7.45],yaw:0}];
+    const doctorChartHit=new THREE.Mesh(
+      new THREE.BoxGeometry(1.35,.82,.48),
+      new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+    );
+    doctorChartHit.position.set(13,1.20,-8.28);
+    doctorChartHit.userData={
+      interactable:true,
+      id:'ER_DOCTOR_CHARTING',
+      type:'identity_er_doctor_charting',
+      label:'使用急診醫師電腦書寫紀錄'
+    };
+    this.zoneGroup.add(doctorChartHit);this.interactables.push(doctorChartHit);
+    this.identityErDoctorCharting=doctorChartHit;
     asset(this.art,'officeChair',[13,0,-7.45],[1,1,1],Math.PI);
     asset(this.art,'storageCabinet',[10.2,0,-8.55],[.9,.9,.9],Math.PI);
     asset(this.art,'hospitalBed',[17.4,0,-7.7],[1.05,.95,.95],Math.PI/2);
