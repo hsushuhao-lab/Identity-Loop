@@ -216,6 +216,20 @@ export class IdentityRouteDirector {
   }
 
   update() {
+    if(
+      this.step==='M5' &&
+      this.manager.currentIdentity==='ZHANG' &&
+      this.beatIndex===2 &&
+      this.gameState.getFlag('BRIDGE_REFLECTION_NOTICE_PENDING') &&
+      !this.busy &&
+      !this.uiManager.dialogueSequence
+    ){
+      this.gameState.setFlag('BRIDGE_REFLECTION_NOTICE_PENDING',false);
+      this.gameState.setFlag('BRIDGE_REFLECTION_NOTICE_SEEN',true);
+      this.inspect();
+      return;
+    }
+
     if(this.gameState.getFlag('BRIDGE_OVERRIDE_PENDING')&&!this.manager.runSave.runEnded){
       this.gameState.setFlag('BRIDGE_OVERRIDE_PENDING',false);
       this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',false);
@@ -350,7 +364,7 @@ export class IdentityRouteDirector {
       if(index===0) return { id:'SECOND_2F_CCTV_DESK', prompt:'使用桌上監控電腦查看即時異常' };
       if(identity==='ZHANG'){
         if(index===1) return { id:'IDENTITY_SECOND_2F_CCTV_PHONE', prompt:'接聽正在響的監控室電話' };
-        if(index===2) return { id:'BRIDGE_LOOP_EVENT', prompt:'經天橋返回第一院區；保持視線向前' };
+        if(index===2) return { proximityBridge:true, prompt:'穿越天橋返回第一院區；保持視線向前' };
       }
       if(index===1) return { id:'BRIDGE_LOOP_EVENT', prompt:'走到天橋中段，確認異常回聲與白袍人影' };
     }
@@ -525,7 +539,7 @@ export class IdentityRouteDirector {
     }
 
     const binding = this.bindingFor();
-    if (binding.officeEntry) {
+    if (binding.officeEntry || binding.proximityBridge) {
       this.renderObjective();
       return;
     }
