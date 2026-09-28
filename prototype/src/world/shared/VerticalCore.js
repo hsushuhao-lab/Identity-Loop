@@ -29,6 +29,27 @@ export function buildVerticalCore(zone,zoneId){
  const hit=solid(panel,m.metal,[0,0,0],[.2,.42,.09]);
  hit.userData={interactable:true,id:`${zoneId}_elevator`,type:'elevator',kind:'elevator',label:'電梯：選擇樓層'};zone.interactables.push(hit);
  const button=new THREE.Mesh(new THREE.CircleGeometry(.047,20),new THREE.MeshBasicMaterial({color:0xffb326}));button.position.z=.051;panel.add(button);
+
+ // Identy Loop Zhang route: the 6F foreshadow is read from the real elevator
+ // indicator, not from a contextual trigger spawned beside the player.
+ if(zoneId==='first_campus_8f'){
+   const display=solid(root,m.wallDark,[1.65,2.02,3.72],[.42,.24,.08]);
+   display.name='Identity6FIndicator_8F';
+   const displayHit=new THREE.Mesh(
+     new THREE.BoxGeometry(.72,.58,.28),
+     new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+   );
+   displayHit.position.set(1.65,2.02,3.58);
+   displayHit.userData={
+     interactable:true,
+     id:'IDENTITY_6F_DISPLAY',
+     type:'identity_elevator_indicator',
+     label:'查看電梯樓層顯示'
+   };
+   root.add(displayHit);
+   zone.interactables.push(displayHit);
+ }
+
  SignAnchor.buildWallPlaque({scene:root,x:0,y:2.75,z:3.69,rotationY:Math.PI,width:1.2,height:.3,code:'',title:`${zone.floor||Number(zoneId.match(/_(\d)f/)?.[1])}F 電梯`,subtitle:'',header:''});
  const stair=new THREE.Group();stair.position.set(first?(zoneId==='first_campus_2f'?-7:7.78):-5,0,first?0:3.78);stair.rotation.y=first?-Math.PI/2:Math.PI;root.add(stair);
  for(const sx of [-.64,.64])solid(stair,m.metal,[sx,1.2,0],[.10,2.4,.16]);solid(stair,m.metal,[0,2.42,0],[1.38,.12,.16]);
