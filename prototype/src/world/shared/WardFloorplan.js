@@ -72,17 +72,39 @@ export class WardFloorplan {
     // Reuse the actual nursing-station monitor as the nurse conversation surface;
     // do not spawn a floating/context quest hitbox near the player.
     if(second&&this.floor===5){
-      const nurseStationScreen=this.workstations.find(item=>item.id==='second_station_A')?.screen;
-      if(nurseStationScreen){
-        nurseStationScreen.userData={
-          ...nurseStationScreen.userData,
-          interactable:true,
-          id:'IDENTITY_SECOND_5F_NURSE_STATION',
-          type:'identity_second_5f_nurse_station',
-          label:'和第二院區 5F 護理師說話'
-        };
-        this.interactables.push(nurseStationScreen);
+      const nurse=new THREE.Group();
+      nurse.name='IdentitySecond5F_Nurse';
+      nurse.position.set(o-2.15,0,-3.15);
+      const skinMat=new THREE.MeshStandardMaterial({color:0xd2aa88,roughness:.78});
+      const scrubMat=new THREE.MeshStandardMaterial({color:0xdfe7e2,roughness:.82});
+      const trimMat=new THREE.MeshStandardMaterial({color:0x477261,roughness:.78});
+      const torso=new THREE.Mesh(new THREE.BoxGeometry(.48,.78,.28),scrubMat);
+      torso.position.set(0,1.12,0);nurse.add(torso);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(.17,18,14),skinMat);
+      head.position.set(0,1.68,0);nurse.add(head);
+      const hair=new THREE.Mesh(new THREE.SphereGeometry(.18,18,14),this.gf.materials.wallDark);
+      hair.scale.set(1,.56,1);hair.position.set(0,1.79,.015);nurse.add(hair);
+      const badge=new THREE.Mesh(new THREE.BoxGeometry(.12,.09,.018),trimMat);
+      badge.position.set(.13,1.30,.15);nurse.add(badge);
+      for(const x of [-.13,.13]){
+        const leg=new THREE.Mesh(new THREE.BoxGeometry(.13,.68,.15),trimMat);
+        leg.position.set(x,.48,0);nurse.add(leg);
       }
+      const nurseHit=new THREE.Mesh(
+        new THREE.BoxGeometry(.88,1.95,.82),
+        new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+      );
+      nurseHit.position.set(0,1.0,0);
+      nurseHit.userData={
+        interactable:true,
+        id:'IDENTITY_SECOND_5F_NURSE_STATION',
+        type:'identity_second_5f_nurse_station',
+        label:'和第二院區 5F 護理師說話'
+      };
+      nurse.add(nurseHit);
+      this.zoneGroup.add(nurse);
+      this.interactables.push(nurseHit);
+      this.identitySecond5FNurse=nurse;
 
       const keyDesk=this.workstations.find(item=>item.id==='second_station_A')?.desk;
       const keySurfaceY=keyDesk?new THREE.Box3().setFromObject(keyDesk).max.y:.82;
