@@ -12,10 +12,15 @@ The four identities are `ZHANG`, `LI`, `ZHOU`, and `CHEN`. A new run draws exact
 
 ## Route contract
 
-`M1 3F → M2 4F/409-A → M3 21:17/ER/316 → M4 second campus 504B → M5 surveillance/skybridge → M6 phantom 6F → M7 02:17/B-panel → B2 one-way archive → M8 rejection → M9 final handover`.
+`M1 3F → M2 4F/409-A → identity-specific night events → M4 second campus 504B → M5 surveillance/skybridge → M6 phantom 6F → M7 02:17/B-panel → B2 one-way archive → identity-specific evidence return → M9 final handover`. LI expands the middle route into 20:05 real-patient identity verification → 4F duty room → 21:17 3F patrol → duty-room 00:33 call → empty-ER duplicate-record decision → 316 archive lookup/call → 8F outbound with a transient 6F glimpse. After B2, LI must cross-check both the 3F administrative office and historical archive before M9.
 
 M5 is skybridge-only. B2 is irreversible after entry. M9 exposes four candidate files and has one irreversible submit action.
 
 ## Claim boundary
 
 M1–M8 use procedural familiarity, sensorimotor memory, and contradiction. They never state the current identity. Names are player-facing only in B2’s objective archive and the M9 choice list; the current identity is not auto-solved.
+
+
+## LI procedural-choice lock
+
+LI is the procedure-error route. The player must actively reject shortcuts at the live ER identity check, the 00:33 empty-ER duplicate-record prompt, the 409-A medical-order signature, the skybridge look-back, and the 02:17 B-Panel procedure. The 504B paper is a medical order (`醫囑單`) in every identity route, never a transfer-form object. Signing the prefilled 409-A order triggers ordinary 409 Patientization; refusing it continues play. Ordinary route Patientization stays anonymous; the full 1998 recap is reserved for an M9 wrong-memory ending.
