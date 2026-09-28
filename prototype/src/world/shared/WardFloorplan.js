@@ -68,6 +68,44 @@ export class WardFloorplan {
     // Central station: the inner iron gate opens directly into it.
     nursingStationV5(this,{x:o,z:-4.3,id:second?'second_station':'first_station'});
 
+    // Identy Loop: route dialogue must be attached to real world fixtures.
+    // Reuse the actual nursing-station monitor as the nurse conversation surface;
+    // do not spawn a floating/context quest hitbox near the player.
+    if(!second&&this.floor===4){
+      const nurseStationScreen=this.workstations.find(item=>item.id==='first_station_A')?.screen;
+      if(nurseStationScreen){
+        nurseStationScreen.userData={
+          ...nurseStationScreen.userData,
+          interactable:true,
+          id:'IDENTITY_4F_NURSE_STATION',
+          type:'identity_nurse_station_4f',
+          label:'和護理站護理師說話'
+        };
+        this.interactables.push(nurseStationScreen);
+      }
+
+      // 403 is a normal bedside conversation. Mount a forgiving sensor directly
+      // over the physical 403A bed so the prompt belongs to the patient/bed,
+      // not to an arbitrary route marker.
+      const bed403=this.bedAreas.find(item=>item.id==='403A');
+      if(bed403?.position){
+        const hit=new THREE.Mesh(
+          new THREE.BoxGeometry(1.35,1.25,2.0),
+          new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+        );
+        hit.position.set(bed403.position[0],1.0,bed403.position[2]);
+        hit.name='Identity403PatientInteraction';
+        hit.userData={
+          interactable:true,
+          id:'IDENTITY_403_PATIENT',
+          type:'identity_patient_403',
+          label:'詢問 403 病人今晚狀況'
+        };
+        this.zoneGroup.add(hit);
+        this.interactables.push(hit);
+      }
+    }
+
     this.wardDoor=new AccessDoor(this,{id:second?'second_ward':'first_ward',x:o,z:2,width:2.4,title:'感應式鐵門'});
     this.innerWardDoor=new AccessDoor(this,{id:second?'second_ward_inner':'first_ward_inner',x:o,z:0,width:2.4,title:'感應式鐵門2'});
     this.glassBypassDoor=new AccessDoor(this,{id:second?'second_ward_glass':'first_ward_glass',x:o+6.0,z:0,width:1.4,title:'感應玻璃門',material:this.gf.materials.glass,readerSide:1});
