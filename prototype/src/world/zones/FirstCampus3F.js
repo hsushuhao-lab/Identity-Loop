@@ -344,7 +344,23 @@ export class FirstCampus3F {
     const galleryRoot=new THREE.Group();galleryRoot.name='Archive_RefinedPhotoWall';galleryRoot.position.set(20,1.66,-7.06);this.zoneGroup.add(galleryRoot);
     solid(galleryRoot,m.floorWood,[0,0,-.035],[4.05,1.92,.10]);
     const galleryMaterial=new THREE.MeshStandardMaterial({color:0x3d3126,roughness:.74,metalness:0,emissive:0x100b07,emissiveIntensity:.18});
-    const galleryFace=new THREE.Mesh(new THREE.PlaneGeometry(3.85,1.74),galleryMaterial);galleryFace.position.z=.025;galleryFace.name='Archive_HistoryPhotoWall_Face';galleryRoot.add(galleryFace);
+    const galleryFace=new THREE.Mesh(new THREE.PlaneGeometry(3.85,1.74),galleryMaterial);
+    galleryFace.position.z=.025;
+    galleryFace.name='Archive_HistoryPhotoWall_Face';
+    galleryFace.userData={
+      interactable:true,
+      id:'ARCHIVE_HISTORY_PHOTO_WALL',
+      type:'archive_document',
+      label:'查看文史館院史影像牆',
+      documentTitle:'文史館｜院史影像牆',
+      pages:[
+        '院史影像牆把 1998 年兩院區、空中天橋、舊技能中心與警衛門禁配置放在同一張時間軸上。',
+        '多張照片的角落都出現相同的夜班工作人員，但拍攝時間與事故正式紀錄並不完全一致。',
+        'B2 終端要求先核對影像與 1998 夜班核心人員名錄，再返回 316 完成最終交班。'
+      ]
+    };
+    galleryRoot.add(galleryFace);
+    this.interactables.push(galleryFace);
     void buildArchiveGalleryTexture().then(texture=>{
       if(!galleryFace.parent){texture.dispose();return;}
       galleryMaterial.map=texture;galleryMaterial.color.setHex(0xffffff);galleryMaterial.needsUpdate=true;
