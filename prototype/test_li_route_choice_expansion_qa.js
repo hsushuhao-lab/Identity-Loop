@@ -25,11 +25,11 @@ assert.match(scenes,/LI_3F_EVIDENCE:[\s\S]*行政辦公室[\s\S]*文史室[\s\S]
 
 assert.match(scenes,/核對 409-A 醫囑單/);
 assert.match(scenes,/transferSignChoice:true/);
-assert.doesNotMatch(scenes,/轉院單|轉送醫囑單/);
-assert.doesNotMatch(director,/轉院單|轉送醫囑單/);
-assert.doesNotMatch(main,/轉院單|轉送醫囑單/);
+assert.doesNotMatch(scenes,/轉院單|轉送醫囑/);
+assert.doesNotMatch(director,/轉院單|轉送醫囑/);
+assert.doesNotMatch(main,/轉院單|轉送醫囑/);
 assert.match(director,/title:'第二院區｜409-A 醫囑單'/);
-assert.match(director,/secondaryText:'簽名核准 409-A 轉送醫囑'/);
+assert.match(director,/secondaryText:'簽名確認 409-A 醫囑'/);
 assert.match(director,/M4_409A_ORDER_PATIENTIZATION/);
 assert.match(scenes,/lightFlicker: identity==='LI'/);
 assert.match(director,/LI_SECOND_CAMPUS_LIGHT_FLICKER_SEEN/);
