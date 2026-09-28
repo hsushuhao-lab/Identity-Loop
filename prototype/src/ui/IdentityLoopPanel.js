@@ -39,8 +39,8 @@ export class IdentityLoopPanel{
     choices.replaceChildren();
 
     const form=document.createElement('div');form.className='identity-entry-form';
-    const name=document.createElement('input');name.type='text';name.autocomplete='off';name.placeholder='姓名，例如：張守恆';name.setAttribute('aria-label','姓名');
-    const employeeId=document.createElement('input');employeeId.type='text';employeeId.autocomplete='off';employeeId.placeholder='員編，例如：MED-870409';employeeId.setAttribute('aria-label','員編');
+    const name=document.createElement('input');name.type='text';name.autocomplete='off';name.placeholder='姓名';name.setAttribute('aria-label','姓名');
+    const employeeId=document.createElement('input');employeeId.type='text';employeeId.autocomplete='off';employeeId.placeholder='員編（MED-######）';employeeId.setAttribute('aria-label','員編');
     const status=document.createElement('div');status.className='identity-entry-status';status.setAttribute('aria-live','polite');
     const submit=document.createElement('button');submit.type='button';submit.className='identity-entry-submit';submit.textContent='這是我的名字';
 
