@@ -335,7 +335,12 @@ export class IdentityRouteDirector {
     if (step === 'M3') {
       if (index === 0) return { id: '2F_JANE_DOE_ASSESSMENT', prompt: '評估急診身分待確認男性' };
       if (index === 1) return { id: 'ER_GHOST_REGISTRATION', prompt: '查詢 00:33 異常掛號' };
-      if (index === 2) return { type: 'legacy_terminal_316', prompt: '在 316 舊終端查詢 Legacy Index' };
+      if (index === 2) return {
+        type:'legacy_terminal_316',
+        prompt:'在 316 舊終端查詢 1998-ER-0217',
+        passthrough:true,
+        completeFlag:'M3_316_DECODED'
+      };
     }
 
     if (step === 'M4') {
