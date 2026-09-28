@@ -687,10 +687,11 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_ANSWERED',false);
       this.gameState.setFlag('PHONE_RING_ACTIVE',true);
     }
-    if(this.step==='M1'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===6){
-      this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHANG_SECOND_CAMPUS');
+    if(this.step==='M1'&&['ZHANG','LI'].includes(this.manager.currentIdentity)&&this.beatIndex===6){
+      this.gameState.setFlag('PHONE_CALL_KIND',this.manager.currentIdentity==='ZHANG'?'IDENTITY_ZHANG_SECOND_CAMPUS':'IDENTITY_LI_GIGGLE');
       this.gameState.setFlag('PHONE_ANSWERED',false);
       this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.startPhoneRing();});
     }
     if(this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1){
       this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHANG_ER_FROM_CCTV');
@@ -698,6 +699,7 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_RING_ACTIVE',true);
     }
     const liPhoneBeat=
+      (this.step==='LI_DUTY_CALL_2000'&&this.beatIndex===1) ||
       (this.step==='LI_RETURN_DUTY_2117'&&this.beatIndex===1) ||
       (this.step==='LI_RETURN_DUTY_0033'&&this.beatIndex===1) ||
       (this.step==='LI_316_ARCHIVE'&&this.beatIndex===1);
@@ -967,8 +969,9 @@ export class IdentityRouteDirector {
     const beat = this.beats[this.beatIndex];
     if(
       (this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1) ||
-      (this.step==='M1'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===6) ||
+      (this.step==='M1'&&['ZHANG','LI'].includes(this.manager.currentIdentity)&&this.beatIndex===6) ||
       (this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1) ||
+      (this.step==='LI_DUTY_CALL_2000'&&this.beatIndex===1) ||
       (this.step==='LI_RETURN_DUTY_2117'&&this.beatIndex===1) ||
       (this.step==='LI_RETURN_DUTY_0033'&&this.beatIndex===1) ||
       (this.step==='LI_316_ARCHIVE'&&this.beatIndex===1)
@@ -979,7 +982,9 @@ export class IdentityRouteDirector {
     }
     if (!beat) return;
     const activeBinding=this.bindingFor();
-    if(['IDENTITY_4F_NURSE_STATION','IDENTITY_SECOND_5F_NURSE_STATION'].includes(activeBinding?.id)){
+    if(activeBinding?.id==='IDENTITY_4F_NURSE_STATION'){
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playComputerBeep();});
+    }else if(activeBinding?.id==='IDENTITY_SECOND_5F_NURSE_STATION'){
       void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playIntercomBurst();});
     }
     if(beat.knock409){
@@ -1082,10 +1087,13 @@ export class IdentityRouteDirector {
         return;
       }
       if(beat.erRegistrationChoice){
+        const liCharting=this.step==='LI_ER_2005';
         this.uiManager.openStoryChoice({
-          title:'2F 急診｜身分待確認',
-          body:'HIS 找不到這名男子的有效掛號。\n\n你要直接建立一筆「無名病人」新病歷，還是先核對他的工務吊牌與既有舊掛號？',
-          primaryText:'先核對身分，不新建病歷',
+          title:liCharting?'急診醫師電腦｜建立新病歷嗎？':'2F 急診｜身分待確認',
+          body:liCharting
+            ?'病人已完成床邊核對，工務吊牌與既有資料可以對上。HIS 仍把「建立新病歷」列為標準流程。\n\n要建立新的無名病歷，還是沿用已核對的既有紀錄書寫本次評估？'
+            :'HIS 找不到這名男子的有效掛號。\n\n你要直接建立一筆「無名病人」新病歷，還是先核對他的工務吊牌與既有舊掛號？',
+          primaryText:liCharting?'沿用既有紀錄，完成評估紀錄':'先核對身分，不新建病歷',
           secondaryText:'建立無名新病歷',
           systemTrap:this.manager.currentIdentity==='LI'?'secondary':null,
           onPrimary:()=>{
@@ -1115,7 +1123,9 @@ export class IdentityRouteDirector {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
             this.gameState.setFlag('LI_0033_NO_DUPLICATE_RECORD',true);
-            void this.completeBeat();
+            this.uiManager.showDialogue([
+              {speaker:'內心',text:'「現場沒有人。那我把這筆紀錄帶回 316 處理、查終端。」'}
+            ],()=>{void this.completeBeat();});
           },
           onSecondary:()=>{
             this.uiManager.closeStoryChoice(false);
@@ -1172,6 +1182,11 @@ export class IdentityRouteDirector {
         });
         return;
       }
+      if(beat.restDelayMs){
+        this.uiManager.showSubtitle('內心','「先坐一下，把剛才的紀錄整理完。」',Math.max(1600,beat.restDelayMs-400));
+        setTimeout(()=>{if(!this.manager.runSave.runEnded)void this.completeBeat();},beat.restDelayMs);
+        return;
+      }
       void this.completeBeat();
     });
   }
@@ -1194,7 +1209,17 @@ export class IdentityRouteDirector {
       b2_archive: 'B2 封存層'
     };
     let objective;
-    if(this.step==='M6'&&this.awaitingZone==='phantom_6f'){
+    if(this.step==='LI_ER_2005'){
+      objective=this.beatIndex===0?'評估新病人':'到急診電腦書寫紀錄';
+    }else if(this.step==='LI_ER_0033'){
+      objective='查看無名氏異常病歷';
+    }else if(this.step==='LI_316_ARCHIVE'){
+      objective=this.beatIndex===0?'回 316 查舊終端':'接聽 316 電話';
+    }else if(this.step==='LI_3F_EVIDENCE'){
+      const admin=this.gameState.getFlag('ADMIN_OFFICE_ENTERED');
+      const archive=this.gameState.getFlag('ARCHIVE_ROOM_ENTERED');
+      objective=admin&&archive?'回 316 辦公室':!admin?'打開行政辦公室':'打開文史室';
+    }else if(this.step==='M6'&&this.awaitingZone==='phantom_6f'){
       objective='回 4F 值班室；搭乘一般電梯';
     }else if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex>0&&this.beatIndex<6){
       objective='完成 316 交班（可自由操作）：值班簿／HIS 登入卡／HIS 電子交班／1700 值班櫃／正式鑰匙與感應卡';
@@ -1273,8 +1298,13 @@ export class IdentityRouteDirector {
       if(this.step==='LI_2117_PATROL'&&this.beatIndex===this.beats.length-1){
         this.gameState.setFlag('LI_2117_ENV_DRIFT',true);
       }
-      if(this.step==='M5'&&this.beatIndex===0){
+      if(this.step==='M5'&&beat.label==='監視器室回放'){
         this.gameState.setFlag('M5_CCTV_RESOLVED',true);
+      }
+      if(this.step==='LI_316_ARCHIVE'&&this.beatIndex===1){
+        this.gameState.setFlag('SECOND_CAMPUS_ACCESS',true);
+        this.gameState.setFlag('BRIDGE_ACCESS',true);
+        this.gameState.setFlag('SECOND_CAMPUS_OBJECTIVE_ACTIVE',true);
       }
 
       // Compatibility flags let the original physical doors/elevators remain the
@@ -1299,7 +1329,7 @@ export class IdentityRouteDirector {
         this.gameState.setFlag('B2_TERMINAL_CONTACTED', true);
         this.gameState.setFlag('B2_FIRE_RECAP_SEEN', true);
         this.gameState.setFlag('RECORD_OVERWRITE_ACTIVE', true);
-        if(this.manager.currentIdentity==='ZHANG')this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
+        if(['ZHANG','LI'].includes(this.manager.currentIdentity))this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
       }
 
       this.manager.recordEvidence({
@@ -1345,8 +1375,8 @@ export class IdentityRouteDirector {
     if (this.busy || this.manager.runSave.runEnded || this.uiManager.dialogueSequence) return false;
     const binding = this.bindingFor();
     if(binding.evidenceSweep){
-      this.gameState.setFlag('B2_ADMIN_SOURCE',true);
-      this.gameState.setFlag('B2_HISTORY_SOURCE',true);
+      this.gameState.setFlag('ADMIN_OFFICE_ENTERED',true);
+      this.gameState.setFlag('ARCHIVE_ROOM_ENTERED',true);
       this.inspect();
       return true;
     }
