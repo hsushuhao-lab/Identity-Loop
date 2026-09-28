@@ -393,12 +393,27 @@ export class IdentityRouteDirector {
 
     if (step === 'B2') {
       if (index === 0) return { auto: true };
-      if (index === 1) return { id: 'B2_ARCHIVE_TERMINAL', prompt: '啟動 B2 封存驗證終端' };
+      if (index === 1) return {
+        id:'B2_ARCHIVE_TERMINAL',
+        prompt:'使用 B2 封存終端讀取火災紀錄',
+        passthrough:true,
+        completeFlag:'B2_FIRE_RECAP_SEEN'
+      };
     }
 
     if(step==='ZHANG_3F_ARCHIVE'){
-      if(index===0) return { id:'ARCHIVE_HISTORY_PHOTO_WALL', prompt:'查看文史館院史影像牆' };
-      return { id:'ARCHIVE_PERSONNEL_1998', prompt:'翻閱 1998 夜班核心人員名錄' };
+      if(index===0) return {
+        id:'ARCHIVE_HISTORY_PHOTO_WALL',
+        prompt:'查看文史館院史影像牆',
+        passthrough:true,
+        completeFlag:'ARCHIVE_HISTORY_WALL_REVIEWED'
+      };
+      return {
+        id:'ARCHIVE_PERSONNEL_1998',
+        prompt:'翻閱 1998 夜班核心人員名錄',
+        passthrough:true,
+        completeFlag:'HISTORY_PERSONNEL_PROFILES_REVIEWED'
+      };
     }
 
     if (step === 'M8') return { auto: true };
@@ -964,7 +979,8 @@ export class IdentityRouteDirector {
         this.gameState.setFlag('FLOOR6_STETHOSCOPE_INSPECTED', true);
         this.gameState.setFlag('M6_FLOOR6_RESOLVED', true);
       }
-      if (this.step === 'M7' && this.beatIndex === 0) {
+      const m7KeyBeat=this.manager.currentIdentity==='ZHANG'?1:0;
+      if (this.step === 'M7' && this.beatIndex === m7KeyBeat) {
         this.gameState.setFlag('FIRST_FLOOR_GUARD_KEY', true);
         this.gameState.setFlag('HIDDEN_SERVICE_DOOR_DISCOVERED', true);
         this.worldRouter.activeZoneInstance?.syncStoryState?.();
@@ -983,7 +999,7 @@ export class IdentityRouteDirector {
         visibleText: `${beat.label}：${beat.lines.at(-1)}`
       });
 
-      if (this.step === 'B2' && this.beatIndex === 0) {
+      if (this.step === 'B2' && this.beatIndex === 0 && this.manager.currentIdentity!=='ZHANG') {
         this.panel.openB2Archive();
       }
 
