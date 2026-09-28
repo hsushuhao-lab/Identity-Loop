@@ -51,6 +51,23 @@ export class SecondCampus2F {
         buildDeskCluster(this.art,this.gf.materials,{x:x-1,z:-8.7,chairs:2,name:'Second2F_GuardRestDesk'});
         buildSupplyCabinet(this.art,this.gf.materials,{x:x+2.8,z:-9.65,name:'Second2F_GuardRestShelf'});
         asset(this.art,'storageCabinet',[x-3,0,-9.6],[.72,.9,.72]);
+        const vhs=solid(this.art,this.gf.materials.wallDark,[x-.72,.86,-8.56],[.34,.055,.22]);
+        vhs.name='LI_GuardLounge_CCTV_Tape';
+        const tapeLabel=solid(this.art,this.gf.materials.lightWarm,[x-.72,.892,-8.56],[.24,.008,.13]);
+        tapeLabel.name='LI_GuardLounge_CCTV_Tape_Label';
+        const clueHit=new THREE.Mesh(
+          new THREE.BoxGeometry(.78,.62,.72),
+          new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
+        );
+        clueHit.position.set(x-.72,1.02,-8.56);
+        clueHit.userData={
+          interactable:true,
+          id:'LI_GUARD_LOUNGE_CCTV_CLUE',
+          type:'identity_route_context_event',
+          label:'查看警衛桌上的監視錄影帶'
+        };
+        this.zoneGroup.add(clueHit);this.interactables.push(clueHit);
+        this.liGuardLoungeCctvClue=clueHit;
       }else{
         buildDeskCluster(this.art,this.gf.materials,{x:x-1,z:-8.7,chairs:2,name:'Second2F_SecurityControlDesk'});
         buildMonitorWall(this.art,this.gf.materials,{x,z:-10.25,name:'Second2F_CCTVWall'});
