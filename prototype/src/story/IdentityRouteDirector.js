@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
+import { soundManager } from '../audio/SoundManager.js';
 
 const PHOTO_FILES = {
   history_group_1998: 'history-group.png',
@@ -48,7 +49,11 @@ const IDENTITY_STORY_CRITICAL_TYPES = new Set([
   'guard_sign_2117',
   'guard_book_2117',
   'p1_action',
-  'identity_route_context_event'
+  'identity_route_context_event',
+  'credential_drawer_316',
+  'locker_316',
+  'bed33_409_sealed',
+  'bed33_assignment'
 ]);
 
 /**
@@ -226,6 +231,17 @@ export class IdentityRouteDirector {
       return;
     }
 
+    const currentBinding=this.bindingFor();
+    if(
+      currentBinding?.passthrough &&
+      this.bindingCompletionReady(currentBinding) &&
+      !this.busy &&
+      !this.manager.runSave.runEnded
+    ){
+      void this.completeBeat();
+      return;
+    }
+
     if(this.step==='M1'&&!this.awaitingZone){
       const gateState=!this.gameState.getFlag('FOUND_316_SPARE_KEY')
         ? 'GET_KEY'
@@ -268,9 +284,11 @@ export class IdentityRouteDirector {
 
     if (step === 'M1') {
       if(index===0) return { officeEntry:true };
-      if(index===1) return { id:'DUTY_LOG', prompt:'簽署 316 值班簿' };
-      if(index===2) return { type:'workstation', prompt:'核對 316 HIS 值班狀態' };
-      if(index===3) return { id:'KEY_PICKUP', prompt:'拿取正式值班鑰匙與感應卡' };
+      if(index===1) return { id:'DUTY_LOG', prompt:'打開並簽署 316 值班簿', passthrough:true, completeTask:'DUTY_LOG' };
+      if(index===2) return { type:'credential_drawer_316', prompt:'打開活動櫃取得 HIS 登入卡', passthrough:true, completeFlag:'HIS_CREDENTIALS' };
+      if(index===3) return { type:'workstation', prompt:'使用 316 HIS 工作站完成電子交班', passthrough:true, completeTask:'E_HANDOFF' };
+      if(index===4) return { type:'locker_316', prompt:'在電子櫃輸入 1700 解鎖', passthrough:true, completeFlag:'LOCKER_OPENED' };
+      if(index===5) return { id:'KEY_PICKUP', prompt:'從電子櫃內拿取正式值班鑰匙與感應卡', passthrough:true, completeTask:'KEY_PICKUP' };
     }
 
     if (step === 'M2') {
@@ -282,6 +300,12 @@ export class IdentityRouteDirector {
       };
       if (index === 1) return { id: '408C_BED_PLAQUE', prompt: '到 408C 確認敲牆聲' };
       if (index === 2) return { id: 'BED33_409_SEALED', prompt: '確認 409 封閉房與敲擊來源' };
+      if (index === 3) return {
+        id:'BED33_ASSIGNMENT',
+        prompt:'回護理站確認 409-A／Bed 33 臨時床位分配單',
+        passthrough:true,
+        completeFlag:'BED33_RESOLVED'
+      };
     }
 
     if (step === 'M3') {
@@ -424,7 +448,7 @@ export class IdentityRouteDirector {
 
     if(this.worldRouter.activeZoneId==='first_campus_3f'){
       this.worldRouter.activeZoneInstance?.setIdentityDutyItemsVisible?.(
-        this.step==='M1' && this.beatIndex===3
+        this.step==='M1' && this.beatIndex===5 && this.gameState.getFlag('LOCKER_OPENED')
       );
     }
     if(this.worldRouter.activeZoneId==='first_campus_4f'){
@@ -559,10 +583,18 @@ export class IdentityRouteDirector {
       data?.beatIndex === this.beatIndex;
   }
 
+  bindingCompletionReady(binding=this.bindingFor()) {
+    if(binding?.completeTask) return this.gameState.isTaskComplete(binding.completeTask);
+    if(binding?.completeFlag) return this.gameState.getFlag(binding.completeFlag)===true;
+    return false;
+  }
+
   handleInteract(interactable) {
     const data = interactable?.userData || interactable;
     if (!data) return false;
     if (!this.matchesBinding(data)) return false;
+    const binding=this.bindingFor();
+    if(binding?.passthrough) return false;
     if (!this.busy && !this.manager.runSave.runEnded) this.inspect();
     return true;
   }
@@ -570,6 +602,8 @@ export class IdentityRouteDirector {
   allowWorldInteraction(interactable) {
     const data = interactable?.userData || interactable;
     if (NAVIGATION_TYPES.has(data?.type)) return true;
+    const binding=this.bindingFor();
+    if(binding?.passthrough && this.matchesBinding(data)) return true;
     return !IDENTITY_STORY_CRITICAL_TYPES.has(data?.type);
   }
 
@@ -598,6 +632,11 @@ export class IdentityRouteDirector {
       this.gameState.setFlag('PHONE_CALL_KIND',null);
     }
     if (!beat) return;
+    if(beat.knock409){
+      void soundManager.ensureRunning().then(ready=>{
+        if(ready)soundManager.playBed33KnockPattern(.16);
+      });
+    }
     document.exitPointerLock?.();
     this.controller.enabled = false;
 
@@ -725,12 +764,14 @@ export class IdentityRouteDirector {
         );
       }
 
-      if(this.step==='M1'&&this.beatIndex===1){
-        if(!this.gameState.isTaskComplete('DUTY_LOG'))this.gameState.markTaskComplete('DUTY_LOG');
+      if(this.step==='M2'&&this.beatIndex===0){
+        if(!this.gameState.isTaskComplete('P1_4F_REPORT'))this.gameState.markTaskComplete('P1_4F_REPORT');
       }
-      if(this.step==='M1'&&this.beatIndex===2){
-        this.gameState.setFlag('HIS_CREDENTIALS',true);
-        if(!this.gameState.isTaskComplete('HIS_CREDENTIALS_FOUND'))this.gameState.markTaskComplete('HIS_CREDENTIALS_FOUND');
+      if(this.step==='M2'&&this.beatIndex===1){
+        if(!this.gameState.isTaskComplete('P1_NORMAL_EVENT_DONE'))this.gameState.markTaskComplete('P1_NORMAL_EVENT_DONE');
+      }
+      if(this.step==='M2'&&this.beatIndex===2){
+        this.gameState.setFlag('FOURF_409_SEAL_CHECKED_AFTER_408C',true);
       }
       if(this.step==='M4'&&this.beatIndex===this.beats.length-1){
         this.gameState.setFlag('M4_CHEST_RESOLVED',true);
