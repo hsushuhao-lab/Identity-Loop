@@ -526,7 +526,7 @@ export class WardFloorplan {
     // The treatment order sits on the second-campus nursing-station workstation, not in mid-air.
     const form=solid(this.zoneGroup,m.lightWarm,[o-1.28,.829,-2.18],[.42,.018,.30]);
     form.name='SecondCampus_ChestTreatmentOrder';
-    form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看 409-A 轉送醫囑單'};
+    form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看 409-A 醫囑單'};
     this.secondCampusTreatmentOrder=form;
     this.interactables.push(form);
 
@@ -558,7 +558,7 @@ export class WardFloorplan {
     }
     if(this.secondCampusTreatmentOrder){
       const seen=gameState.getFlag('SECOND_CHEST_PATIENT_SEEN')===true;
-      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看 409-A 轉送醫囑單':'查看 409-A 轉送醫囑單';
+      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看 409-A 醫囑單':'查看 409-A 醫囑單';
     }
     if(this.chenLockbox){
       const opened=gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')===true;
