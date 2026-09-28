@@ -250,7 +250,9 @@ function trigger409PostSealKnock(){
 }
 
 uiManager.setBed33Handlers({
-  onConfirm:()=>loopManager.triggerBed33Override(),
+  onConfirm:()=>identityLoopMode
+    ? identityRouteDirector.triggerPatientization('M2_BED33_APPROVAL_PATIENTIZATION')
+    : loopManager.triggerBed33Override(),
   onDefer:()=>uiManager.showSubtitle('值班醫師','「先別簽。床位板、HIS 和 409 的狀態對不起來。」',3200),
   onReject:()=>{
     legendState.resolve('LEGEND_BED33');
@@ -1154,7 +1156,13 @@ controller.onInteract = async (interactable) => {
             persistentMemory.addJournalNote('ARCHIVE_HISTORY_WALL_REVIEWED','已核對文史館院史影像牆；下一步查看 1998 夜班核心人員名錄。');
             uiManager.updateTasks();
           }
-        : null;
+        : interactable.id==='SECOND_GUARD_PHOTO_ALBUM'
+          ? ()=>{
+              gameState.setFlag('ZHANG_GUARD_ALBUM_REVIEWED',true);
+              persistentMemory.addJournalNote('ZHANG_GUARD_ALBUM_REVIEWED','已翻閱第二院區警衛台舊相簿：捲袖白袍、黑咖啡與 2F 監控室提示。');
+              uiManager.updateTasks();
+            }
+          : null;
     uiManager.openArchiveDocument({title:interactable.documentTitle,pages:interactable.pages,onComplete:archiveComplete});
     gameState.addEvidence(1);
     if(interactable.id?.startsWith('ADMIN_'))gameState.setFlag('B2_ADMIN_SOURCE',true);
