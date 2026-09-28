@@ -61,14 +61,14 @@ for(const [step,data] of Object.entries(ROUTE_STEPS)){
 assert.equal(ROUTE_STEPS.M1.spawn,'m0_316_entrance');
 assert.equal(WORLD_SPAWNS[ROUTE_STEPS.M1.spawn].name,'316 總醫師室門口');
 const routeDirectorSource=readFileSync(new URL('./src/story/IdentityRouteDirector.js',import.meta.url),'utf8');
-assert.match(routeDirectorSource,/return \{ officeEntry: true \}/);
+assert.match(routeDirectorSource,/if\(index===0\) return \{ officeEntry:true \}/);
 assert.match(routeDirectorSource,/this\.gameState\.getFlag\('OPENED_316'\)/);
 assert.match(routeDirectorSource,/p\.x>3\.2&&p\.x<10\.8&&p\.z>2\.8&&p\.z<8\.2/);
 assert.match(routeDirectorSource,/取得 316 備援鑰匙/);
-assert.match(routeDirectorSource,/走進 316 辦公室，完成交接班/);
+assert.match(routeDirectorSource,/走進 316 辦公室，開始正式交班/);
 const mainSourceFor316=readFileSync(new URL('./src/main.js',import.meta.url),'utf8');
 assert.match(mainSourceFor316,/identityLoopMode[\s\S]*門開了。進去 316，完成今晚的交接。/);
-console.log('PASS M1 regression: starts outside locked 316, uses real spare-key/door flow, completes on physical entry');
+console.log('PASS M1 regression: starts outside locked 316; physical entry starts handoff, which completes only after log/HIS/key-card');
 
 const guardSource=readFileSync(new URL('./src/world/zones/FirstCampus1F.js',import.meta.url),'utf8');
 assert.match(guardSource,/reflectionFrame\.position\.set\(-10\.72,1\.92,7\.76\)/);
