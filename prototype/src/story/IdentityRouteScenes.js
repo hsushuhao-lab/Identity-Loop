@@ -132,7 +132,7 @@ export function getIdentityRouteScene(step, identity) {
         {speaker:'值班醫師',text:'「先不要再建新病歷。把 1998-ER-0217 這張掛號聯印給我。」'},
         {speaker:'急診護理師',text:'「系統註記寫著：ARCHIVE LOOKUP／316 LEGACY CLIENT。」'},
         {speaker:'值班醫師',text:'「316 有舊資料終端。我把這張帶回三樓查。」'}
-      ], '帶著 1998-ER-0217 掛號聯回 316'),
+      ], '帶著 1998-ER-0217 掛號聯回 316', { flag:'ER0033_SLIP_COLLECTED' }),
       event('316 舊紀錄索引', [
         {speaker:'316 舊資料終端',text:'「ARCHIVE CLIENT READY｜1998-ER-0217」'},
         {speaker:'內心',text:'急診留下的掛號聯和舊終端終於對上。這不是要我來三樓查一般 HIS，而是查封存索引。'}
