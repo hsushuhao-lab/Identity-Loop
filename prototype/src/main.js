@@ -843,15 +843,20 @@ controller.onInteract = async (interactable) => {
       worldRouter.activeZoneId==='first_campus_4f' &&
       gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED') &&
       /^room_40[1-8]$/.test(interactable.doorId||'');
-    if (!gameState.isTaskComplete('KEY_PICKUP') && !borrowedWardSpareKey) {
+    const borrowedSecondConsultKey=
+      identityLoopMode &&
+      worldRouter.activeZoneId==='second_campus_5f' &&
+      gameState.getFlag('SECOND_5F_CONSULT_KEY_BORROWED') &&
+      interactable.doorId==='room_504';
+    if (!gameState.isTaskComplete('KEY_PICKUP') && !borrowedWardSpareKey && !borrowedSecondConsultKey) {
       soundManager.playClick();
-      uiManager.showSubtitle(
-        '值班醫師',
-        identityLoopMode&&worldRouter.activeZoneId==='first_campus_4f'
-          ? '「病房門是傳統喇叭鎖。先回護理站借查房用的備用鑰匙。」'
-          : '「這是傳統喇叭鎖，先去 316 拿值班室鑰匙與感應卡。」',
-        3000
-      );
+      let lockLine='「這是傳統喇叭鎖，先去 316 拿值班室鑰匙與感應卡。」';
+      if(identityLoopMode&&worldRouter.activeZoneId==='first_campus_4f'){
+        lockLine='「病房門是傳統喇叭鎖。先回護理站借查房用的備用鑰匙。」';
+      }else if(identityLoopMode&&worldRouter.activeZoneId==='second_campus_5f'&&interactable.doorId==='room_504'){
+        lockLine='「504 病房門鎖著。先回護理站借這次會診用的備用鑰匙。」';
+      }
+      uiManager.showSubtitle('值班醫師',lockLine,3000);
       return;
     }
     const zone=worldRouter.activeZoneInstance;
