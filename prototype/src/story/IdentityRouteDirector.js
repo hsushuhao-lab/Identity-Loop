@@ -204,6 +204,7 @@ export class IdentityRouteDirector {
     // office door, and completes handoff only after physically crossing inside.
     if (
       this.step === 'M1' &&
+      this.beatIndex === 0 &&
       !this.m1EntryTriggered &&
       !this.busy &&
       this.controller.enabled &&
@@ -227,9 +228,10 @@ export class IdentityRouteDirector {
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
     if (step === 'M1') {
-      // No artificial M1 interaction target. The player must use the real 3F
-      // checkpoint key and 316 door; crossing into the office completes handoff.
-      return { officeEntry: true };
+      if(index===0) return { officeEntry:true };
+      if(index===1) return { id:'DUTY_LOG', prompt:'簽署 316 值班簿' };
+      if(index===2) return { type:'workstation', prompt:'核對 316 HIS 值班狀態' };
+      if(index===3) return { id:'KEY_PICKUP', prompt:'拿取正式值班鑰匙與感應卡' };
     }
 
     if (step === 'M2') {
@@ -264,6 +266,7 @@ export class IdentityRouteDirector {
           ? '回護理站歸還會診備用鑰匙'
           : '回護理站交代 504B 處置'
       };
+      if(index===4) return { auto:true };
     }
 
     if (step === 'ZHANG_SECOND_CAMPUS_SECURITY') {
@@ -380,6 +383,11 @@ export class IdentityRouteDirector {
 
     this.awaitingZone = null;
 
+    if(this.worldRouter.activeZoneId==='first_campus_3f'){
+      this.worldRouter.activeZoneInstance?.setIdentityDutyItemsVisible?.(
+        this.step==='M1' && this.beatIndex===3
+      );
+    }
     if(this.worldRouter.activeZoneId==='first_campus_4f'){
       this.worldRouter.activeZoneInstance?.setIdentityWardSpareKeyBorrowed?.(
         this.gameState.getFlag('ZHANG_4F_SPARE_KEY_BORROWED')
@@ -554,6 +562,36 @@ export class IdentityRouteDirector {
     this.controller.enabled = false;
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
+      if(beat.bridgeChoice){
+        this.uiManager.openStoryChoice({
+          title:'空中天橋｜安妮',
+          body:'玻璃倒影裡的白袍女人停在你身後。她低聲叫你回頭。\n\n回頭確認她是誰，還是忍住不回頭繼續走？',
+          primaryText:'回頭',
+          secondaryText:'不要回頭，繼續走',
+          onPrimary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('BRIDGE_LOOKBACK_FAILURE',true);
+            this.uiManager.showDialogue([
+              {speaker:'安妮',text:'「抓到了。」'},
+              {speaker:'現場',text:'病床輪子的聲音從身後逼近。白色腕帶扣上手腕：409-A。'}
+            ],()=>{
+              this.onEnding({type:'BAD_END',reason:'BRIDGE_LOOKBACK_PATIENTIZATION'});
+            });
+          },
+          onSecondary:()=>{
+            this.uiManager.closeStoryChoice(false);
+            this.gameState.setFlag('M5_BRIDGE_RESOLVED',true);
+            this.gameState.setFlag('M5_BRIDGE_COMMITTED',true);
+            this.gameState.setFlag('M5_ROUTE_CHOICE_RESOLVED',true);
+            this.gameState.setFlag('BRIDGE_NO_LOOKBACK_RULE_ACTIVE',true);
+            this.worldRouter.activeZoneInstance?.armManualNoLookbackRule?.();
+            this.uiManager.showDialogue([
+              {speaker:'值班醫師',text:'「不要回頭。一直走到天橋另一端。」'}
+            ],()=>{ void this.completeBeat(); });
+          }
+        });
+        return;
+      }
       if (beat.puzzle) {
         this.uiManager.openStoryChoice({
           title: 'B-Panel 備援控制',
@@ -597,10 +635,10 @@ export class IdentityRouteDirector {
       b2_archive: 'B2 封存層'
     };
     let objective;
-    if(this.step==='M1'&&!this.awaitingZone){
+    if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex===0){
       if(!this.gameState.getFlag('FOUND_316_SPARE_KEY')) objective='前往三樓警衛查哨點，取得 316 備援鑰匙';
       else if(!this.gameState.getFlag('OPENED_316')) objective='回到 316 門口，用備援鑰匙開門';
-      else objective='走進 316 辦公室，完成交接班';
+      else objective='走進 316 辦公室，開始正式交班';
     }else{
       objective = this.awaitingZone
         ? `前往${zoneLabels[this.awaitingZone] || '下一個區域'}｜${beat.review || beat.label || ROUTE_STEPS[this.step].label}`
@@ -644,6 +682,20 @@ export class IdentityRouteDirector {
         );
       }
 
+      if(this.step==='M1'&&this.beatIndex===1){
+        if(!this.gameState.isTaskComplete('DUTY_LOG'))this.gameState.markTaskComplete('DUTY_LOG');
+      }
+      if(this.step==='M1'&&this.beatIndex===2){
+        this.gameState.setFlag('HIS_CREDENTIALS',true);
+        if(!this.gameState.isTaskComplete('HIS_CREDENTIALS_FOUND'))this.gameState.markTaskComplete('HIS_CREDENTIALS_FOUND');
+      }
+      if(this.step==='M4'&&this.beatIndex===this.beats.length-1){
+        this.gameState.setFlag('M4_CHEST_RESOLVED',true);
+      }
+      if(this.step==='M5'&&this.beatIndex===0){
+        this.gameState.setFlag('M5_CCTV_RESOLVED',true);
+      }
+
       // Compatibility flags let the original physical doors/elevators remain the
       // actual traversal mechanism while V2 owns the narrative state.
       if (this.step === 'M6' && this.beatIndex === this.beats.length - 1) {
@@ -677,7 +729,10 @@ export class IdentityRouteDirector {
         this.beatIndex += 1;
         await this.placeBeat({ forceLoad: false });
       } else {
-        if(this.step==='M1') this.ensureIdentityDutyAccess();
+        if(this.step==='M1'){
+          this.ensureIdentityDutyAccess();
+          this.worldRouter.activeZoneInstance?.setIdentityDutyItemsVisible?.(false);
+        }
         const nextStep = this.manager.route[this.manager.route.indexOf(this.step) + 1];
         if (!this.manager.completeRouteStep(this.step)) throw new Error('Route completion rejected');
         if (nextStep) await this.loadCurrentStep({ forceLoad: false });
