@@ -4,7 +4,7 @@ import {IDENTITY_ROUTES,ROUTE_STEPS} from './src/story/IdentityRoutes.js';
 import {buildVictimMap} from './src/story/B2FireRecapDirector.js';
 
 assert.deepEqual(IDENTITY_ROUTES.CHEN,[
-  'CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','CHEN_M8_DISPATCH','M9'
+  'CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','CHEN_1F_TRANSIT_LOG','M3','CHEN_2F_HANDOFF_RECEIPT','CHEN_4F_DESTINATION_CHECK','CHEN_3F_ROUTE_RECONCILE','M6','M7','B2','CHEN_M8_DISPATCH','M9'
 ]);
 assert.equal(ROUTE_STEPS.CHEN_M8_DISPATCH.zoneId,'b1_dispatch_hub');
 assert.equal(ROUTE_STEPS.CHEN_M8_DISPATCH.spawn,'chen_b1_dispatch');

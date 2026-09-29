@@ -13,6 +13,7 @@ export const IDENTITY_PROFILES=Object.freeze({
 
 export const IDENTITY_STORAGE_KEY='IdentyLoop_IdentityState_v1';
 const IDENTITIES=Object.freeze(Object.values(IdentityEnum));
+const CHEN_PRE15_ROUTE=Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','CHEN_M8_DISPATCH','M9']);
 const clone=value=>JSON.parse(JSON.stringify(value));
 const freshMeta=()=>({completedGoodEnds:[],identityBag:[],m10Unlocked:false});
 const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,runEnded:false,b2Entered:false,runSeed:null});
@@ -45,10 +46,18 @@ export class IdentityManager{
     if(parsed.version!==2){
       runSave=runSave.runEnded?{...runSave,currentRouteStep:IDENTITY_ROUTES[runSave.currentIdentity]?.length||0,completedStoryModules:[]}:{...freshRun(),currentIdentity:validIdentity(runSave.currentIdentity)?runSave.currentIdentity:null};
     }
+    const migrateChen=parsed.version===2&&runSave.currentIdentity==='CHEN'&&runSave.chenRouteRevision!==1;
+    if(migrateChen){
+      const previousStep=CHEN_PRE15_ROUTE[runSave.currentRouteStep];
+      runSave.currentRouteStep=runSave.runEnded?IDENTITY_ROUTES.CHEN.length:Math.max(0,IDENTITY_ROUTES.CHEN.indexOf(previousStep));
+      // Preserve evidence/completed modules. Inserted past tasks are NOT fabricated as completed.
+      runSave.chenRouteRevision=1;
+    }
+    if(runSave.currentIdentity==='CHEN')runSave.chenRouteRevision=1;
     if(runSave.currentIdentity&&runSave.runSeed==null){runSave.runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;}
     runSave.currentMilestone=IDENTITY_ROUTES[runSave.currentIdentity]?.[runSave.currentRouteStep]||(runSave.runEnded?'M9':metaSave.m10Unlocked?'M10':null);
     const state={version:2,metaSave,runSave};
-    if(parsed.version!==2||parsed.runSave?.runSeed==null)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
+    if(parsed.version!==2||parsed.runSave?.runSeed==null||migrateChen)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
     return state;
   }
 
@@ -69,7 +78,7 @@ export class IdentityManager{
     const currentIdentity=forceIdentity||this.drawIdentity();
     if(!validIdentity(currentIdentity))throw new Error('Unknown identity seed');
     const runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;
-    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed};
+    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed,...(currentIdentity==='CHEN'?{chenRouteRevision:1}:{})};
     return this.save();
   }
 

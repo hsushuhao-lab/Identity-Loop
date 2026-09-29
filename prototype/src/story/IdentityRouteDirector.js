@@ -439,6 +439,21 @@ export class IdentityRouteDirector {
       : { auto: true };
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
+    if(identity==='CHEN'){
+      if(step==='CHEN_1F_TRANSIT_LOG') return index===0
+        ? {id:'OLD_GUARD_POST',prompt:'核對警衛台跨院出入簿'}
+        : {id:'IDENTITY_GUARD_PHONE',prompt:'接聽警衛台急診來電'};
+      if(step==='CHEN_2F_HANDOFF_RECEIPT') return index===0
+        ? {id:'ER_GHOST_REGISTRATION',prompt:'核對急診原始存根'}
+        : {id:'ER_DOCTOR_CHARTING',prompt:'補寫原始流水號的交接回執'};
+      if(step==='CHEN_4F_DESTINATION_CHECK') return index===0
+        ? {id:'BED33_409_SEALED',prompt:'在 409 門外確認目的地'}
+        : {id:'IDENTITY_4F_NURSE_STATION',prompt:'向護理站確認接收狀態'};
+      if(step==='CHEN_3F_ROUTE_RECONCILE') return index===0
+        ? {id:'GUARD_SIGN_2117',prompt:'核對三樓收件聯的時間'}
+        : {type:'legacy_terminal_316',prompt:'在 316 留下四份來源的轉送鏈對照'};
+    }
+
     if (step === 'M1') {
       if(index===0) return { officeEntry:true };
       if(index===1) return { id:'DUTY_LOG', prompt:'打開並簽署 316 值班簿', passthrough:true, completeTask:'DUTY_LOG' };
@@ -720,6 +735,12 @@ export class IdentityRouteDirector {
       );
     }
 
+    if(this.step==='CHEN_1F_TRANSIT_LOG'&&this.beatIndex===1){
+      this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_CHEN_ER');
+      this.gameState.setFlag('PHONE_ANSWERED',false);
+      this.gameState.setFlag('PHONE_RING_ACTIVE',true);
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.startPhoneRing();});
+    }
     if(this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1){
       this.gameState.setFlag('PHONE_CALL_KIND','IDENTITY_ZHOU_ER');
       this.gameState.setFlag('PHONE_ANSWERED',false);
@@ -1094,6 +1115,7 @@ export class IdentityRouteDirector {
     if (this.busy || this.manager.runSave.runEnded) return;
     const beat = this.beats[this.beatIndex];
     if(
+      (this.step==='CHEN_1F_TRANSIT_LOG'&&this.beatIndex===1) ||
       (this.step==='ZHOU_SECURITY_TALK'&&this.beatIndex===1) ||
       (this.step==='M1'&&['ZHANG','LI'].includes(this.manager.currentIdentity)&&this.beatIndex===6) ||
       (this.step==='M5'&&this.manager.currentIdentity==='ZHANG'&&this.beatIndex===1) ||
@@ -1275,6 +1297,30 @@ export class IdentityRouteDirector {
           this.gameState.setFlag('CHEN_WHEELCHAIR_MOTOR_MEMORY',true);
           persistentMemory.addJournalNote('CHEN_WHEELCHAIR_MEMORY','老舊輪椅左前輪偏軸；跨過地面接縫時固定發出三聲喀啦。');
           void this.completeBeat();
+        });
+        return;
+      }
+      if(beat.chenCrosscheck){
+        const review=beat.chenCrosscheck;
+        let submitted=false;
+        this.uiManager.openStoryChoice({
+          title:review.title,body:review.body,primaryText:review.primary,secondaryText:review.secondary,
+          onPrimary:()=>{
+            if(submitted)return;
+            submitted=true;
+            this.uiManager.closeStoryChoice(false);
+            persistentMemory.addJournalNote(beat.flag,review.note);
+            this.uiManager.showDialogue([{speaker:'內心',text:review.note}],()=>{void this.completeBeat();});
+          },
+          onSecondary:()=>{
+            if(submitted)return;
+            submitted=true;
+            this.uiManager.closeStoryChoice(false);
+            this.uiManager.showDialogue([{speaker:'內心',text:review.retry}],()=>{
+              this.controller.enabled=true;
+              this.renderObjective();
+            });
+          }
         });
         return;
       }
