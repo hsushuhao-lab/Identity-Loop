@@ -439,6 +439,18 @@ export class IdentityRouteDirector {
       : { auto: true };
     if (step === 'CHEN_OPEN_SKYBRIDGE') return { auto: true };
 
+    if(identity==='ZHANG'){
+      if(step==='ZHANG_2F_PRESENCE_CHECK') return index===0
+        ? {id:'ER_NURSE_COMPUTERS',prompt:'核對急診兩次現場紀錄'}
+        : {id:'ER_DOCTOR_CHARTING',prompt:'分列床邊評估與空床紀錄'};
+      if(step==='ZHANG_4F_WITNESS_RETURN') return index===0
+        ? {id:'408C_BED_PLAQUE',prompt:'回訪 408C，聽完原話'}
+        : {id:'IDENTITY_4F_NURSE_STATION',prompt:'留下原話與查核狀態'};
+      if(step==='ZHANG_3F_OBSERVATION_RECORD') return index===0
+        ? {id:'DUTY_LOG',prompt:'整理值班簿中的親見與轉述'}
+        : {type:'legacy_terminal_316',prompt:'完成未確認事項交班'};
+    }
+
     if(identity==='CHEN'){
       if(step==='CHEN_1F_TRANSIT_LOG') return index===0
         ? {id:'OLD_GUARD_POST',prompt:'核對警衛台跨院出入簿'}
@@ -1300,8 +1312,8 @@ export class IdentityRouteDirector {
         });
         return;
       }
-      if(beat.chenCrosscheck){
-        const review=beat.chenCrosscheck;
+      if(beat.chenCrosscheck||beat.zhangCareReview){
+        const review=beat.chenCrosscheck||beat.zhangCareReview;
         let submitted=false;
         this.uiManager.openStoryChoice({
           title:review.title,body:review.body,primaryText:review.primary,secondaryText:review.secondary,

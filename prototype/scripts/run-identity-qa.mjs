@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 const tests=[
   'test_identity_routes_qa.js',
   'test_chen_fifteen_steps_qa.js',
+  'test_zhang_sixteen_steps_qa.js',
   'test_identity_m6_cg_qa.js',
   'test_shared_media_qa.js',
   'test_annie_route_seed_qa.js','test_identity_route_audio_qa.js',
