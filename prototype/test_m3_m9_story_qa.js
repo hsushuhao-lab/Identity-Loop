@@ -47,7 +47,7 @@ const second2f=readFileSync('./src/world/zones/SecondCampus2F.js','utf8');
 assert(!second2f.includes("Doorway.build({scene:this.zoneGroup,colliders:this.colliders,x:72,z:4.5"),'second-campus 2F elevator-front doorway must remain removed');
 assert(ward.includes("label:'查看醫囑單'"),'M4 desk paper must use the medical-order runtime contract');
 assert(main.includes("SECOND_CAMPUS_5F_REPORTED")&&main.includes('門禁看到你的刷卡紀錄了，算報到完成')&&main.includes('李承禮醫師？我剛剛也有這張醫囑單嗎？'),'M4 must use automatic ward-door report wording plus protagonist Li-identity misdirection');
-assert(main.includes("LEGEND 03 — 事先填妥的 409-A 醫囑")&&main.includes("M4_CHEST_RESOLVED")&&main.includes("second_chest_roster_clue"),'M4 clinical/admin-horror decision flow or physical clue missing');
+assert(main.includes("LEGEND 03 — 事先填妥的醫囑單")&&main.includes("M4_CHEST_RESOLVED")&&main.includes("second_chest_roster_clue"),'M4 clinical/admin-horror decision flow or physical clue missing');
 
 assert(bridge.includes("type:'bridge_loop_event'")&&main.includes("LEGEND 04 — 不能回頭的天橋"),'M5 bridge legend missing');
 assert(main.includes("frag_givenName_2','恆'"),'M5 true-name fragment missing');

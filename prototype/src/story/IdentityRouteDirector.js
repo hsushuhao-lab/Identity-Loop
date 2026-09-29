@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { playIdentityM6Memory } from './IdentityM6Memories.js';
+import {playElevatorGlimpse} from './ElevatorGlimpseScene.js';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
@@ -536,20 +537,20 @@ export class IdentityRouteDirector {
       if (index === 0) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
-          ? '按下 5F 護理站對講機，借會診備用鑰匙'
-          : '按下 5F 護理站對講機完成聯絡報到'
+          ? '使用 5F 護理站電腦，借會診備用鑰匙'
+          : '使用 5F 護理站電腦完成聯絡報到'
       };
       if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
       if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看醫囑單' };
       if (index === 3) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
-          ? '回 5F 護理站對講機聯絡護理師並歸還會診備用鑰匙'
-          : '回 5F 護理站對講機回報 504B 處置'
+          ? '回 5F 護理站電腦交班並歸還會診備用鑰匙'
+          : '回 5F 護理站電腦回報 504B 處置'
       };
       if(identity==='CHEN'){
         if(index===4) return { id:'CHEN_5042_LOCKBOX', prompt:'進入 5F 值班室，查看桌下私人金屬保險箱' };
-        if(index===5) return { id:'CHEN_GREY_BADGE', prompt:'檢查保險箱內的灰滾邊跨院支援識別證' };
+        if(index===5) return { id:'CHEN_GREY_BADGE', prompt:'拿取保險箱內的識別證' };
         if(index===6) return { id:'CHEN_5F_DUTY_PHONE', prompt:'接聽正在響的 5F 值班室電話' };
         if(index===7) return { id:'CHEN_WHEELCHAIR', prompt:'推開擋住通往電梯路線的舊輪椅' };
         if(index===8) return { auto:true };
@@ -906,6 +907,7 @@ export class IdentityRouteDirector {
   matchesBinding(data) {
     const binding = this.bindingFor();
     if (binding.id && data?.id === binding.id) return true;
+    if (binding.id==='BED33_409_SEALED'&&data?.doorId==='room_409') return true;
     if (binding.type && data?.type === binding.type) return true;
     return data?.type === 'identity_route_context_event' &&
       data?.step === this.step &&
@@ -921,7 +923,13 @@ export class IdentityRouteDirector {
   handleInteract(interactable) {
     const data = interactable?.userData || interactable;
     if (!data) return false;
-    if (!this.matchesBinding(data)) return false;
+    if (!this.matchesBinding(data)) {
+      if(data.id==='IDENTITY_SECOND_2F_CCTV_PHONE'){
+        this.uiManager.showSubtitle('電話','話筒裡傳來低低的撥號音。目前沒有新的通知。',2600);
+        return true;
+      }
+      return false;
+    }
     const binding=this.bindingFor();
     if(binding?.passthrough) return false;
     if (!this.busy && !this.manager.runSave.runEnded) this.inspect();
@@ -1156,9 +1164,9 @@ export class IdentityRouteDirector {
     if(activeBinding?.id==='IDENTITY_4F_NURSE_STATION'){
       void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playComputerBeep();});
     }else if(activeBinding?.id==='IDENTITY_SECOND_5F_NURSE_STATION'){
-      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playIntercomBurst();});
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playComputerBeep();});
     }
-    if(beat.knock409){
+    if(beat.knock409||beat.furiousKnock){
       void soundManager.ensureRunning().then(ready=>{
         if(!ready)return;
         if(this.manager.currentIdentity==='LI')soundManager.playFuriousWallKnockPattern(.16);
@@ -1177,26 +1185,13 @@ export class IdentityRouteDirector {
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
       if(beat.glimpse6f){
-        void soundManager.ensureRunning().then(ready=>{
-          if(!ready)return;
-          soundManager.playElevatorCableScrape();
-          setTimeout(()=>soundManager.playAmbuBagBurst(),260);
-        });
-        document.body.classList.add('his-flicker');
-        setTimeout(()=>document.body.classList.remove('his-flicker'),420);
-        const sequence={
-          id:'IDENTITY_6F_GLIMPSE',
-          title:'3F → 8F 電梯｜6F 一閃',
-          mode:'CCTV',
-          source:'ELEVATOR MEMORY / TRANSIENT FRAME',
-          frames:[
-            {stamp:'05 → 06',title:'樓層顯示停頓',caption:'數字「6」比其他樓層多停了不到一秒；指示燈由綠色短暫跳成紫色。',narration:'鋼索傳來刺耳摩擦聲。電梯沒有正式停靠，門縫卻像被撬開一線。'},
-            {stamp:'06 / 0.4 SEC',title:'臨床技能中心',caption:'褪色門牌、CPR 人偶、教學床架；門縫裡傳來兩下 Ambu Bag 般的「噗嗤——噗嗤——」。',narration:'這不是病房。像是一間早就停用的臨床技能訓練中心。'},
-            {stamp:'06 / 0.7 SEC',title:'白袍背影',caption:'畫面最深處有一個背對電梯的人影。',narration:'還沒看清楚，門就重新合上。'},
-            {stamp:'07 → 08',title:'電梯恢復',caption:'樓層顯示恢復正常。',narration:'八樓到了。……我們醫院有 6 樓嗎？剛才那一幕像從沒發生。'}
-          ]
-        };
-        this.playAutoMemorySequence(sequence,()=>{void this.completeBeat();},{interval:720,hold:650});
+        const finish=()=>{void this.completeBeat();};
+        // Normal elevator travel already shows this shot. Never replay it as an
+        // explanatory slideshow when the player reaches the landing.
+        if(this.gameState.getFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED')){finish();return;}
+        void playElevatorGlimpse(document.body).then(()=>{
+          this.gameState.setFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED',true);
+        }).catch(error=>{console.warn('[glimpse] playback unavailable',error);}).finally(finish);
         return;
       }
       if(beat.cctvCg){
@@ -1351,7 +1346,7 @@ export class IdentityRouteDirector {
       }
       if(beat.chenTransportChoice){
         this.uiManager.openStoryChoice({
-          title:'第一院區 2F 急診｜交接單據',
+          title:'第一院區 2F 急診｜醫囑單',
           body:'傳真機吐出一張已經填好的「無名男性留觀個案 → 既定病區」醫囑單。\n\n要扣留這張來源可疑的單據，還是順著既有流程簽署？',
           primaryText:'扣留單據，拒絕盲從',
           secondaryText:'簽署交接，送入既定病區',

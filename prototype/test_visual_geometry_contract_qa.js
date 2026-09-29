@@ -114,7 +114,8 @@ zone=router.loadZone('second_campus_5f');
 const transfer=zone.zoneGroup.getObjectByName('SecondCampus_ChestTreatmentOrder');
 assert(transfer,'Second-campus 409-A treatment order missing');
 assert.equal(transfer.userData.id,'SECOND_CHEST_TRANSFER','Second-campus treatment order must preserve the story interaction id');
-assert(Math.abs(new THREE.Box3().setFromObject(transfer).min.y-.82)<.005,'Second-campus treatment order must sit on workstation surface');
+const orderDesk=zone.workstations.find(w=>w.id==='second_station_B').desk;
+assert(Math.abs(new THREE.Box3().setFromObject(transfer).min.y-new THREE.Box3().setFromObject(orderDesk).max.y)<.005,'Second-campus treatment order must sit on the loaded workstation surface');
 
 const signAnchor=readFileSync('./src/world/shared/SignAnchor.js','utf8');
 assert(signAnchor.includes("header = '青嶺醫療中心 ｜ 臨床醫療區'"),'Default room signage must use the fictional Qingling name');

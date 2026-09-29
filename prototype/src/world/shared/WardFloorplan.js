@@ -1,3 +1,5 @@
+import { buildFirstDutyBathroom } from './FirstDutyBathroom.js';
+import { buildSecondDutyBathroom } from './SecondDutyBathroom.js';
 import { isIdentityRouteMode } from '../../story/IdentityPrivacy.js';
 import { SHARED_PHOTOS } from '../../story/SharedMedia.js';
 import { drawSharedPhoto, preloadSharedPhoto, MEDIA_FRAME_COLOR } from '../../art/SharedMediaArt.js';
@@ -223,49 +225,7 @@ export class WardFloorplan {
     this.gf.buildCeiling(this.zoneGroup,-12.75,3.2,3.6,2.5,3.2);
     this.dutyBathroomDoor=new KeyedKnobDoor(this,{id:'duty_bathroom',x:-11.5,z:4.0,yaw:Math.PI/2,width:1.1,title:'值班室洗手間',openDirection:1});
     this.dutyBathroomDoor.setClosed(true);
-    // Toilet with cistern and seat.
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-13.25,.34,4.05],[.58,.68,.78]);
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-13.25,.73,4.36],[.50,.52,.20]);
-    solid(this.zoneGroup,this.gf.materials.stainless,[-13.25,.74,4.23],[.34,.035,.32]);
-
-    // Compact sink/vanity against the south wall.
-    solid(this.zoneGroup,this.gf.materials.wall,[-12.35,.42,2.55],[.78,.78,.46]);
-    solid(this.zoneGroup,this.gf.materials.stainless,[-12.35,.84,2.55],[.84,.08,.50]);
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-12.35,.88,2.55],[.48,.10,.30]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-12.35,1.05,2.48],[.05,.28,.05]);
-
-    // Wall-mounted mirror, towel rail and floor drain.
-    solid(this.zoneGroup,this.gf.materials.glass,[-12.35,1.65,2.20],[.78,.82,.025]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-13.35,1.20,2.35],[.48,.05,.05]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-12.8,.015,4.65],[.22,.03,.22]);
-
-    // Refined tile wainscot and framed mirror; geometry stays inside the existing bathroom bounds.
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-13.88,1.02,3.62],[.025,1.98,2.90]);
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-12.75,1.02,2.12],[2.20,1.98,.025]);
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-12.75,1.02,5.08],[2.20,1.98,.025]);
-    for(const yy of [.52,1.02,1.52])solid(this.zoneGroup,this.gf.materials.wallBumper,[-13.865,yy,3.62],[.012,.018,2.86],.001);
-    solid(this.zoneGroup,this.gf.materials.metal,[-12.35,2.08,2.185],[.86,.035,.04]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-12.35,1.22,2.185],[.86,.035,.04]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-12.79,1.65,2.185],[.035,.86,.04]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-11.91,1.65,2.185],[.035,.86,.04]);
-    solid(this.zoneGroup,this.gf.materials.bedSheet,[-11.93,1.24,2.18],[.18,.28,.12]);
-    solid(this.zoneGroup,this.gf.materials.metal,[-13.86,.95,3.28],[.06,.08,.42]);
-    const paper=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.28,20),this.gf.materials.bedSheet);
-    paper.rotation.x=Math.PI/2;paper.position.set(-13.80,.95,3.28);this.zoneGroup.add(paper);
-    const bin=new THREE.Mesh(new THREE.CylinderGeometry(.15,.18,.42,20),this.gf.materials.stainless);
-    bin.position.set(-13.20,.21,2.78);this.zoneGroup.add(bin);
-    solid(this.zoneGroup,this.gf.materials.metal,[-13.25,.88,4.38],[.12,.06,.03]);
-    solid(this.zoneGroup,this.gf.materials.wallDark,[-13.20,2.63,2.16],[.52,.28,.035]);
-    for(let i=0;i<5;i++)solid(this.zoneGroup,this.gf.materials.stainless,[-13.38+i*.09,2.63,2.135],[.015,.20,.01],.001);
-    solid(this.zoneGroup,this.gf.materials.wallBumper,[-12.55,.018,3.55],[.90,.025,.58]);
-    this.gf.buildCeilingLight(this.zoneGroup,-12.75,3.15,3.6,.48,5,0xfff2dc);
-
-    this.dutyBathroom={
-      door:[-11.5,1.7,4.0],bounds:[-14,2,-11.5,5.2],
-      fixtures:['toilet','sink','mirror','towel_rail','floor_drain'],
-      details:['tile_wainscot','mirror_frame','soap_dispenser','toilet_paper','waste_bin','flush_button','exhaust_grille','bath_mat'],
-      visualRefinement:'V5_2_DUTY_BATHROOM_REFINEMENT'
-    };
+    buildFirstDutyBathroom(this);
     w.build();this.gf.buildCeilingLight(this.zoneGroup,-11,3.15,6,.7,7,0xffebce);
     this.dutyRoom={door:[-8,1.7,6],inside:[-9.5,1.7,6],outside:[-6.5,1.7,6],bounds:[-14,2,-8,10]};
     const reportBoard=this.zoneGroup.getObjectByName('FourF_NursingHandoverBoard');
@@ -368,20 +328,7 @@ export class WardFloorplan {
     asset(decor,'bench',[o+10,0,9.25],[.62,.62,.62],Math.PI);
     asset(decor,'plant',[o+13.15,0,9.1],[.55,.55,.55]);
 
-    const bathroom=new THREE.Group();bathroom.name='IdentitySecond5F_DutyBathroom';this.zoneGroup.add(bathroom);
-    solid(bathroom,this.gf.materials.wall,[o+8.95,1.35,4.2],[.08,2.7,2.9]);
-    solid(bathroom,this.gf.materials.glass,[o+9.02,1.45,4.2],[.025,2.3,2.65]);
-    solid(bathroom,this.gf.materials.floorTile,[o+9.75,.035,4.2],[1.4,.04,2.65]);
-    const toilet=new THREE.Mesh(new THREE.CylinderGeometry(.27,.32,.18,24),this.gf.materials.bedSheet);
-    toilet.position.set(o+9.45,.14,3.65);bathroom.add(toilet);
-    const toiletTank=new THREE.Mesh(new THREE.BoxGeometry(.42,.52,.16),this.gf.materials.wall);
-    toiletTank.position.set(o+9.45,.38,3.92);bathroom.add(toiletTank);
-    const showerTray=new THREE.Mesh(new THREE.BoxGeometry(.72,.06,.78),this.gf.materials.stainless);
-    showerTray.position.set(o+10.35,.05,4.65);bathroom.add(showerTray);
-    const showerHead=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.04,16),this.gf.materials.stainless);
-    showerHead.rotation.z=Math.PI/2;showerHead.position.set(o+10.35,2.45,4.58);bathroom.add(showerHead);
-    const sink=solid(bathroom,this.gf.materials.bedSheet,[o+9.55,.86,5.05],[.48,.08,.34]);
-    sink.name='IdentitySecond5F_DutyBathroom_Sink';
+    buildSecondDutyBathroom(this,o);
 
     const dutyPhoto=(x,y,z,title,subtitle,people=4,artIndex=0)=>{
       const photographic=isIdentityRouteMode(),key=artIndex===0?'group':'skills';
@@ -441,8 +388,12 @@ export class WardFloorplan {
     dutyPhoto(o+10.25,1.72,9.78,'1998 夜班合照','第二院區 5F 值班室',4,0);
     dutyPhoto(o+12.15,1.72,9.78,'臨床教學留影','病房急救演練',3,4);
     asset(this.zoneGroup,'hospitalBed',[o+12.3,0,7.15],[.9,.85,.85]);CollisionFactory.addBox(this.colliders,o+12.3,.4,7.15,1.15,.8,1.8);
-    asset(this.zoneGroup,'storageCabinet',[o+9.45,0,7.15],[.8,.82,.8],Math.PI);
-    const phone=new THREE.Group();phone.name='SecondDutyRoom_ExtensionPhone';phone.position.set(o+12.55,.84,3.34);this.zoneGroup.add(phone);
+    const dutyCabinet=asset(this.zoneGroup,'storageCabinet',[o+8.8,0,8.6],[.8,.82,.8],Math.PI/2);
+    dutyCabinet.name='SecondDutyRoom_Storage';
+    CollisionFactory.addBox(this.colliders,o+8.8,.7,8.6,.68,1.4,1.12);
+    const dutyDesk=this.workstations.find(item=>item.id==='second_duty_desk').desk;
+    const dutyDeskTop=new THREE.Box3().setFromObject(dutyDesk).max.y;
+    const phone=new THREE.Group();phone.name='SecondDutyRoom_ExtensionPhone';phone.position.set(o+12.55,dutyDeskTop+.035,3.34);this.zoneGroup.add(phone);
     solid(phone,this.gf.materials.wallDark,[0,0,0],[.28,.07,.20]);
     solid(phone,this.gf.materials.bedSheet,[0,.08,-.055],[.25,.035,.055]);
     const handset=new THREE.Mesh(new THREE.CapsuleGeometry(.025,.19,4,10),this.gf.materials.wallDark);
@@ -454,25 +405,32 @@ export class WardFloorplan {
 
     // Chen procedural-memory lockbox under the second-campus duty desk.
     const lockbox=new THREE.Group();lockbox.name='Chen_5042_Lockbox';lockbox.position.set(o+11.35,.32,3.72);
-    const boxBody=new THREE.Mesh(new THREE.BoxGeometry(.66,.38,.42),new THREE.MeshStandardMaterial({color:0x59635e,roughness:.68,metalness:.22}));
-    lockbox.add(boxBody);
-    const boxLid=new THREE.Mesh(new THREE.BoxGeometry(.64,.055,.40),new THREE.MeshStandardMaterial({color:0x66716b,roughness:.62,metalness:.25}));
-    boxLid.position.y=.215;lockbox.add(boxLid);this.chenLockboxLid=boxLid;
+    const boxMaterial=new THREE.MeshStandardMaterial({color:0x59635e,roughness:.68,metalness:.22});
+    // Five-sided shell; a solid BoxGeometry hides the badge even with the lid open.
+    for(const [pos,size] of [
+      [[0,-.175,0],[.66,.03,.42]],[[0,0,-.1975],[.66,.38,.025]],
+      [[0,0,.1975],[.66,.38,.025]],[[-.3175,0,0],[.025,.38,.42]],[[.3175,0,0],[.025,.38,.42]]
+    ])solid(lockbox,boxMaterial,pos,size);
+    solid(lockbox,this.gf.materials.wallDark,[0,.145,0],[.60,.015,.36]);
+    const lidHinge=new THREE.Group();lidHinge.position.set(0,.19,-.21);lockbox.add(lidHinge);
+    const boxLid=solid(lidHinge,boxMaterial,[0,.025,.21],[.66,.05,.42]);boxLid.name='ChenLockboxLid';
+    this.chenLockboxLid=lidHinge;
+    CollisionFactory.addBox(this.colliders,o+11.35,.32,3.72,.66,.38,.42);
     for(let i=0;i<4;i++){
       const dial=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.035,16),this.gf.materials.wallDark);
       dial.rotation.x=Math.PI/2;dial.position.set(-.18+i*.12,.03,.225);lockbox.add(dial);
     }
     const lockHit=new THREE.Mesh(new THREE.BoxGeometry(.9,.72,.72),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
     lockHit.position.y=.08;lockHit.userData={interactable:true,id:'CHEN_5042_LOCKBOX',type:'chen_5042_lockbox',label:'查看桌下私人金屬保險箱'};
-    lockbox.add(lockHit);this.zoneGroup.add(lockbox);this.interactables.push(lockHit);this.chenLockbox=lockbox;
+    lockbox.add(lockHit);this.zoneGroup.add(lockbox);this.interactables.push(lockHit);this.chenLockbox=lockbox;this.chenLockboxHit=lockHit;
 
     // Physical gray-trim support badge starts hidden inside the lockbox.
-    const badge=new THREE.Group();badge.name='Chen_GrayTrim_Badge';badge.position.set(o+11.35,.58,3.72);badge.visible=false;
+    const badge=new THREE.Group();badge.name='Chen_GrayTrim_Badge';badge.position.set(o+11.35,.482,3.72);badge.visible=false;
     const badgeCard=new THREE.Mesh(new THREE.BoxGeometry(.28,.018,.18),new THREE.MeshStandardMaterial({color:0xe7e5da,roughness:.56}));
     badgeCard.rotation.y=.12;badge.add(badgeCard);
     const badgeTrim=new THREE.Mesh(new THREE.BoxGeometry(.31,.014,.21),new THREE.MeshStandardMaterial({color:0x555b59,roughness:.74}));
     badgeTrim.position.y=-.012;badgeTrim.rotation.y=.12;badge.add(badgeTrim);
-    const badgeHit=new THREE.Mesh(new THREE.BoxGeometry(.58,.30,.48),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    const badgeHit=new THREE.Mesh(new THREE.BoxGeometry(.34,.08,.24),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
     badgeHit.userData={interactable:false,id:'CHEN_GREY_BADGE',type:'chen_grey_badge',label:'拿取識別證'};
     badge.add(badgeHit);this.zoneGroup.add(badge);this.interactables.push(badgeHit);this.chenGreyBadge=badge;this.chenGreyBadgeHit=badgeHit;
 
@@ -536,7 +494,9 @@ export class WardFloorplan {
     this.zoneGroup.add(patientHit);this.interactables.push(patientHit);
 
     // The treatment order sits on the second-campus nursing-station workstation, not in mid-air.
-    const form=solid(this.zoneGroup,m.lightWarm,[o-1.28,.829,-2.18],[.42,.018,.30]);
+    const orderDesk=this.workstations.find(item=>item.id==='second_station_B').desk;
+    const orderTop=new THREE.Box3().setFromObject(orderDesk).max.y;
+    const form=solid(this.zoneGroup,m.lightWarm,[o-1.87,orderTop+.009,-2.06],[.38,.018,.28]);
     form.name='SecondCampus_ChestTreatmentOrder';
     form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看醫囑單'};
     this.secondCampusTreatmentOrder=form;
@@ -574,7 +534,9 @@ export class WardFloorplan {
     }
     if(this.chenLockbox){
       const opened=gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')===true;
-      if(this.chenLockboxLid){this.chenLockboxLid.rotation.z=opened?-1.18:0;this.chenLockboxLid.position.y=opened?.34:.215;}
+      if(this.chenLockboxLid)this.chenLockboxLid.rotation.x=opened?-1.65:0;
+      // Retire the enclosing lock sensor before the separate badge becomes targetable.
+      if(this.chenLockboxHit){this.chenLockboxHit.userData.interactable=!opened;this.chenLockboxHit.visible=!opened;}
       this.chenLockbox.traverse(o=>{if(o.userData?.id==='CHEN_5042_LOCKBOX')o.userData.label=opened?'5042 保險箱｜已解鎖':'查看桌下私人金屬保險箱';});
     }
     if(this.chenGreyBadge){

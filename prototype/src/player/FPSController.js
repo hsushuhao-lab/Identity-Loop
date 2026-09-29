@@ -322,6 +322,10 @@ export class FPSController {
     // 3F patrol board reuses the same physical location at 17:00 and 21:17).
     // Do not let the nearest inactive hit mask an interactable behind it.
     for (const hit of hits) {
+      // Raycaster also intersects hidden meshes; hidden parent groups cannot be picked.
+      let visible=true;
+      for(let node=hit.object;node;node=node.parent)if(node.visible===false){visible=false;break;}
+      if(!visible)continue;
       let cur = hit.object;
 
       while (cur) {

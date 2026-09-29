@@ -415,7 +415,7 @@ export class UIManager {
     root.className='modal-overlay';
     root.style.cssText='z-index:10030;background:rgba(4,10,8,.88);backdrop-filter:blur(4px);';
     root.innerHTML=`
-      <div style="width:min(92vw,720px);background:#17211c;border:1px solid #6f8076;border-radius:8px;padding:22px;color:#eef4ef;box-shadow:0 20px 70px rgba(0,0,0,.65)">
+      <div style="box-sizing:border-box;width:min(92vw,720px);max-height:88vh;overflow:auto;background:#17211c;border:1px solid #6f8076;border-radius:8px;padding:22px;color:#eef4ef;box-shadow:0 20px 70px rgba(0,0,0,.65)">
         <div data-title style="font:700 20px ui-monospace,monospace;color:#d7e3da;margin-bottom:14px">${title}</div>
         <div data-body></div>
       </div>`;
@@ -441,13 +441,18 @@ export class UIManager {
     const status=body.querySelector('#chen-5042-status');
     const close=()=>{root.classList.remove('active');this.onTerminalClose?.();};
     body.querySelector('#chen-5042-cancel').onclick=close;
+    let unlocking=false;
     body.querySelector('#chen-5042-submit').onclick=()=>{
+      if(unlocking)return;
       const value=(input.value||'').replace(/\D/g,'').slice(0,4);
       if(value!=='5042'){
         status.textContent='喀、喀……鎖芯沒有彈開。';
         soundManager.playClick();
         return;
       }
+      unlocking=true;
+      body.querySelector('#chen-5042-submit').disabled=true;
+      body.querySelector('#chen-5042-cancel').disabled=true;
       this.gameState.setFlag('CHEN_5042_LOCKBOX_OPENED',true);
       status.textContent='5－0－4－2。喀噠。箱蓋彈開。';
       soundManager.playDoorLockClack();
@@ -465,7 +470,7 @@ export class UIManager {
     body.innerHTML=`
       <div style="font-size:14px;color:#aebbb3;margin-bottom:14px">拖曳卡片旋轉檢查正反面。</div>
       <div id="chen-badge-stage" style="height:300px;display:grid;place-items:center;perspective:1000px;background:radial-gradient(circle,#26332c,#0d1410);border:1px solid #36473e;border-radius:8px;overflow:hidden">
-        <div id="chen-badge-card" style="width:330px;height:205px;position:relative;transform-style:preserve-3d;transform:rotateY(0deg);transition:transform .08s linear">
+        <div id="chen-badge-card" style="width:min(100%,330px);height:235px;position:relative;transform-style:preserve-3d;transform:rotateY(0deg);transition:transform .08s linear">
           <div style="position:absolute;inset:0;backface-visibility:hidden;background:#e8e7dc;border:12px solid #505654;border-radius:14px;color:#1d2923;padding:20px;box-sizing:border-box;box-shadow:0 12px 25px rgba(0,0,0,.5)">
             <div style="font:700 18px sans-serif">青嶺醫療中心｜第二院區</div>
             <div style="margin-top:14px;font:700 22px ui-monospace,monospace;color:#632f29">MED-89••••</div>
@@ -492,7 +497,11 @@ export class UIManager {
     body.querySelector('#chen-badge-stage').onpointermove=e=>{if(!dragging)return;angle+=e.clientX-lastX;lastX=e.clientX;moved=true;render();};
     body.querySelector('#chen-badge-stage').onpointerup=()=>{dragging=false;};
     body.querySelector('#chen-badge-turn').onclick=()=>{angle+=90;moved=true;render();};
+    let collected=false;
     body.querySelector('#chen-badge-done').onclick=()=>{
+      if(collected)return;
+      collected=true;
+      body.querySelector('#chen-badge-done').disabled=true;
       this.gameState.setFlag('CHEN_GREY_BADGE_INSPECTED',true);
       this.gameState.setFlag('CHEN_GREY_BADGE_COLLECTED',true);
       persistentMemory.addJournalNote('CHEN_GREY_BADGE','灰滾邊跨院支援證件：MED-89••••；背面標示第二院區急診室專用通行憑證。');

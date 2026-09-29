@@ -50,9 +50,9 @@ assert.match(sound,/playWheelchairRattle/);
 assert.match(sound,/playWheelchairApproach/);
 assert.match(director,/playWheelchairApproach/);
 
-assert.match(scenes,/院區間緊急交接單據：無名男性留觀個案 → 既定病區/);
+assert.match(scenes,/醫囑單：無名男性留觀個案 → 既定病區/);
 assert.match(scenes,/chenTransportChoice: identity==='CHEN'/);
-assert.match(director,/title:'第一院區 2F 急診｜交接單據'/);
+assert.match(director,/title:'第一院區 2F 急診｜醫囑單'/);
 assert.match(director,/扣留單據，拒絕盲從/);
 assert.match(director,/簽署交接，送入既定病區/);
 assert.match(director,/CHEN_ER_TRANSFER_PATIENTIZATION/);

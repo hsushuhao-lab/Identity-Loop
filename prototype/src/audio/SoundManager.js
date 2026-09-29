@@ -1,3 +1,4 @@
+import {HospitalScore} from './HospitalScore.js';
 // SoundManager.js - Procedural Web Audio synthesizer for hospital ambience and interactions
 export class SoundManager {
   constructor() {
@@ -21,6 +22,7 @@ export class SoundManager {
     this.resumePromise=(async()=>{
       try {
         if(!this.ctx||this.ctx.state==='closed'){
+          this.routeTheme?.stop();this.routeTheme=null;
           const AudioCtx=window.AudioContext||window.webkitAudioContext;
           this.ctx=new AudioCtx();this.ambientPlaying=false;this.ambientGain=null;
         }
@@ -80,7 +82,7 @@ export class SoundManager {
       filter.Q.value = 1.8;
 
       this.ambientGain = this.ctx.createGain();
-      this.ambientGain.gain.value = 0.08;
+      this.ambientGain.gain.value = 0.035;
 
       whiteNoise.connect(filter);
       filter.connect(this.ambientGain);
@@ -100,25 +102,19 @@ export class SoundManager {
 
   applyPendingRouteTheme(){
     if(!this.ctx||this.ctx.state!=='running'||!this.pendingRouteTheme)return;
-    const {identity,step}=this.pendingRouteTheme,now=this.ctx.currentTime;
-    if(this.routeTheme?.identity===identity&&this.routeTheme?.step===step)return;
-    if(this.routeTheme){
-      const previous=this.routeTheme;
-      previous.gain.gain.cancelScheduledValues(now);
-      previous.gain.gain.setValueAtTime(previous.gain.gain.value,now);
-      previous.gain.gain.linearRampToValueAtTime(.0001,now+.65);
-      for(const oscillator of previous.oscillators)oscillator.stop(now+.7);
-      this.routeTheme=null;
-    }
+    const {identity,step}=this.pendingRouteTheme;
+    if(this.routeTheme?.identity===identity&&this.routeTheme?.step===step&&!this.isMuted)return;
+    this.routeTheme?.stop();this.routeTheme=null;
     if(!identity||step==='M9'||step==='ENDING'||this.isMuted)return;
-    const profiles={ZHANG:{wave:'sine',notes:[55,82.41],level:.035},LI:{wave:'triangle',notes:[61.74,92.5],level:.026},ZHOU:{wave:'sawtooth',notes:[73.42,110],level:.022},CHEN:{wave:'square',notes:[46.25,69.3],level:.024}};
-    const profile=profiles[identity];if(!profile)return;
-    try{
-      const gain=this.ctx.createGain();gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(profile.level,now+1.4);gain.connect(this.ctx.destination);
-      const filter=this.ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=identity==='ZHOU'?420:identity==='LI'?260:180;filter.Q.value=.7;filter.connect(gain);
-      const oscillators=profile.notes.map((frequency,index)=>{const oscillator=this.ctx.createOscillator();oscillator.type=profile.wave;oscillator.frequency.setValueAtTime(frequency,now);oscillator.detune.value=index?3:-2;oscillator.connect(filter);oscillator.start(now);return oscillator;});
-      this.routeTheme={identity,step,gain,oscillators};
-    }catch(error){console.warn('[audio] route theme unavailable',error);}
+    const score=new HospitalScore(this.ctx,identity,step);
+    score.start(()=>({
+      zone:typeof window!=='undefined'?window.worldRouter?.activeZoneId:'',
+      position:typeof window!=='undefined'?window.worldRouter?.controller?.position:{},
+      muted:this.isMuted,
+      duck:this.phoneRingActive||this.ctx.currentTime<(this.knockDuckUntil||0)||
+        (typeof document!=='undefined'&&!!document.querySelector?.('.modal-overlay.active,.cutscene-overlay.active,#subtitle-box.visible,#act-presentation.active,.elevator-glimpse-canvas'))
+    }));
+    this.routeTheme=score;
   }
 
   playFootstep() {
@@ -319,22 +315,28 @@ export class SoundManager {
 
   playFuriousWallKnockPattern(volume=.16) {
     if(!this.ctx||this.isMuted)return;
-    try{
-      const now=this.ctx.currentTime;
-      const offsets=[0,.11,.21,.31,.54,.63,.72,.89,1.03,1.14,1.23,1.39,1.47,1.62];
-      offsets.forEach((offset,index)=>{
-        const t=now+offset;
-        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
-        osc.type=index%3===0?'sawtooth':'triangle';
-        osc.frequency.setValueAtTime(118+(index%4)*17,t);
-        osc.frequency.exponentialRampToValueAtTime(38+(index%3)*8,t+.075);
-        filter.type='lowpass';filter.frequency.value=340;
-        const level=volume*(index%5===0?.72:1+(index%3)*.12);
-        gain.gain.setValueAtTime(level,t);gain.gain.exponentialRampToValueAtTime(.001,t+.105);
-        osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);
-        osc.start(t);osc.stop(t+.12);
-      });
-    }catch(e){}
+    const now=this.ctx.currentTime;
+    if(now<(this.knockBusyUntil||0))return;
+    const offsets=[0,.42,.50,.67,.76,1.03,1.11,1.29,1.36,1.63,1.76,1.84,2.04,2.15,2.48,3.12];
+    this.knockBusyUntil=now+3.6;this.knockDuckUntil=now+4.2;
+    const bus=this.ctx.createGain(),limiter=this.ctx.createDynamicsCompressor();
+    bus.gain.value=.72;limiter.threshold.value=-12;limiter.ratio.value=5;bus.connect(limiter);limiter.connect(this.ctx.destination);
+    const noise=this.ctx.createBuffer(1,Math.floor(this.ctx.sampleRate*.18),this.ctx.sampleRate);
+    const samples=noise.getChannelData(0);for(let i=0;i<samples.length;i++)samples[i]=Math.random()*2-1;
+    offsets.forEach((offset,index)=>{
+      const t=now+offset,level=volume*[.36,1,.62,1.15,.82][index%5];
+      const osc=this.ctx.createOscillator(),amp=this.ctx.createGain();
+      osc.frequency.setValueAtTime(94+(index%4)*13,t);osc.frequency.exponentialRampToValueAtTime(32,t+.14);
+      amp.gain.setValueAtTime(.0001,t);amp.gain.linearRampToValueAtTime(level,t+.005);amp.gain.exponentialRampToValueAtTime(.0001,t+.28);
+      osc.connect(amp);amp.connect(bus);osc.start(t);osc.stop(t+.30);
+      osc.onended=()=>{osc.disconnect();amp.disconnect();};
+      const scrape=this.ctx.createBufferSource(),filter=this.ctx.createBiquadFilter(),gain=this.ctx.createGain();
+      scrape.buffer=noise;filter.type='bandpass';filter.frequency.value=580+index%3*210;filter.Q.value=.6;
+      gain.gain.setValueAtTime(level*.46,t);gain.gain.exponentialRampToValueAtTime(.0001,t+.17);
+      scrape.connect(filter);filter.connect(gain);gain.connect(bus);scrape.start(t);scrape.stop(t+.18);
+      scrape.onended=()=>{scrape.disconnect();filter.disconnect();gain.disconnect();};
+    });
+    const release=setTimeout(()=>{bus.disconnect();limiter.disconnect();},4300);release.unref?.();
   }
 
   playCprCompression(){
@@ -383,7 +385,7 @@ export class SoundManager {
   duckAmbient(level=.2,durationMs=4200) {
     if(!this.ctx||!this.ambientGain)return;
     try{
-      const now=this.ctx.currentTime,base=.08,target=Math.max(.001,base*level);
+      const now=this.ctx.currentTime,base=.035,target=Math.max(.001,base*level);
       this.ambientGain.gain.cancelScheduledValues(now);
       this.ambientGain.gain.setValueAtTime(this.ambientGain.gain.value,now);
       this.ambientGain.gain.linearRampToValueAtTime(target,now+.08);

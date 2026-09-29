@@ -33,6 +33,6 @@ check('Second-campus straight route reaches station then ward',()=>{zone.setWard
 check('Second-campus glass bypass independently reaches ward',()=>{const d=zone.accessDoors.second_ward_glass;d.setClosed(false);walk([78,1.7,1],[78,1.7,-1.2]);});
 zone=router.loadZone('first_campus_4f');
 check('Duty-room cabinet doors face room, not wall',()=>{assert.equal(zone.dutyCabinetYaw,Math.PI);const source=zone.dutyCabinetAnchor;assert(source[2]<9.8);assert(!controller.checkCollision(source[0],source[2]-.9));});
-check('Duty-room bathroom has knob door and real fixtures',()=>{assert(zone.keyedDoors.duty_bathroom?.closed);assert.deepEqual(zone.dutyBathroom.fixtures,['toilet','sink','mirror','towel_rail','floor_drain']);});
-check('Duty-room bathroom has V5.2 visual refinement',()=>{assert.equal(zone.dutyBathroom.visualRefinement,'V5_2_DUTY_BATHROOM_REFINEMENT');for(const detail of ['tile_wainscot','mirror_frame','soap_dispenser','toilet_paper','waste_bin','flush_button','exhaust_grille','bath_mat'])assert(zone.dutyBathroom.details.includes(detail),detail);});
+check('Duty-room bathroom has knob door and real fixtures',()=>{assert(zone.keyedDoors.duty_bathroom?.closed);assert.deepEqual(zone.dutyBathroom.fixtures,['toilet','sink','mirror','towel_rail','floor_drain','shower']);});
+check('Duty-room bathroom has V5.2 visual refinement',()=>{assert.equal(zone.dutyBathroom.visualRefinement,'V5_3_4F_SHOWER_TOILET');for(const detail of ['tile_wainscot','mirror_frame','soap_dispenser','toilet_paper','waste_bin','flush_button','exhaust_grille','bath_mat'])assert(zone.dutyBathroom.details.includes(detail),detail);});
 console.log(`SCREENSHOT ACCESS V5.2 REGRESSION PASS ${assertions}/${assertions}`);

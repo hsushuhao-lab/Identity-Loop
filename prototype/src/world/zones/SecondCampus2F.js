@@ -69,7 +69,9 @@ export class SecondCampus2F {
         this.zoneGroup.add(clueHit);this.interactables.push(clueHit);
         this.liGuardLoungeCctvClue=clueHit;
       }else{
-        buildDeskCluster(this.art,this.gf.materials,{x:x-1,z:-8.7,chairs:2,name:'Second2F_SecurityControlDesk'});
+        const controlDesk=buildDeskCluster(this.art,this.gf.materials,{x:x-1,z:-8.7,chairs:2,name:'Second2F_SecurityControlDesk'});
+        const oldPhone=controlDesk.getObjectByName('Second2F_SecurityControlDesk_Phone');
+        oldPhone.traverse(object=>object.geometry?.dispose());oldPhone.removeFromParent();
         buildMonitorWall(this.art,this.gf.materials,{x,z:-10.25,name:'Second2F_CCTVWall'});
         buildSupplyCabinet(this.art,this.gf.materials,{x:x+2.8,z:-9.65,name:'Second2F_SecurityArchiveShelf'});
         // Wall-mounted historical recordings are always optional exploration.
@@ -113,7 +115,13 @@ export class SecondCampus2F {
         // Identity Loop monitoring-room phone; same visual language as the 316 desk phone.
         const cctvPhone=new THREE.Group();
         cctvPhone.name='Second2F_CCTV_Phone';
-        cctvPhone.position.set(x-1.2,1.02,-8.72);
+        const phoneDesk=new THREE.Group();phoneDesk.name='Second2F_CCTV_PhoneDesk';
+        phoneDesk.position.set(x+2.4,0,-6.45);this.art.add(phoneDesk);
+        const phoneTop=solid(phoneDesk,this.gf.materials.doorWood,[0,.77,0],[1.18,.06,.68]);
+        phoneTop.name='CCTVPhoneDeskTop';
+        for(const dx of [-.49,.49])for(const dz of [-.25,.25])solid(phoneDesk,this.gf.materials.stainless,[dx,.37,dz],[.04,.74,.04]);
+        CollisionFactory.addBox(this.colliders,x+2.4,.4,-6.45,1.18,.8,.68);
+        cctvPhone.position.set(0,.8,0);phoneDesk.add(cctvPhone);
         cctvPhone.userData={surface:'Second2F_CCTV_PhoneDesk'};
         const phoneBase=new THREE.Mesh(
           new THREE.BoxGeometry(.34,.09,.23),
@@ -160,7 +168,7 @@ export class SecondCampus2F {
           label:'接聽監控室電話'
         };
         cctvPhone.add(cctvPhoneHit);
-        this.art.add(cctvPhone);
+        this.cctvPhoneDesk=phoneDesk;
         this.interactables.push(cctvPhoneHit);
         this.identityCctvPhone=cctvPhoneHit;
       }

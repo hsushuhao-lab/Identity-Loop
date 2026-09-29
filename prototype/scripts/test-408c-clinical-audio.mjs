@@ -22,7 +22,9 @@ assert(!ghostCall.includes('playBed33KnockPattern'),'post-21:17 / 00:33 phone se
 
 const flags=new Map(),tasks=new Set(['P1_4F_REPORT']);
 const knocks=[],timers=[];let lines;
+const furious=[];
 const context={
+  identityLoopMode:false,identityManager:{currentIdentity:'LI'},
   gameState:{
     isTaskComplete:id=>tasks.has(id),
     getFlag:id=>flags.get(id),
@@ -35,7 +37,8 @@ const context={
   controller:{},
   soundManager:{
     ensureRunning:async()=>true,
-    playBed33KnockPattern:volume=>knocks.push(volume)
+    playBed33KnockPattern:volume=>knocks.push(volume),
+    playFuriousWallKnockPattern:volume=>furious.push(volume)
   },
   uiManager:{
     showDialogue:value=>{lines=value;},
@@ -74,4 +77,8 @@ context.trigger409PostSealKnock();
 await flushTimers();
 assert.equal(knocks.length,1,'a delayed 409 timer must not follow the player into another floor/21:17 sequence');
 
-console.log('PASS: 408C stays ambiguous; 4+9 wall knock is localized to post-assessment 409 inspection only');
+context.identityLoopMode=true;context.worldRouter.activeZoneId='first_campus_4f';
+flags.delete('KNOCK_408C_POST_SEAL_PLAYED');context.trigger409PostSealKnock();await flushTimers();
+assert.deepEqual(furious,[.16],'Li uses the irregular burst, not the legacy numeric pattern');
+assert.equal(knocks.length,1);
+console.log('PASS: legacy clinical ambiguity retained; post-seal Li dispatches irregular knocking, other routes retain the original pattern');

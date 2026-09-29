@@ -61,10 +61,9 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
       ], '接聽 316 電話後前往 4F')] : [])
     ],
     ZHANG_OUTBOUND_8F: [
-      event('電梯經過六樓', [
-        {speaker:'內心',text:'電梯從三樓往八樓上升。5F 之後，樓層顯示短暫停在「6」。'},
-        {speaker:'內心',text:'門縫像是開了一瞬間。裡面不是病房，是一間臨床技能訓練中心。'}
-      ], '搭電梯到 8F；門縫裡掠過一段無法對上的畫面', { glimpse6f:true }),
+      event('前往八樓', [
+        {speaker:'內心',text:'鋼索擦過井道。樓層顯示似乎慢了一拍。'}
+      ], '搭電梯前往 8F 天橋', { glimpse6f:true }),
       event('八樓天橋門禁', [
         {speaker:'內心',text:'八樓連通道門禁綠燈亮著。剛才電話裡說門禁已經打開。'},
         {speaker:'內心',text:'先穿過天橋到第二院區，再搭電梯到 5F。'}
@@ -97,19 +96,25 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'408C 老先生',text:'「醫師，又來了。」'},
           {speaker:'值班醫師',text:'「哪裡？」'}
         ]),
-        {speaker:'408C 老先生',text:'「隔壁。四下，停一下，再九下。」'},
-        {speaker:'聲音',text:'咚。咚。咚。咚。'},
-        {speaker:'聲音',text:'……'},
-        {speaker:'聲音',text:'咚。咚。咚。咚。咚。咚。咚。咚。咚。'},
-        {speaker:'值班醫師',text:'「是 409 那個方向。」'}
-      ], '到 408C 確認 4—停—9 的敲牆聲'),
+        ...(identity==='LI' ? [
+          {speaker:'408C 老先生',text:'「隔壁……剛才突然捶起來，像有人在砸牆！」'},
+          {speaker:'聲音',text:'砰！砰砰——咚、砰！牆面猛地一震，接著又是一陣急促的亂響。'},
+          {speaker:'值班醫師',text:'「先待在床邊。我去 409 門外看看。」'}
+        ] : [
+          {speaker:'408C 老先生',text:'「隔壁。四下，停一下，再九下。」'},
+          {speaker:'聲音',text:'咚。咚。咚。咚。'},
+          {speaker:'聲音',text:'……'},
+          {speaker:'聲音',text:'咚。咚。咚。咚。咚。咚。咚。咚。咚。'},
+          {speaker:'值班醫師',text:'「是 409 那個方向。」'}
+        ])
+      ], identity==='LI'?'查看 408C，確認隔壁突發的敲響':'到 408C 確認 4—停—9 的敲牆聲', { furiousKnock:identity==='LI' }),
       ...(identity==='LI' ? [
         event('409 封閉房', [
           {speaker:'內心',text:'408C 的評估結束後，隔壁的聲音仍沒有停。409 明明封閉，門後卻傳來更急的亂敲。'}
         ], '408C 結束後，前往 409 確認聲音來源', { knock409:true }),
         event('回護理站核對醫囑單', [
           {speaker:'晚班護理師',text:'「409 不能收治，先把這張醫囑單的來源核對清楚。」'},
-          {speaker:'內心',text:'目的地被先寫好了。文件只叫作醫囑單，卻沒有任何一次評估能替它背書。'}
+          {speaker:'內心',text:'目的地被先寫好了。欄位排得整齊，卻沒有任何一次評估能替它背書。'}
         ], '回護理站核對醫囑單')
       ] : [
         event('409 封閉房', [
@@ -153,7 +158,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     ],
     LI_RETURN_DUTY_2117: [
       event('回到四樓值班室', [
-        {speaker:'內心',text:'把今晚出現過的數字先寫在同一頁：17:00、4—停—9、20:05。數字本身沒有答案，但至少不會像記憶一樣自己改變。'}
+        {speaker:'內心',text:'把今晚的時間與異常先寫在同一頁：17:00、突然爆發的敲響、20:05。紀錄還沒有答案，但能提醒我哪些事尚未核實。'}
       ], '回值班室整理今晚的異常'),
       event('21:15 值班電話', [
         {speaker:'電話',text:'鈴——鈴——鈴——'},
@@ -201,7 +206,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     LI_OUTBOUND_8F: [
       event('六樓開門後', [
         {speaker:'內心',text:'剛才電梯真的在 6F 開過門。褪色的臨床技能中心、CPR 人偶和那個沒有名牌的白袍輪廓都不是樓層顯示錯誤能解釋的。'},
-        {speaker:'內心',text:'門已經關上，電梯繼續到 8F。先把這件事記著。'}
+        {speaker:'內心',text:'門已經關上。八樓到了，電話裡的會診還在等我。'}
       ], '八樓到了，前往天橋'),
       event('八樓天橋門禁', [
         {speaker:'內心',text:'門禁已開。先穿過天橋到第二院區，再去 5F。'}
@@ -231,7 +236,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           CHEN:'同一個人被兩個院區的流程反覆建立，才會變成幽靈紀錄。'
         })},
         ...(identity==='CHEN' ? [
-          {speaker:'傳真機',text:'喀噠、喀噠……【院區間緊急交接單據：無名男性留觀個案 → 既定病區】'},
+          {speaker:'傳真機',text:'喀噠、喀噠……【醫囑單：無名男性留觀個案 → 既定病區】'},
           {speaker:'急診護理師',text:'「對面連交接單據都開過來了。急診今晚很塞，要不要直接照單把他送進既定病區？手續剛好對平。」'}
         ] : [])
       ], '核對病人、吊牌與掛號流水號', { erRegistrationChoice: identity==='ZHANG', chenTransportChoice: identity==='CHEN' }),
@@ -425,7 +430,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
         {speaker:'內心',text:'「不能回頭……可是我真的很想確認後面是不是有人。」'}
       ], '走到天橋中段；視角會被強制拉向倒影', { bridgeChoice:true, forcedBridgeReveal:true })
     ],
-    ZHANG_6F_FORESHADOW: [event('電梯樓層顯示器', ['5 → 6 → 5 → 4。', '我：「……六？」', '電梯沒有開門。這一次只有樓層顯示異常。'], '記下顯示異常，等候急診來電')],
+    ZHANG_6F_FORESHADOW: [event('電梯樓層顯示器', ['5 → 6 → 5 → 4。', '我：「……六？」', '電梯沒有開門。這一次只有樓層顯示異常。'], '等候急診來電')],
     ZHOU_1F_PHOTO: [event('檢視玻璃反射照', [
       {speaker:'內心',text:'這張照片比八樓那張更接近事故現場。B-Panel、工程人員、警衛都在畫面裡。'},
       {speaker:'內心',text:'玻璃反射裡有相機、Casio，還有拍攝者的手。看不到臉。'},
@@ -450,7 +455,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     ],
     ZHOU_1F_WARNING_CALL: [
       event('把折起的便條攤開', [
-        {speaker:'內心',text:'我回到一樓，把第二院區帶回的便條攤在警衛桌上。「等一下。」「409-A 先不要——」句子還停在半途。'},
+        {speaker:'內心',text:'我回到一樓，把第二院區帶回的便條攤在警衛桌上。「等一下。」「那張醫囑單先不要——」句子還停在半途。'},
         {speaker:'警衛',text:'「照片我看到了。可是，你到底要我提醒誰、提醒什麼？」'},
         {speaker:'內心',text:'我的手又抬到胸前，想記錄紙上的折痕。我把手放下：現在缺的不是另一張更清楚的照片。'}
       ], '在一樓警衛台整理要送出的警告'),
@@ -589,12 +594,12 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     ],
     CHEN_1F_TRANSIT_LOG: [
       event('警衛台的跨院出入簿', [
-        {speaker:'內心',text:'我把 504B 的醫囑影本與剛才四樓的床位單並排放在警衛台。兩張都寫著 409-A，卻都沒有現場收件紀錄。'},
+        {speaker:'內心',text:'我把 504B 的醫囑影本與剛才四樓的床位單並排放在警衛台。兩張都已填好目的地，卻都沒有現場收件紀錄。'},
         {speaker:'警衛',text:'「出入簿只記推車通過，床號是後來補的。通過這裡，不代表病房真的收到了人。」'},
         {speaker:'內心',text:'拇指自然壓住複寫紙的下聯，先找交接欄，而不是姓名欄。這個動作太熟了。'}
-      ], '到一樓警衛台，比對出入簿與轉送單', { chenCrosscheck:{
+      ], '到一樓警衛台，比對出入簿與醫囑單', { chenCrosscheck:{
         title:'跨院出入簿｜通過不等於收件',
-        body:'出入簿：推車通過。\n轉送單：目的地 409-A。\n現場收件欄：空白。\n\n哪一項能從現有資料確認？',
+        body:'出入簿：推車通過。\n醫囑單：目的地已預填。\n現場收件欄：空白。\n\n哪一項能從現有資料確認？',
         primary:'只能確認通過，收件仍待核實',secondary:'目的地已填好，可以視為收件完成',
         retry:'推車通過的時間不是病房簽收。把兩者當成同一件事，就會替空白的交接補出一個人。',
         note:'一樓出入簿只證明推車通過；409-A 收件欄仍空白，不能推定已完成病人交接。'
@@ -608,14 +613,14 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     CHEN_2F_HANDOFF_RECEIPT: [
       event('回急診核對原始存根', [
         {speaker:'內心',text:'316 舊索引證明 1998-ER-0217 曾經存在，並沒有證明今晚真的完成交接。我得把查到的結果帶回急診。'},
-        {speaker:'急診護理師',text:'「我們保留了原始存根。這裡顯示待交接，另一張預填的轉送聯卻已經寫成完成。」'},
+        {speaker:'急診護理師',text:'「我們保留了原始存根。這裡顯示待交接，另一張預填的醫囑單卻已經寫成完成。」'},
         {speaker:'內心',text:'手指先摸到存根邊緣的撕口，再把兩張紙轉成相同方向。比對紙張的動作，比回憶它的來處容易。'}
       ], '回二樓掛號終端，比對原始存根與交接狀態'),
       event('急診電腦補寫交接狀態', [
         {speaker:'內心',text:'醫師電腦保留著原始流水號。現在需要寫清楚的是哪一段尚未發生，而不是讓資料看起來已經對平。'}
       ], '到急診醫師電腦補寫回執', { chenCrosscheck:{
         title:'急診回執｜保留尚未發生的空白',
-        body:'原始存根：1998-ER-0217／待交接。\n外來轉送聯：409-A／已完成。\n現場：沒有病房接收人的確認。\n\n這份回執應如何記錄？',
+        body:'原始存根：1998-ER-0217／待交接。\n外來醫囑單：目的地已預填／已完成。\n現場：沒有病房接收人的確認。\n\n這份回執應如何記錄？',
         primary:'沿用原始流水號，註明收件待核',secondary:'另建新流水號，讓兩張單各自結案',
         retry:'再建一筆只會把同一件未確認的轉送拆成兩份完整紀錄。先保留原始來源，不能用新編號消除矛盾。',
         note:'急診回執沿用 1998-ER-0217，標示收件待核；下一步到四樓核實目的地是否存在。'
@@ -631,7 +636,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
         {speaker:'晚班護理師',text:'「409 仍封閉，今晚也沒有人簽收 409-A。不要把系統列出的床位當成我們已經收到病人。」'}
       ], '回護理站電腦確認接收狀態', { chenCrosscheck:{
         title:'病房複核｜目的地與現場',
-        body:'現場：409 封閉。\n護理站：沒有接收紀錄。\n轉送聯：409-A。\n\n應帶回三樓歸檔的是哪個結論？',
+        body:'現場：409 封閉。\n護理站：沒有接收紀錄。\n醫囑單：目的地已預填。\n\n應帶回三樓歸檔的是哪個結論？',
         primary:'目的地未成立，保留暫停轉送',secondary:'先換一張床位單，再照原路送達',
         retry:'換紙沒有打開封閉的門，也沒有產生接收人。必須把現場的矛盾留下，而不是替流程找另一張表格。',
         note:'四樓現場與護理站共同確認：409 仍封閉，沒有 409-A 接收紀錄；轉送繼續暫停。'

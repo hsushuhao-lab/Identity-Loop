@@ -25,7 +25,7 @@ const IDENTITY_BEATS=Object.freeze({
 
 export function getIdentityDialogue(sceneId,identity){
   if(!IdentityEnum[identity]||!COMMON[sceneId]||!IDENTITY_BEATS[sceneId]?.[identity])return null;
-  return {sceneId,common:[...COMMON[sceneId]],identityBeat:IDENTITY_BEATS[sceneId][identity]};
+  return {sceneId,common:sceneId==='M2'&&identity==='LI'?[line('408C','「隔壁突然砸起牆來……不是敲門！」'),COMMON.M2[1]]:[...COMMON[sceneId]],identityBeat:IDENTITY_BEATS[sceneId][identity]};
 }
 
 export function getSharedDialogue(sceneId){return COMMON[sceneId]?[...COMMON[sceneId]]:[];}

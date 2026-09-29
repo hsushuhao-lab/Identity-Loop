@@ -149,14 +149,14 @@ uiManager = new UIManager(
         !overlayActive &&
         document.pointerLockElement !== renderer.domElement
       ) {
-        renderer.domElement.requestPointerLock();
+        renderer.domElement.requestPointerLock()?.catch(error=>{if(error.name!=='NotAllowedError')console.warn('[input] Pointer lock unavailable',error);});
       }
     }, 100);
   },
   () => {
     // Elevator cutscene finish callback
     controller.enabled = true;
-    renderer.domElement.requestPointerLock();
+    renderer.domElement.requestPointerLock()?.catch(error=>{if(error.name!=='NotAllowedError')console.warn('[input] Pointer lock unavailable',error);});
   }
 );
 
@@ -261,7 +261,8 @@ function trigger409PostSealKnock(){
 
     gameState.setFlag('KNOCK_408C_POST_SEAL_PENDING',false);
     gameState.setFlag('KNOCK_408C_POST_SEAL_PLAYED',true);
-    soundManager.playBed33KnockPattern(.16);
+    if(identityLoopMode&&identityManager.currentIdentity==='LI')soundManager.playFuriousWallKnockPattern(.16);
+    else soundManager.playBed33KnockPattern(.16);
     uiManager.showSubtitle(
       '值班醫師',
       '「409 確實封鎖了……剛才那個敲擊聲，我也聽到了。」',
@@ -1688,7 +1689,7 @@ controller.onInteract = async (interactable) => {
 值班醫師（低聲）：「李承禮醫師？我剛剛也有這張醫囑單嗎？」`,
       primaryText:'補上簽名',
       secondaryText:'拒絕簽署並重新查核',
-      onPrimary:()=>loopManager.triggerLegendOverride('CHEST',{legend:'LEGEND 03 — 事先填妥的 409-A 醫囑',reason:'醫囑已預填轉入 409A。'}),
+      onPrimary:()=>loopManager.triggerLegendOverride('CHEST',{legend:'LEGEND 03 — 事先填妥的醫囑單',reason:'醫囑已預填轉入 409A。'}),
       onSecondary:()=>{
         gameState.setGameTime('01:45');
         gameState.setFlag('M4_CHEST_RESOLVED',true);
