@@ -72,4 +72,4 @@ console.log('PASS Zhang 16: three two-object care/witness tasks; exact route and
 
 assert.equal(IDENTITY_ROUTES.CHEN.length,15);
 assert.equal(IDENTITY_ROUTES.LI.length,17);
-assert.equal(IDENTITY_ROUTES.ZHOU.length,14);
+assert.equal(IDENTITY_ROUTES.ZHOU.length,16);

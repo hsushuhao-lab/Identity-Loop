@@ -1,7 +1,7 @@
 export const IDENTITY_ROUTES=Object.freeze({
   ZHANG:Object.freeze(['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','ZHANG_2F_PRESENCE_CHECK','ZHANG_4F_WITNESS_RETURN','ZHANG_3F_OBSERVATION_RECORD','M6','M7','B2','ZHANG_3F_ARCHIVE','M9']),
   LI:Object.freeze(['M1','M2','LI_DUTY_CALL_2000','LI_ER_2005','LI_RETURN_DUTY_2117','LI_2117_PATROL','LI_RETURN_DUTY_0033','LI_ER_0033','LI_316_ARCHIVE','LI_OUTBOUND_8F','M4','M5','M6','M7','B2','LI_3F_EVIDENCE','M9']),
-  ZHOU:Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']),
+  ZHOU:Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_1F_WARNING_CALL','ZHOU_2F_WARNING_READBACK','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']),
   CHEN:Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','CHEN_1F_TRANSIT_LOG','M3','CHEN_2F_HANDOFF_RECEIPT','CHEN_4F_DESTINATION_CHECK','CHEN_3F_ROUTE_RECONCILE','M6','M7','B2','CHEN_M8_DISPATCH','M9'])
 });
 
@@ -28,6 +28,8 @@ export const ROUTE_STEPS=Object.freeze({
   ZHANG_6F_FORESHADOW:{zoneId:'first_campus_8f',spawn:'first_8f_lift',label:'樓層顯示異常',time:null},
   ZHOU_1F_PHOTO:{zoneId:'first_campus_1f',spawn:'first_1f_guard_back',label:'舊照片',time:null},
   ZHOU_SECURITY_TALK:{zoneId:'first_campus_1f',spawn:'first_1f_guard_back',label:'警衛的回憶',time:null},
+  ZHOU_1F_WARNING_CALL:{zoneId:'first_campus_1f',spawn:'first_1f_guard_back',label:'把警告說完整',time:null},
+  ZHOU_2F_WARNING_READBACK:{zoneId:'first_campus_2f',spawn:'m4_2f_er_triage',label:'確認警告已被聽懂',time:null},
   ZHOU_2117_RETURN:{zoneId:'first_campus_3f',spawn:'m0_3f_corridor',label:'三樓查哨',time:'21:17'},
   M6:{zoneId:'phantom_6f',spawn:'phantom_6f_lift',label:'錯停的六樓',time:null},
   M7:{zoneId:'first_campus_1f',spawn:'first_1f_guard_back',label:'備援控制盤',time:'02:17'},

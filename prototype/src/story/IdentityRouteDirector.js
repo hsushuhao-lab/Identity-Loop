@@ -593,6 +593,14 @@ export class IdentityRouteDirector {
       if(index===0) return { id: 'OLD_GUARD_POST', prompt: '回警衛台詢問老照片' };
       return { id: 'IDENTITY_GUARD_PHONE', prompt: '接聽正在響的警衛台電話' };
     }
+    if(identity==='ZHOU'){
+      if(step==='ZHOU_1F_WARNING_CALL') return index===0
+        ? {id:'OLD_GUARD_POST',prompt:'攤開便條，說清需要提醒的事'}
+        : {id:'IDENTITY_GUARD_PHONE',prompt:'主動打給急診，不等下一張照片'};
+      if(step==='ZHOU_2F_WARNING_READBACK') return index===0
+        ? {id:'ER_NURSE_COMPUTERS',prompt:'請急診護理師回讀收到的警告'}
+        : {id:'ER_DOCTOR_CHARTING',prompt:'留下回讀內容與尚待處理的事'};
+    }
     if (step === 'ZHOU_2117_RETURN') return { id: 'GUARD_SIGN_2117', prompt: '查看 21:17 查哨板' };
 
     if (step === 'M6') {
@@ -1155,6 +1163,9 @@ export class IdentityRouteDirector {
         if(ready)soundManager.playBed33KnockPattern(.16);
       });
     }
+    if(beat.outgoingWarningCall){
+      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playClick();});
+    }
     if(beat.cameraMemoryCue){
       void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playCameraShutter();});
     }
@@ -1312,8 +1323,8 @@ export class IdentityRouteDirector {
         });
         return;
       }
-      if(beat.chenCrosscheck||beat.zhangCareReview){
-        const review=beat.chenCrosscheck||beat.zhangCareReview;
+      if(beat.chenCrosscheck||beat.zhangCareReview||beat.zhouWarningReview){
+        const review=beat.chenCrosscheck||beat.zhangCareReview||beat.zhouWarningReview;
         let submitted=false;
         this.uiManager.openStoryChoice({
           title:review.title,body:review.body,primaryText:review.primary,secondaryText:review.secondary,

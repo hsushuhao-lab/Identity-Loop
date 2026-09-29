@@ -15,6 +15,7 @@ export const IDENTITY_STORAGE_KEY='IdentyLoop_IdentityState_v1';
 const IDENTITIES=Object.freeze(Object.values(IdentityEnum));
 const CHEN_PRE15_ROUTE=Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','CHEN_M8_DISPATCH','M9']);
 const ZHANG_PRE16_ROUTE=Object.freeze(['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9']);
+const ZHOU_PRE16_ROUTE=Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']);
 const clone=value=>JSON.parse(JSON.stringify(value));
 const freshMeta=()=>({completedGoodEnds:[],identityBag:[],m10Unlocked:false});
 const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,runEnded:false,b2Entered:false,runSeed:null});
@@ -63,10 +64,18 @@ export class IdentityManager{
       runSave.zhangRouteRevision=1;
     }
     if(runSave.currentIdentity==='ZHANG')runSave.zhangRouteRevision=1;
+    const migrateZhou=parsed.version===2&&runSave.currentIdentity==='ZHOU'&&runSave.zhouRouteRevision!==1;
+    if(migrateZhou){
+      const previousStep=ZHOU_PRE16_ROUTE[runSave.currentRouteStep];
+      runSave.currentRouteStep=runSave.runEnded?IDENTITY_ROUTES.ZHOU.length:Math.max(0,IDENTITY_ROUTES.ZHOU.indexOf(previousStep));
+      // Preserve the actual evidence and completion history, not imagined warning delivery.
+      runSave.zhouRouteRevision=1;
+    }
+    if(runSave.currentIdentity==='ZHOU')runSave.zhouRouteRevision=1;
     if(runSave.currentIdentity&&runSave.runSeed==null){runSave.runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;}
     runSave.currentMilestone=IDENTITY_ROUTES[runSave.currentIdentity]?.[runSave.currentRouteStep]||(runSave.runEnded?'M9':metaSave.m10Unlocked?'M10':null);
     const state={version:2,metaSave,runSave};
-    if(parsed.version!==2||parsed.runSave?.runSeed==null||migrateChen||migrateZhang)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
+    if(parsed.version!==2||parsed.runSave?.runSeed==null||migrateChen||migrateZhang||migrateZhou)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
     return state;
   }
 
@@ -87,7 +96,7 @@ export class IdentityManager{
     const currentIdentity=forceIdentity||this.drawIdentity();
     if(!validIdentity(currentIdentity))throw new Error('Unknown identity seed');
     const runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;
-    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed,...(currentIdentity==='CHEN'?{chenRouteRevision:1}:{}),...(currentIdentity==='ZHANG'?{zhangRouteRevision:1}:{})};
+    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed,...(currentIdentity==='CHEN'?{chenRouteRevision:1}:{}),...(currentIdentity==='ZHANG'?{zhangRouteRevision:1}:{}),...(currentIdentity==='ZHOU'?{zhouRouteRevision:1}:{})};
     return this.save();
   }
 
