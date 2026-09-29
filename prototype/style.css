@@ -913,3 +913,16 @@ body.his-flicker #canvas-container{animation:his-power-flicker .42s linear}
 .loop-cutscene-inner{width:100%;min-height:100vh;justify-content:flex-end;padding:24px 24px 80px;box-sizing:border-box;background:linear-gradient(transparent 45%,rgba(0,0,0,.82) 85%)}
 .loop-stage-body{font-size:16px;line-height:1.6;text-shadow:0 2px 4px #000}
 .loop-stage-title{margin-bottom:12px}
+
+/* Shared photographic evidence: the same archival surface for albums, CCTV and posters. */
+.memory-header,.poster-reader-header{background:#242b27;border-color:#5c6256}
+.memory-body,.poster-reader-body{background:#151b18}
+.memory-copy p,.poster-commentary{color:#dedbce;line-height:1.8}
+.memory-viewer,.poster-reader{border-color:#746c59}
+.memory-footer{gap:12px;flex-wrap:wrap;flex-shrink:0}
+.memory-copy{overflow-wrap:anywhere}
+@media(max-width:760px){.memory-header h2{font-size:20px}.memory-body{padding:12px;gap:10px}.memory-copy p{font-size:16px}.memory-footer button{min-height:44px}}
+
+.memory-footer button{background:#293a32;color:#eee9d8;border:1px solid #797563;padding:10px 18px;border-radius:3px}
+.memory-footer button:disabled{opacity:.38;cursor:default}
+.memory-footer button:not(:disabled):hover{background:#3d5145}

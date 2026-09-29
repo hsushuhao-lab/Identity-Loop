@@ -442,7 +442,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
       event('電梯劫持到六樓', [
         {speaker:'內心',text:'我離開 316，原本只是想回四樓值班室。'},
         {speaker:'內心',text:'電梯卻越過 4F、5F，再一次停在 6。這次門真的打開了。'}
-      ], '觀看 6F 事故與張 Seed 記憶回放', { accidentCg:true }),
+      ], '觀看六樓事故與片段記憶回放', { accidentCg:true }),
       event('離開六樓', [
         {speaker:'內心',text:'畫面結束後，技能中心只剩焦黑器材與訓練人偶。'},
         {speaker:'內心',text:'先離開。去一樓警衛台查當年的門禁與 B-Panel。'}

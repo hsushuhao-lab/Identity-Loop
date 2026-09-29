@@ -73,6 +73,7 @@ import { ActPresentationDirector } from './story/ActPresentationDirector.js';
 import { FinalPatientizationDirector } from './story/FinalPatientizationDirector.js';
 import { FinalSuccessDirector } from './story/FinalSuccessDirector.js';
 import { B2FireRecapDirector } from './story/B2FireRecapDirector.js';
+import { photoSequence, sharedAlbum, FLOOR_PHOTO_KEYS } from './story/SharedMedia.js';
 import { IdentityManager, IDENTITY_PROFILES } from './core/IdentityManager.js';
 import { IdentityLoopPanel } from './ui/IdentityLoopPanel.js';
 
@@ -158,6 +159,8 @@ uiManager = new UIManager(
     renderer.domElement.requestPointerLock();
   }
 );
+
+uiManager.identityMediaContext=()=>identityLoopMode?{identity:identityManager.currentIdentity,step:identityManager.currentRouteStep}:null;
 
 const identityLoopPanel=new IdentityLoopPanel(identityManager,{debug:new URLSearchParams(location.search).get('qa')==='story'||new URLSearchParams(location.search).get('debug')==='1',onNewRun:restartFreshExperience});
 if(identityLoopMode)identityLoopPanel.start();
@@ -1169,12 +1172,18 @@ controller.onInteract = async (interactable) => {
     }
     checkElevatorReady();
   } else if (interactable.type === 'identity_floor_photo') {
-    const identity = identityRouteDirector?.manager?.currentIdentity;
-    const reading = interactable.routeReadings?.[identity] || interactable.routeReadings?.fallback;
-    if (reading) uiManager.showSubtitle('照片旁的記錄', reading, 5200);
+    controller.enabled=false;
+    uiManager.openMemorySequence(photoSequence(FLOOR_PHOTO_KEYS[interactable.photoCell],identityManager.currentIdentity));
+  } else if (interactable.type === 'identity_photo') {
+    controller.enabled=false;
+    const key=interactable.photoKey||(interactable.id==='IDENTITY_HISTORY_GROUP_PHOTO'?'group':'reflection');
+    uiManager.openMemorySequence(photoSequence(key,identityManager.currentIdentity));
   } else if (interactable.type === 'memory_evidence') {
     const sequence=getMemorySequence(interactable.memoryId);
     if(!sequence)return;
+    if(identityLoopMode){
+      controller.enabled=false;uiManager.openMemorySequence(sequence);return;
+    }
     persistentMemory.rememberEvidence(sequence.id);
     if(sequence.id==='M1_ADMIN_DUTY_PHOTO')gameState.setFlag('B2_ADMIN_SOURCE',true);
     if(sequence.id==='M1_ARCHIVE_6F_ALBUM')gameState.setFlag('B2_HISTORY_SOURCE',true);
@@ -1188,6 +1197,18 @@ controller.onInteract = async (interactable) => {
     uiManager.showSubtitle('值班醫師','「這個電腦是護理師專用，請醫師用醫師診療室專用電腦。」',3600);
   } else if (interactable.type === 'archive_document') {
     controller.enabled = false;
+    if(identityLoopMode&&['SECOND_GUARD_PHOTO_ALBUM','ARCHIVE_HISTORY_PHOTO_WALL'].includes(interactable.id)){
+      const guard=interactable.id==='SECOND_GUARD_PHOTO_ALBUM';
+      const required=identityManager.currentIdentity==='ZHANG'&&identityManager.currentRouteStep===(guard?'ZHANG_SECOND_CAMPUS_SECURITY':'ZHANG_3F_ARCHIVE');
+      const onRead=required?()=>{
+        const flag=guard?'ZHANG_GUARD_ALBUM_REVIEWED':'ARCHIVE_HISTORY_WALL_REVIEWED';
+        gameState.setFlag(flag,true);
+        persistentMemory.addJournalNote(flag,guard?'已翻閱警衛台舊相簿。下一步向警衛核對現場。':'已逐頁檢視院史影像。下一步核對封存名錄。');
+        uiManager.updateTasks();
+      }:null;
+      uiManager.openMemorySequence(sharedAlbum(interactable.id,identityManager.currentIdentity),null,onRead);
+      return;
+    }
     const archiveComplete=interactable.id==='ARCHIVE_PERSONNEL_1998'
       ? ()=>{
           gameState.setFlag('HISTORY_PERSONNEL_PROFILES_REVIEWED',true);

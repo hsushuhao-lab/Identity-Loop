@@ -1,3 +1,6 @@
+import { isIdentityRouteMode } from '../../story/IdentityPrivacy.js';
+import { SHARED_PHOTOS } from '../../story/SharedMedia.js';
+import { drawSharedPhoto, preloadSharedPhoto, MEDIA_FRAME_COLOR } from '../../art/SharedMediaArt.js';
 import * as THREE from 'three';
 import { worldNarrative } from '../../story/IdentityPrivacy.js';
 import { solid, asset } from '../../art/ArtDetails.js';
@@ -387,9 +390,18 @@ export class WardFloorplan {
     asset(decor,'plant',[o+13.15,0,9.1],[.55,.55,.55]);
 
     const dutyPhoto=(x,y,z,title,subtitle,people=4,artIndex=0)=>{
+      const photographic=isIdentityRouteMode(),key=artIndex===0?'group':'skills';
       const canvas=document.createElement('canvas');canvas.width=960;canvas.height=620;
       const render=()=>{
         const ctx=canvas.getContext('2d');
+        if(photographic){
+          ctx.fillStyle='#151b18';ctx.fillRect(0,0,960,620);
+          const loaded=drawSharedPhoto(ctx,key,22,22,916,506);
+          ctx.fillStyle='#d3cebc';ctx.font='30px sans-serif';ctx.fillText(SHARED_PHOTOS[key].title,30,570);
+          ctx.font='18px sans-serif';ctx.fillText('院內留影／人物與日期未核',30,601);
+          canvas.dataset.mediaStyle='photographic';canvas.dataset.mediaPhoto=key;canvas.dataset.mediaLoaded=String(loaded);
+          tex.needsUpdate=true;return;
+        }
         ctx.fillStyle='#bca988';ctx.fillRect(0,0,960,620);
         const paper=ctx.createLinearGradient(0,0,960,620);paper.addColorStop(0,'#dfd0ae');paper.addColorStop(1,'#75634d');ctx.fillStyle=paper;ctx.fillRect(24,24,912,572);
 
@@ -421,11 +433,16 @@ export class WardFloorplan {
 
       const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
       render();
-      const frame=solid(decor,this.gf.materials.doorWood,[x,y,z],[1.52,1.02,.07]);
+      const frame=solid(decor,photographic?new THREE.MeshStandardMaterial({color:MEDIA_FRAME_COLOR,roughness:.9}):this.gf.materials.doorWood,[x,y,z],[1.52,1.02,.07]);
       frame.name='Second5F_DutyPhoto_Frame_'+title;
-      const photo=new THREE.Mesh(new THREE.PlaneGeometry(1.38,.88),new THREE.MeshStandardMaterial({map:tex,roughness:.88,metalness:0}));
+      const photo=new THREE.Mesh(new THREE.PlaneGeometry(1.38,photographic?1.38*620/960:.88),new THREE.MeshStandardMaterial({map:tex,roughness:.88,metalness:0}));
       photo.position.set(x,y,z-.041);photo.name='Second5F_DutyPhoto_'+title;decor.add(photo);
-      void preloadArtPass2Image('memoryFragments').then(()=>{if(photo.parent)render();}).catch(()=>{});
+      if(photographic){
+        photo.rotation.y=Math.PI;
+        photo.userData={interactable:true,id:`SECOND_DUTY_PHOTO_${this.floor}_${key}`,type:'identity_photo',photoKey:key,label:'查看牆上的院內留影'};
+        this.interactables.push(photo);
+      }
+      void (photographic?preloadSharedPhoto(key):preloadArtPass2Image('memoryFragments')).then(()=>{if(photo.parent)render();}).catch(error=>console.warn('[shared-media] duty photo unavailable',error));
     };
     dutyPhoto(o+10.25,1.72,9.78,'1998 夜班合照','第二院區 5F 值班室',4,0);
     dutyPhoto(o+12.15,1.72,9.78,'臨床教學留影','病房急救演練',3,4);

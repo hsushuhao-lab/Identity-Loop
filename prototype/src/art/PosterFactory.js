@@ -45,14 +45,14 @@ export function createEraPoster(zone,placement){
   const poster=getEraPoster(placement.posterId);
   if(!poster||!zone?.zoneGroup)return null;
   const width=placement.width||.78;
-  const height=width*(1700/1200);
+  const height=width*(1024/723);
   const group=new THREE.Group();
   group.name=`EraPoster/${placement.posterId}/${placement.variant||'clean'}`;
   group.position.set(placement.x,placement.y,placement.z);
   group.rotation.y=placement.rotationY||0;
   group.rotation.z=placement.rotationZ||0;
 
-  const frameMat=new THREE.MeshStandardMaterial({color:0x5b5140,roughness:.82,metalness:.05});
+  const frameMat=new THREE.MeshStandardMaterial({color:0x493d2f,roughness:.9,metalness:0});
   const frame=new THREE.Mesh(new THREE.BoxGeometry(width+.065,height+.065,.032),frameMat);
   frame.position.z=-.018;frame.castShadow=false;frame.receiveShadow=false;group.add(frame);
 

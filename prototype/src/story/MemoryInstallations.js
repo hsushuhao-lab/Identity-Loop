@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { isIdentityRouteMode } from './IdentityPrivacy.js';
+import { sharedAlbum } from './SharedMedia.js';
+import { drawSharedPhoto, preloadSharedPhoto, MEDIA_FRAME_COLOR } from '../art/SharedMediaArt.js';
 import { getMemorySequence } from './NarrativeV22.js';
 import { drawCharacterStrip } from '../art/CharacterPortraitArt.js';
 import {drawMemoryFragment,preloadArtPass2Image} from '../art/ArtPass2Assets.js';
@@ -7,7 +10,7 @@ const P=(memoryId,x,y,z,rotationY,width=.74)=>Object.freeze({memoryId,x,y,z,rota
 const PLACEMENTS=Object.freeze({
   first_campus_3f:Object.freeze([
     P('M1_ADMIN_DUTY_PHOTO',-21.84,1.55,8.55,Math.PI/2,.72),
-    P('M1_ARCHIVE_6F_ALBUM',23.56,1.48,-5.25,-Math.PI/2,.76)
+    P('M1_ARCHIVE_6F_ALBUM',23.56,1.60,-2.30,-Math.PI/2,.48)
   ]),
   first_campus_4f:Object.freeze([P('M2_DUTYROOM_ALBUM',-13.84,1.55,8.65,Math.PI/2,.72)]),
   first_campus_2f:Object.freeze([P('M3_ER_PHOTO',15.78,1.55,-7.55,-Math.PI/2,.72)]),
@@ -27,6 +30,13 @@ function memoryArtIndex(sequence){
 function drawFace(sequence){
   const canvas=document.createElement('canvas');canvas.width=900;canvas.height=600;
   const ctx=canvas.getContext('2d');const cctv=sequence.mode==='CCTV';
+  if(isIdentityRouteMode()){
+    const album=sharedAlbum(sequence.id);
+    ctx.fillStyle='#1b211d';ctx.fillRect(0,0,900,600);
+    drawSharedPhoto(ctx,album.frames[0].photo,24,24,852,500);
+    ctx.fillStyle='#d3cebc';ctx.font='26px sans-serif';ctx.fillText(album.title,28,561);
+    const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+  }
   ctx.fillStyle=cctv?'#111612':'#c9ba98';ctx.fillRect(0,0,900,600);
   const header=ctx.createLinearGradient(0,0,900,90);
   header.addColorStop(0,cctv?'#07100b':'#544331');header.addColorStop(1,cctv?'#18251c':'#7d6748');
@@ -72,18 +82,19 @@ function drawFace(sequence){
 
 export function createMemoryEvidence(zone,placement){
   const sequence=getMemorySequence(placement.memoryId);if(!sequence||!zone?.zoneGroup)return null;
-  const width=placement.width||.74,height=width*.68;
+  const width=placement.width||.74,height=width*2/3;
   const root=new THREE.Group();root.name='MemoryEvidence/'+placement.memoryId;
   root.position.set(placement.x,placement.y,placement.z);root.rotation.y=placement.rotationY||0;
-  const frame=new THREE.Mesh(new THREE.BoxGeometry(width+.08,height+.08,.04),new THREE.MeshStandardMaterial({color:0x4c4031,roughness:.9}));frame.position.z=-.018;root.add(frame);
+  const frame=new THREE.Mesh(new THREE.BoxGeometry(width+.08,height+.08,.04),new THREE.MeshStandardMaterial({color:MEDIA_FRAME_COLOR,roughness:.9}));frame.position.z=-.018;root.add(frame);
   const face=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshStandardMaterial({map:drawFace(sequence),roughness:.88,side:THREE.DoubleSide}));
   face.position.z=.005;face.name='MemoryEvidenceFace/'+placement.memoryId;
-  face.userData={interactable:true,id:'MEMORY_'+placement.memoryId,type:'memory_evidence',memoryId:placement.memoryId,label:'查看「'+sequence.title+'」'};
+  face.userData={interactable:true,id:'MEMORY_'+placement.memoryId,type:'memory_evidence',memoryId:placement.memoryId,label:'查看「'+(isIdentityRouteMode()?sharedAlbum(sequence.id).title:sequence.title)+'」'};
   root.add(face);zone.zoneGroup.add(root);zone.interactables.push(face);
 
   // Refine the wall photo once the lightweight generated memory atlas has decoded.
   // The atlas is visual-only; all names, timestamps and captions remain canonical data.
-  void preloadArtPass2Image('memoryFragments').then(()=>{
+  const loading=isIdentityRouteMode()?preloadSharedPhoto(sharedAlbum(sequence.id).frames[0].photo):preloadArtPass2Image('memoryFragments');
+  void loading.then(()=>{
     if(!face.parent)return;
     const previous=face.material.map;
     face.material.map=drawFace(sequence);

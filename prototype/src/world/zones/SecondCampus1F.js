@@ -1,5 +1,6 @@
 // SecondCampus1F.js - Milestone M10: Second Campus 1F Hillside Exit & Outdoor Landing
 import * as THREE from 'three';
+import { applyAlbumCover } from '../../art/SharedMediaArt.js';
 import { buildHillsidePreview } from '../../art/LandscapeArt.js';
 import { artRoot, solid, asset, monitor, counterFront, wallTrim } from '../../art/ArtDetails.js';
 import { disposeZoneArt } from '../../art/ArtResources.js';
@@ -136,6 +137,7 @@ export class SecondCampus1F {
       ]
     };
     this.interactables.push(photoAlbum);
+    if(typeof document!=='undefined')applyAlbumCover(photoAlbum);
 
     const coffee=new THREE.Group();
     coffee.name='Second1F_IdentityBlackCoffee';

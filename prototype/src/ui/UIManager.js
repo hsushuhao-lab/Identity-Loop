@@ -1,3 +1,5 @@
+import { mediaPresentation, sharedPosterCommentary } from '../story/SharedMedia.js';
+import { preloadSharedSequence, renderSharedMemory, drawSharedPhoto, preloadSharedPhoto } from '../art/SharedMediaArt.js';
 import { drawIdentityM6Memory } from '../art/IdentityM6MemoryArt.js';
 // UIManager.js - Handles HUD, HIS computer terminal, Duty Log, and Elevator transition
 import { playElevatorGlimpse } from '../story/ElevatorGlimpseScene.js';
@@ -594,15 +596,19 @@ export class UIManager {
 
   openArchiveDocument(documentData) {
     document.exitPointerLock();
-    this.archivePages = documentData.pages || [''];
+    const context=this.identityMediaContext?.();
+    const personnel=documentData.pages?.some(page=>page?.kind==='personnel');
+    const rosterReady=['LI_3F_EVIDENCE','ZHANG_3F_ARCHIVE','M8','CHEN_M8_DISPATCH','M9'].includes(context?.step);
+    const restricted=!!context&&personnel&&!rosterReady;
+    this.archivePages = restricted?['封存人員資料尚待現場核對。先完成目前路線，再比對這份名錄。']:(documentData.pages || ['']);
     this.archivePageIndex = 0;
-    this.archiveCompletionHandler=documentData.onComplete||null;
+    this.archiveCompletionHandler=restricted?null:(documentData.onComplete||null);
     this.archiveCompleted=false;
     this.archiveTitleEl.textContent = documentData.title || '院內文件';
     this.archiveModal.classList.add('active');
     this.renderArchivePage();
     if(documentData.title==='1998 夜班核心人員名錄'){
-      void preloadArtPass2Image('personnelRoster').then(()=>this.renderArchivePage()).catch(error=>{
+      void (isIdentityRouteMode()?preloadSharedPhoto('group'):preloadArtPass2Image('personnelRoster')).then(()=>this.renderArchivePage()).catch(error=>{
         console.warn('[art] personnel roster backdrop unavailable',error);
       });
     }
@@ -628,11 +634,12 @@ export class UIManager {
         for(let i=0;i<36;i++)ctx.fillRect((i*79)%420,(i*47)%520,2+(i%3),4+(i%5));
       }
       ctx.fillStyle='rgba(20,14,10,.52)';ctx.fillRect(40,84,340,340);
-      drawCharacterStrip(ctx,[page.name],{left:65,right:355,baseY:405,cctv:false,labels:false,maxScale:1.12});
+      if(isIdentityRouteMode())drawSharedPhoto(ctx,'group',20,84,380,340);
+      else drawCharacterStrip(ctx,[page.name],{left:65,right:355,baseY:405,cctv:false,labels:false,maxScale:1.12});
       ctx.strokeStyle='#d0b98e';ctx.lineWidth=6;ctx.strokeRect(12,12,396,496);
       ctx.strokeStyle='rgba(224,203,163,.25)';ctx.lineWidth=1;
       for(let y=36;y<500;y+=42){ctx.beginPath();ctx.moveTo(28,y);ctx.lineTo(392,y);ctx.stroke();}
-      ctx.fillStyle='rgba(218,191,146,.74)';ctx.font='bold 18px monospace';ctx.fillText('ARCHIVE / 1998',28,42);
+      ctx.fillStyle='rgba(218,191,146,.74)';ctx.font='bold 18px monospace';ctx.fillText(isIdentityRouteMode()?'工作留影／非個人證件照':'ARCHIVE / 1998',28,42);
       const index=document.createElement('div');index.className='personnel-dossier-index';index.textContent=`ARCHIVE PERSONNEL FILE ${String(this.archivePageIndex+1).padStart(2,'0')}`;
       portrait.append(canvas,index);
 
@@ -676,7 +683,7 @@ export class UIManager {
     if(this.posterTitleEl)this.posterTitleEl.textContent=posterData.title||'院內年代海報';
     if(this.posterCategoryEl){
       const label={TRUE_CLUE:'院內年代資料｜可能是真線索',AMBIGUOUS:'院內年代資料｜內容待判讀',FALSE_CLUE:'院內年代資料｜可能是體制性誤導'}[posterData.category]||'院內年代資料';
-      this.posterCategoryEl.textContent=label;
+      this.posterCategoryEl.textContent=isIdentityRouteMode()?'院內公告／版本與適用範圍待核':label;
     }
     if(this.posterImageEl){
       const base=import.meta.env?.BASE_URL ?? '/';
@@ -684,7 +691,7 @@ export class UIManager {
       this.posterImageEl.alt=posterData.title||'院內年代海報';
     }
     if(this.posterCommentaryEl){
-      this.posterCommentaryEl.textContent=posterData.commentary||'';
+      this.posterCommentaryEl.textContent=isIdentityRouteMode()?sharedPosterCommentary(posterData,this.identityMediaContext?.()?.identity):(posterData.commentary||'');
       this.posterCommentaryEl.style.display=posterData.commentary?'block':'none';
     }
     this.posterModal.classList.add('active');
@@ -840,27 +847,33 @@ export class UIManager {
     if(resume)this.onTerminalClose?.();
   }
 
-  openMemorySequence(sequence,onClose=null){
+  openMemorySequence(sequence,onClose=null,onRead=null){
     if(!sequence)return;
     document.exitPointerLock();
     this.memorySequence=sequence;this.memoryFrameIndex=0;this.memoryCloseHandler=onClose;
-    document.getElementById('memory-title').textContent=sequence.title||'記憶影像';
-    document.getElementById('memory-mode').textContent=sequence.mode==='CCTV'?'FRAME PLAYBACK / CCTV':'FRAME ALBUM';
-    document.getElementById('memory-source').textContent=sequence.source||'';
+    const context=this.identityMediaContext?.();
+    this.memoryPresentation=(context||isIdentityRouteMode())?mediaPresentation(sequence,context?.identity):null;
+    this.memoryVisited=new Set();this.memoryReadCompleted=false;this.memoryReadHandler=onRead;
+    const shown=this.memoryPresentation||sequence;
+    document.getElementById('memory-title').textContent=shown.title||'記憶影像';
+    document.getElementById('memory-mode').textContent=shown.mode==='CCTV'?'影像回放／記憶重建':'館藏相簿／逐頁檢視';
+    document.getElementById('memory-source').textContent=shown.source||'';
     this.memoryModal?.classList.add('active');this.renderMemoryFrame();
-    void preloadArtPass2Image('memoryFragments').then(()=>{
+    const loading=this.memoryPresentation?preloadSharedSequence(shown):preloadArtPass2Image('memoryFragments');
+    void loading.then(()=>{
       if(this.memorySequence===sequence)this.renderMemoryFrame();
     }).catch(error=>console.warn('[artpass2] memory viewer art preload failed',error));
   }
 
   stepMemory(delta){
     if(!this.memorySequence)return;
-    const next=Math.max(0,Math.min(this.memorySequence.frames.length-1,this.memoryFrameIndex+delta));
+    const next=Math.max(0,Math.min((this.memoryPresentation||this.memorySequence).frames.length-1,this.memoryFrameIndex+delta));
     if(next===this.memoryFrameIndex)return;
     this.memoryFrameIndex=next;soundManager.playClick();this.renderMemoryFrame();
   }
 
   renderMemoryFrame(elapsedMs=0){
+    if(this.memoryPresentation){renderSharedMemory(this,this.memoryPresentation,elapsedMs);return;}
     const sequence=this.memorySequence,frame=sequence?.frames?.[this.memoryFrameIndex];
     if(!frame||!this.memoryFrameCanvas)return;
     const canvas=this.memoryFrameCanvas,ctx=canvas.getContext('2d'),cctv=sequence.mode==='CCTV',w=canvas.width,h=canvas.height;
@@ -932,7 +945,7 @@ export class UIManager {
   }
 
   closeMemorySequence(resume=true){
-    this.memoryModal?.classList.remove('active');const cb=this.memoryCloseHandler;this.memoryCloseHandler=null;this.memorySequence=null;cb?.();if(resume)this.onTerminalClose?.();
+    this.memoryModal?.classList.remove('active');const cb=this.memoryCloseHandler;this.memoryCloseHandler=null;this.memorySequence=null;this.memoryPresentation=null;this.memoryReadHandler=null;cb?.();if(resume)this.onTerminalClose?.();
   }
 
   openIdentityMatrix({candidates=[],onSelect,onAttemptComplete=null}={}){

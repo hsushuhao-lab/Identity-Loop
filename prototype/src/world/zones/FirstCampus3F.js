@@ -1,3 +1,5 @@
+import { isIdentityRouteMode } from '../../story/IdentityPrivacy.js';
+import { buildSharedGalleryTexture } from '../../art/SharedMediaArt.js';
 // FirstCampus3F.js - Milestone M0: First Campus 3F Doctor Administrative Area & Room 316
 import * as THREE from 'three';
 import { worldNarrative } from '../../story/IdentityPrivacy.js';
@@ -361,7 +363,7 @@ export class FirstCampus3F {
     };
     galleryRoot.add(galleryFace);
     this.interactables.push(galleryFace);
-    void buildArchiveGalleryTexture().then(texture=>{
+    void (isIdentityRouteMode()?buildSharedGalleryTexture():buildArchiveGalleryTexture()).then(texture=>{
       if(!galleryFace.parent){texture.dispose();return;}
       galleryMaterial.map=texture;galleryMaterial.color.setHex(0xffffff);galleryMaterial.needsUpdate=true;
     }).catch(error=>console.warn('[artpass2] archive photo wall failed',error));

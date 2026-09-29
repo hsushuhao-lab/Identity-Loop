@@ -4,7 +4,7 @@ const P=(posterId,x,y,z,rotationY,width=.78,variant='clean',inspectable=true,rot
 
 export const ERA_POSTER_PLACEMENTS=Object.freeze({
   first_campus_1f:Object.freeze([
-    P('poster_04_hospital_history_1998',7.2,1.65,-7.76,Math.PI,.86,'stained',true,-.012),
+    P('poster_04_hospital_history_1998',7.2,1.65,-7.76,0,.86,'stained',true,-.012),
     P('poster_01_restraint_sop',17.76,1.62,0,-Math.PI/2,.70,'clean',false,.008),
     P('poster_06_night_shift_attendance',-13.76,1.58,1.55,Math.PI/2,.72,'stained',true,-.018)
   ]),
@@ -22,7 +22,7 @@ export const ERA_POSTER_PLACEMENTS=Object.freeze({
   first_campus_4f:Object.freeze([
     P('poster_01_restraint_sop',-3.15,1.66,.13,0,.68,'clean',false,-.01),
     P('poster_06_night_shift_attendance',2.55,1.66,.13,0,.68,'stained',true,.012),
-    P('poster_02_auditory_hallucination_knocking',6.73,1.58,-1.15,Math.PI/2,.78,'stained',true,-.018),
+    P('poster_02_auditory_hallucination_knocking',6.73,1.58,-1.15,-Math.PI/2,.78,'stained',true,-.018),
     P('poster_07_ect_identity_memory',-13.86,1.64,7.75,Math.PI/2,.66,'clean',true,.008)
   ]),
   second_campus_5f:Object.freeze([
