@@ -1,0 +1,22 @@
+name: ER and final choice repair workspace
+on:
+  push:
+    branches: [fix-er-final-choice-20260930]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export exact current source
+        run: |
+          git rev-parse HEAD > source-commit.txt
+          git ls-files -s > source-manifest.txt
+          tar --exclude=prototype/qa-results --exclude=prototype/dist -czf source.tgz prototype .github README.md source-manifest.txt source-commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: er-final-choice-source
+          path: source.tgz
+          retention-days: 7
