@@ -57,40 +57,19 @@ export class WardFloorplan {
     nursingStationV5(this,{x:o,z:-4.3,id:second?'second_station':'first_station'});
 
     if(second&&this.floor===5){
-      // Diegetic intercom: the nurse stays behind the enclosed station glass.
-      const intercom=new THREE.Group();
-      intercom.name='IdentitySecond5F_Intercom';
-      intercom.position.set(o+5.72,1.25,-1.08);
-      const body=new THREE.Mesh(
-        new THREE.BoxGeometry(.24,.34,.08),
-        new THREE.MeshStandardMaterial({color:0x6c7470,roughness:.62,metalness:.28})
-      );
-      intercom.add(body);
-      const grille=new THREE.Mesh(
-        new THREE.CircleGeometry(.073,18),
-        new THREE.MeshStandardMaterial({color:0x252b28,roughness:.9})
-      );
-      grille.position.set(0,.055,.043);intercom.add(grille);
-      const button=new THREE.Mesh(
-        new THREE.CircleGeometry(.036,18),
-        new THREE.MeshStandardMaterial({color:0xb9aa75,roughness:.45,metalness:.15})
-      );
-      button.position.set(0,-.095,.044);intercom.add(button);
-      const hit=new THREE.Mesh(
-        new THREE.BoxGeometry(.55,.66,.38),
-        new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})
-      );
-      hit.position.set(0,0,.04);
-      hit.userData={
-        interactable:true,
-        id:'IDENTITY_SECOND_5F_NURSE_STATION',
-        type:'identity_second_5f_nurse_station',
-        label:'按下護理站對講機'
-      };
-      intercom.add(hit);
-      this.zoneGroup.add(intercom);
-      this.interactables.push(hit);
-      this.identitySecond5FIntercom=intercom;
+      const stationComputer=this.workstations.find(item=>item.id==='second_station_A')?.screen;
+      if(stationComputer){
+        stationComputer.name='IdentitySecond5F_NurseStationComputer';
+        stationComputer.userData={
+          ...stationComputer.userData,
+          interactable:true,
+          id:'IDENTITY_SECOND_5F_NURSE_STATION',
+          type:'identity_second_5f_nurse_station',
+          label:'使用 5F 護理站電腦'
+        };
+        this.interactables.push(stationComputer);
+        this.identitySecond5FNurseComputer=stationComputer;
+      }
 
       const keyDesk=this.workstations.find(item=>item.id==='second_station_A')?.desk;
       const keySurfaceY=keyDesk?new THREE.Box3().setFromObject(keyDesk).max.y:.82;
@@ -389,6 +368,21 @@ export class WardFloorplan {
     asset(decor,'bench',[o+10,0,9.25],[.62,.62,.62],Math.PI);
     asset(decor,'plant',[o+13.15,0,9.1],[.55,.55,.55]);
 
+    const bathroom=new THREE.Group();bathroom.name='IdentitySecond5F_DutyBathroom';this.zoneGroup.add(bathroom);
+    solid(bathroom,this.gf.materials.wall,[o+8.95,1.35,4.2],[.08,2.7,2.9]);
+    solid(bathroom,this.gf.materials.glass,[o+9.02,1.45,4.2],[.025,2.3,2.65]);
+    solid(bathroom,this.gf.materials.floorTile,[o+9.75,.035,4.2],[1.4,.04,2.65]);
+    const toilet=new THREE.Mesh(new THREE.CylinderGeometry(.27,.32,.18,24),this.gf.materials.bedSheet);
+    toilet.position.set(o+9.45,.14,3.65);bathroom.add(toilet);
+    const toiletTank=new THREE.Mesh(new THREE.BoxGeometry(.42,.52,.16),this.gf.materials.wall);
+    toiletTank.position.set(o+9.45,.38,3.92);bathroom.add(toiletTank);
+    const showerTray=new THREE.Mesh(new THREE.BoxGeometry(.72,.06,.78),this.gf.materials.stainless);
+    showerTray.position.set(o+10.35,.05,4.65);bathroom.add(showerTray);
+    const showerHead=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.04,16),this.gf.materials.stainless);
+    showerHead.rotation.z=Math.PI/2;showerHead.position.set(o+10.35,2.45,4.58);bathroom.add(showerHead);
+    const sink=solid(bathroom,this.gf.materials.bedSheet,[o+9.55,.86,5.05],[.48,.08,.34]);
+    sink.name='IdentitySecond5F_DutyBathroom_Sink';
+
     const dutyPhoto=(x,y,z,title,subtitle,people=4,artIndex=0)=>{
       const photographic=isIdentityRouteMode(),key=artIndex===0?'group':'skills';
       const canvas=document.createElement('canvas');canvas.width=960;canvas.height=620;
@@ -479,7 +473,7 @@ export class WardFloorplan {
     const badgeTrim=new THREE.Mesh(new THREE.BoxGeometry(.31,.014,.21),new THREE.MeshStandardMaterial({color:0x555b59,roughness:.74}));
     badgeTrim.position.y=-.012;badgeTrim.rotation.y=.12;badge.add(badgeTrim);
     const badgeHit=new THREE.Mesh(new THREE.BoxGeometry(.58,.30,.48),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-    badgeHit.userData={interactable:false,id:'CHEN_GREY_BADGE',type:'chen_grey_badge',label:'檢查灰滾邊跨院支援識別證'};
+    badgeHit.userData={interactable:false,id:'CHEN_GREY_BADGE',type:'chen_grey_badge',label:'拿取識別證'};
     badge.add(badgeHit);this.zoneGroup.add(badge);this.interactables.push(badgeHit);this.chenGreyBadge=badge;this.chenGreyBadgeHit=badgeHit;
 
     // Old wheelchair blocks the duty-room-to-elevator path until Chen pushes it.
@@ -544,7 +538,7 @@ export class WardFloorplan {
     // The treatment order sits on the second-campus nursing-station workstation, not in mid-air.
     const form=solid(this.zoneGroup,m.lightWarm,[o-1.28,.829,-2.18],[.42,.018,.30]);
     form.name='SecondCampus_ChestTreatmentOrder';
-    form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看 409-A 轉送醫囑單'};
+    form.userData={interactable:true,id:'SECOND_CHEST_TRANSFER',type:'second_chest_transfer',label:'查看醫囑單'};
     this.secondCampusTreatmentOrder=form;
     this.interactables.push(form);
 
@@ -576,7 +570,7 @@ export class WardFloorplan {
     }
     if(this.secondCampusTreatmentOrder){
       const seen=gameState.getFlag('SECOND_CHEST_PATIENT_SEEN')===true;
-      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看 409-A 轉送醫囑單':'查看 409-A 轉送醫囑單';
+      this.secondCampusTreatmentOrder.userData.label=seen?'重新查看醫囑單':'查看醫囑單';
     }
     if(this.chenLockbox){
       const opened=gameState.getFlag('CHEN_5042_LOCKBOX_OPENED')===true;

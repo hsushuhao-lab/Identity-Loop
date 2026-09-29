@@ -114,6 +114,7 @@ export class SecondCampus2F {
         const cctvPhone=new THREE.Group();
         cctvPhone.name='Second2F_CCTV_Phone';
         cctvPhone.position.set(x-1.2,1.02,-8.72);
+        cctvPhone.userData={surface:'Second2F_CCTV_PhoneDesk'};
         const phoneBase=new THREE.Mesh(
           new THREE.BoxGeometry(.34,.09,.23),
           new THREE.MeshStandardMaterial({color:0x27302b,roughness:.58})
@@ -153,7 +154,7 @@ export class SecondCampus2F {
         );
         cctvPhoneHit.position.set(0,.12,0);
         cctvPhoneHit.userData={
-          interactable:false,
+          interactable:true,
           id:'IDENTITY_SECOND_2F_CCTV_PHONE',
           type:'identity_cctv_phone',
           label:'接聽監控室電話'

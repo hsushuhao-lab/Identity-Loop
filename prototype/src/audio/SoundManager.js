@@ -317,6 +317,26 @@ export class SoundManager {
     }catch(e){}
   }
 
+  playFuriousWallKnockPattern(volume=.16) {
+    if(!this.ctx||this.isMuted)return;
+    try{
+      const now=this.ctx.currentTime;
+      const offsets=[0,.11,.21,.31,.54,.63,.72,.89,1.03,1.14,1.23,1.39,1.47,1.62];
+      offsets.forEach((offset,index)=>{
+        const t=now+offset;
+        const osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();
+        osc.type=index%3===0?'sawtooth':'triangle';
+        osc.frequency.setValueAtTime(118+(index%4)*17,t);
+        osc.frequency.exponentialRampToValueAtTime(38+(index%3)*8,t+.075);
+        filter.type='lowpass';filter.frequency.value=340;
+        const level=volume*(index%5===0?.72:1+(index%3)*.12);
+        gain.gain.setValueAtTime(level,t);gain.gain.exponentialRampToValueAtTime(.001,t+.105);
+        osc.connect(filter);filter.connect(gain);gain.connect(this.ctx.destination);
+        osc.start(t);osc.stop(t+.12);
+      });
+    }catch(e){}
+  }
+
   playCprCompression(){
     if(!this.ctx||this.isMuted)return;
     const now=this.ctx.currentTime,osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();

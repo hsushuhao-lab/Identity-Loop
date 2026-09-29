@@ -178,11 +178,11 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
   }
   const identity=identityManager.currentIdentity;
   const reasonText={
-    M2_BED33_APPROVAL_PATIENTIZATION:'你把不存在的 Bed 33／409-A 正式寫回收治流程。',
+    M2_BED33_APPROVAL_PATIENTIZATION:'你把不存在的 Bed 33／預填病區正式寫回收治流程。',
     ER_UNVERIFIED_RECORD_PATIENTIZATION:'你在身分未核對前建立了新的無名病歷。',
     ER0033_DUPLICATE_RECORD_PATIENTIZATION:'現場沒有病人，你卻讓異常舊紀錄製造出新的無名病歷。',
-    M4_409A_ORDER_PATIENTIZATION:'你簽下了來源未核對、卻已預填「轉入 409-A」的轉送醫囑單。',
-    CHEN_ER_TRANSFER_PATIENTIZATION:'你讓一張已經寫好目的地的跨院轉送聯取代了臨床判斷，把自己也送進 409-A。',
+    M4_409A_ORDER_PATIENTIZATION:'你簽下了來源未核對、卻已預填目的地的醫囑單。',
+    CHEN_ER_TRANSFER_PATIENTIZATION:'你讓一張已經寫好目的地的交接單據取代了臨床判斷。',
     BRIDGE_LOOKBACK_PATIENTIZATION:'你在天橋上回頭確認了不該被確認的人影。',
     BRIDGE_MANUAL_LOOKBACK_PATIENTIZATION:'你已選擇不回頭，卻在離開天橋前再次轉身。',
     M7_HISTORICAL_PROCEDURE_PATIENTIZATION:'你照著熟悉的舊程序重演了 1 → 3 → 4。',

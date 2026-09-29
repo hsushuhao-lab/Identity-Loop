@@ -93,7 +93,7 @@ assert.match(routeDirectorSource,/beat\.review \|\| beat\.label \|\| ROUTE_STEPS
 assert.match(sceneSource,/UNDELIVERED_MEMO_FRAGMENT/);
 assert.match(sceneSource,/取得：未送達便條碎片/);
 assert.match(sceneSource,/「等一下。」/);
-assert.match(sceneSource,/「409-A 先不要——」/);
+assert.match(sceneSource,/「那張醫囑單先不要——」/);
 assert.match(sceneSource,/「……我要叫誰等一下？」/);
 assert.match(sceneSource,/你總算上來了。408C 從傍晚就在按鈴/);
 assert.match(sceneSource,/醫師……你怎麼現在才來/);
@@ -117,14 +117,14 @@ console.log('PASS Zhou regression: wall photo -> guard -> ringing phone -> 2F ->
 const wardSource=readFileSync(new URL('./src/world/shared/WardFloorplan.js',import.meta.url),'utf8');
 assert.match(wardSource,/Identity4F_WardSpareKey/);
 assert.match(wardSource,/Identity4F_TemporaryAccessCard/);
-assert.doesNotMatch(wardSource,/Identity4F_Nurse_LinWanZhen|IdentitySecond5F_Nurse/);
+assert.doesNotMatch(wardSource,/Identity4F_Nurse_LinWanZhen|IdentitySecond5F_Nurse_LinWanZhen/);
 assert.match(wardSource,/first_station_A/);
 assert.match(wardSource,/second_station_A/);
 assert.doesNotMatch(wardSource,/Identity4F_Intercom/);
 assert.match(wardSource,/Identity4F_NurseStationComputer/);
-assert.match(wardSource,/IdentitySecond5F_Intercom/);
+assert.doesNotMatch(wardSource,/IdentitySecond5F_Intercom/);
 assert.match(wardSource,/使用護理站電腦聯絡晚班護理師/);
-assert.match(wardSource,/按下護理站對講機/);
+assert.doesNotMatch(wardSource,/按下護理站對講機/);
 assert.match(wardSource,/IDENTITY_4F_NURSE_STATION/);
 assert.doesNotMatch(wardSource,/IDENTITY_403_PATIENT|Identity403PatientInteraction|identity_patient_403/);
 assert.match(routeDirectorSource,/ZHANG_4F_SPARE_KEY_BORROWED/);
@@ -141,7 +141,7 @@ assert.match(sceneSource,/你今天又提早來了，現在才 16:50/);
 assert.match(sceneSource,/先拿 4F 這組備用鑰匙跟臨時感應卡/);
 assert.match(sceneSource,/408C 確認/);
 assert.match(sceneSource,/409 封閉房/);
-assert.match(sceneSource,/409-A 臨時床位單/);
+assert.match(sceneSource,/核對臨時床位單/);
 assert.match(sceneSource,/值班醫師您好/);
 assert.match(routeDirectorSource,/step === 'ZHANG_OPEN_4F'[\s\S]*IDENTITY_4F_NURSE_STATION/);
 assert.match(routeDirectorSource,/triggerPatientization\(reason='IDENTITY_ROUTE_PATIENTIZATION'/);
@@ -152,7 +152,7 @@ console.log('PASS M2 mainline: 4F workstation dialogue anchor -> 408C; other see
 
 assert.match(wardSource,/IdentitySecond5F_ConsultSpareKey/);
 assert.match(wardSource,/IDENTITY_SECOND_5F_NURSE_STATION/);
-assert.doesNotMatch(wardSource,/IdentitySecond5F_Nurse/);
+assert.doesNotMatch(wardSource,/IdentitySecond5F_Nurse_LinWanZhen/);
 assert.match(wardSource,/setIdentitySecondConsultKeyBorrowed/);
 assert.match(routeDirectorSource,/SECOND_5F_CONSULT_KEY_BORROWED/);
 assert.match(routeDirectorSource,/id: 'IDENTITY_SECOND_5F_NURSE_STATION'/);

@@ -36,8 +36,8 @@ assert.match(ward,/CHEN_GREY_BADGE/);
 assert.match(ward,/CHEN_5F_DUTY_PHONE/);
 assert.match(ward,/CHEN_WHEELCHAIR/);
 assert.match(ward,/pushChenWheelchair/);
-assert.match(ward,/id:'SECOND_CHEST_TRANSFER'.*label:'查看 409-A 轉送醫囑單'/);
-assert.match(ward,/查看 409-A 轉送醫囑單/);
+assert.match(ward,/id:'SECOND_CHEST_TRANSFER'.*label:'查看醫囑單'/);
+assert.match(ward,/查看醫囑單/);
 
 assert.match(ui,/openChen5042Lockbox/);
 assert.match(ui,/value!=='5042'/);
@@ -50,11 +50,11 @@ assert.match(sound,/playWheelchairRattle/);
 assert.match(sound,/playWheelchairApproach/);
 assert.match(director,/playWheelchairApproach/);
 
-assert.match(scenes,/院區間緊急轉送交接聯：無名男性留觀個案 → 409-A 隔離觀察/);
+assert.match(scenes,/院區間緊急交接單據：無名男性留觀個案 → 既定病區/);
 assert.match(scenes,/chenTransportChoice: identity==='CHEN'/);
-assert.match(director,/title:'第一院區 2F 急診｜跨院緊急轉送交接聯'/);
-assert.match(director,/扣留單據，拒絕盲從轉送/);
-assert.match(director,/簽署轉送交接，送往 409-A/);
+assert.match(director,/title:'第一院區 2F 急診｜交接單據'/);
+assert.match(director,/扣留單據，拒絕盲從/);
+assert.match(director,/簽署交接，送入既定病區/);
 assert.match(director,/CHEN_ER_TRANSFER_PATIENTIZATION/);
 assert.match(main,/CHEN_ER_TRANSFER_PATIENTIZATION/);
 
@@ -85,12 +85,12 @@ assert.equal(victimMap.includes('陳柏勳'),false);
 assert.equal(victimMap.includes('MED-89••••'),true);
 assert.match(scenes,/MED-89••••／第二院區支援醫師／最後位置：空中天橋/);
 
-assert.match(scenes,/409-A 轉送醫囑單/);
-assert.doesNotMatch(scenes,/409-A 醫囑單/);
+assert.match(scenes,/醫囑單/);
+assert.doesNotMatch(scenes,/轉送醫囑單/);
 assert.doesNotMatch(scenes,/轉院單/);
-assert.match(director,/第二院區｜409-A 轉送醫囑單/);
+assert.match(director,/第二院區｜醫囑單/);
 assert.match(endings,/THE TRANSFER/);
 assert.match(endings,/我是支援醫師陳柏勳/);
-assert.match(endings,/撤銷所有轉入 409-A 的轉送/);
+assert.match(endings,/撤銷所有預填目的地的交接/);
 
 console.log('PASS CHEN dedicated procedural-memory route: 5042 -> gray badge -> wheelchair -> CCTV/bridge -> ER transfer trap -> B2 MED-89 -> B1 dispatch -> M9');

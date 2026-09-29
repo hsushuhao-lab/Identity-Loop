@@ -490,7 +490,7 @@ export class IdentityRouteDirector {
       if(index===offset+1) return { id:'BED33_409_SEALED', prompt:'確認 409 封閉房與敲擊來源' };
       if(index===offset+2) return {
         id:'BED33_ASSIGNMENT',
-        prompt:'回護理站確認 409-A／Bed 33 臨時床位分配單',
+        prompt:'回護理站確認醫囑單',
         passthrough:true,
         completeFlag:'BED33_RESOLVED'
       };
@@ -540,7 +540,7 @@ export class IdentityRouteDirector {
           : '按下 5F 護理站對講機完成聯絡報到'
       };
       if (index === 1) return { id: 'SECOND_CHEST_PATIENT', prompt: '評估 504B 胸痛病人' };
-      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看 409-A 轉送醫囑單' };
+      if (index === 2) return { id: 'SECOND_CHEST_TRANSFER', prompt: '查看醫囑單' };
       if (index === 3) return {
         id: 'IDENTITY_SECOND_5F_NURSE_STATION',
         prompt: (identity==='ZHOU'||identity==='CHEN')
@@ -1160,7 +1160,9 @@ export class IdentityRouteDirector {
     }
     if(beat.knock409){
       void soundManager.ensureRunning().then(ready=>{
-        if(ready)soundManager.playBed33KnockPattern(.16);
+        if(!ready)return;
+        if(this.manager.currentIdentity==='LI')soundManager.playFuriousWallKnockPattern(.16);
+        else soundManager.playBed33KnockPattern(.16);
       });
     }
     if(beat.outgoingWarningCall){
@@ -1260,7 +1262,7 @@ export class IdentityRouteDirector {
             {stamp:'MEMORY 01',title:'5042',caption:'手指不看刻度就停在 5－0－4－2。',narration:'我今晚已經親手打開那個保險箱。不是猜到，是手先知道。'},
             {stamp:'MEMORY 02',title:'灰滾邊',caption:'MED-89••••／跨院支援住院醫師／姓名欄被救護出入戳印覆蓋。',narration:'這張證件就在我身上。它能打開只有跨院支援人員才會使用的通道。'},
             {stamp:'MEMORY 03',title:'偏軸輪椅',caption:'左輪卡住；握把抵著髖骨；跨接縫三聲喀啦。',narration:'監控裡那個人和我推輪椅的手感完全一樣。'},
-            {stamp:'MEMORY 04',title:'目的地',caption:'409-A 出現在醫囑、臨時床位與急診轉送聯。',narration:'每一次「流程往下走」，都把人推向同一個不存在的目的地。'}
+            {stamp:'MEMORY 04',title:'目的地',caption:'預填目的地出現在醫囑、臨時床位與急診交接單據。',narration:'每一次「流程往下走」，都把人推向同一個不存在的目的地。'}
           ]
         };
         this.gameState.setFlag('CHEN_M6_PROCEDURAL_MEMORY_CONFIRMED',true);
@@ -1349,18 +1351,18 @@ export class IdentityRouteDirector {
       }
       if(beat.chenTransportChoice){
         this.uiManager.openStoryChoice({
-          title:'第一院區 2F 急診｜跨院緊急轉送交接聯',
-          body:'傳真機吐出一張已經填好的「無名男性留觀個案 → 409-A 隔離觀察」轉送聯。\n\n要扣留這張來源可疑的單據，還是順著既有流程簽署轉送？',
-          primaryText:'扣留單據，拒絕盲從轉送',
-          secondaryText:'簽署轉送交接，送往 409-A',
+          title:'第一院區 2F 急診｜交接單據',
+          body:'傳真機吐出一張已經填好的「無名男性留觀個案 → 既定病區」醫囑單。\n\n要扣留這張來源可疑的單據，還是順著既有流程簽署？',
+          primaryText:'扣留單據，拒絕盲從',
+          secondaryText:'簽署交接，送入既定病區',
           systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('CHEN_ER_TRANSFER_REJECTED',true);
             this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
-            persistentMemory.addJournalNote('CHEN_ER_TRANSFER_REJECTED','急診拒絕把身分未核對的男性沿既有轉送聯送入 409-A；保留 1998-ER-0217 存根回 316 查驗。');
+            persistentMemory.addJournalNote('CHEN_ER_TRANSFER_REJECTED','急診拒絕把身分未核對的男性沿既有單據送入既定病區；保留 1998-ER-0217 存根回 316 查驗。');
             this.uiManager.showDialogue([
-              {speaker:'值班醫師',text:'「不行。第二院區怎麼可能事先替第一院區開好 409-A 的轉送聯？」'},
+              {speaker:'值班醫師',text:'「不行。第二院區怎麼可能事先替第一院區開好目的地未核對的醫囑單？」'},
               {speaker:'值班醫師',text:'「把單據扣下。1998-ER-0217 存根給我，我帶回 316 查。」'}
             ],()=>{void this.completeBeat();});
           },
@@ -1369,10 +1371,10 @@ export class IdentityRouteDirector {
             this.gameState.setFlag('CHEN_ER_TRANSFER_SIGNED',true);
             void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playWheelchairApproach();});
             this.uiManager.showDialogue([
-              {speaker:'現場',text:'TRANSFER HANDOFF SIGNED｜DESTINATION 409-A。'},
+              {speaker:'現場',text:'HANDOFF SIGNED｜DESTINATION PREASSIGNED。'},
               {speaker:'現場',text:'床簾被拉開。剛才躺著劉志遠的位置空了。'},
               {speaker:'內心',text:'下一秒，推車上的四點約束扣在我自己的手腕與腳踝。'},
-              {speaker:'HIS',text:'PATIENT DISPATCHED TO 409-A｜TRANSIT COMPLETE.'}
+              {speaker:'HIS',text:'PATIENT DISPATCHED TO PREASSIGNED DESTINATION｜TRANSIT COMPLETE.'}
             ],()=>this.onEnding({type:'BAD_END',reason:'CHEN_ER_TRANSFER_PATIENTIZATION'}));
           }
         });
@@ -1420,10 +1422,10 @@ export class IdentityRouteDirector {
       }
       if(beat.transferSignChoice){
         this.uiManager.openStoryChoice({
-          title:'第二院區｜409-A 轉送醫囑單',
-          body:'504B 病況已穩定，但這張 409-A 轉送醫囑單在醫師重新查核前就已填好目的地。\n\n要簽名核准這次轉送醫囑，還是拒絕簽名並重新核對？',
+          title:'第二院區｜醫囑單',
+          body:'504B 病況已穩定，但這張醫囑單在醫師重新查核前就已填好目的地。\n\n要簽名核准這張醫囑單，還是拒絕簽名並重新核對？',
           primaryText:'不簽名，退回重核',
-          secondaryText:'簽名核准 409-A 轉送醫囑',
+          secondaryText:'簽名核准醫囑單',
           systemTrap:'secondary',
           onPrimary:()=>{
             this.uiManager.closeStoryChoice(false);
@@ -1436,8 +1438,8 @@ export class IdentityRouteDirector {
             this.uiManager.closeStoryChoice(false);
             this.gameState.setFlag('M4_SIGNED_409A_ORDER',true);
             this.uiManager.showDialogue([
-              {speaker:'內心',text:'簽名落下的瞬間，「轉入 409-A」從轉送醫囑單反向寫進自己的值班身分。'},
-              {speaker:'現場',text:'ORDER SIGNED｜DESTINATION 409-A｜SUBJECT RECLASSIFICATION STARTED.'}
+              {speaker:'內心',text:'簽名落下的瞬間，「送入預填病區」從醫囑單反向寫進自己的值班身分。'},
+              {speaker:'現場',text:'ORDER SIGNED｜DESTINATION PREASSIGNED｜SUBJECT RECLASSIFICATION STARTED.'}
             ],()=>this.onEnding({type:'BAD_END',reason:'M4_409A_ORDER_PATIENTIZATION'}));
           }
         });
