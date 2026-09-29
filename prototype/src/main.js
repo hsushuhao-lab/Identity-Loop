@@ -779,6 +779,11 @@ controller.onInteract = async (interactable) => {
   }
   console.log('Interacting with:', interactable);
 
+  if(interactable.type==='bathroom_door'){
+    const door=worldRouter.activeZoneInstance?.keyedDoors?.[interactable.doorId];
+    if(door?.toggle(controller.position))soundManager.playDoorLockClack();
+    return;
+  }
   if (interactable.type === 'access_door') {
     const door=worldRouter.activeZoneInstance.accessDoors?.[interactable.doorId];
     if(!door)return;
@@ -903,7 +908,8 @@ controller.onInteract = async (interactable) => {
       worldRouter.activeZoneId==='second_campus_5f' &&
       gameState.getFlag('SECOND_5F_CONSULT_KEY_BORROWED') &&
       interactable.doorId==='room_504';
-    if (!gameState.isTaskComplete('KEY_PICKUP') && !borrowedWardSpareKey && !borrowedSecondConsultKey) {
+    const sharedStorage=identityLoopMode&&worldRouter.activeZoneId==='second_campus_5f'&&interactable.doorId==='storage_STORE_ENTRY';
+    if (!gameState.isTaskComplete('KEY_PICKUP') && !borrowedWardSpareKey && !borrowedSecondConsultKey && !sharedStorage) {
       soundManager.playClick();
       let lockLine='「這是傳統喇叭鎖，先去 316 拿值班室鑰匙與感應卡。」';
       if(identityLoopMode&&worldRouter.activeZoneId==='first_campus_4f'){

@@ -1,5 +1,6 @@
 import { AccessDoor } from '../shared/AccessDoor.js';
-import {worldNarrative} from '../../story/IdentityPrivacy.js';
+import {worldNarrative,isIdentityRouteMode} from '../../story/IdentityPrivacy.js';
+import {drawSharedPhoto,preloadSharedPhoto,MEDIA_FRAME_COLOR} from '../../art/SharedMediaArt.js';
 import { PlanWalls } from '../shared/PlanArchitecture.js';
 // FirstCampus2FER.js - Milestone M4: First Campus 2F Emergency / Acute Floor
 import * as THREE from 'three';
@@ -87,6 +88,18 @@ export class FirstCampus2FER {
     });
 
     this.gf.buildCeilingLight(this.zoneGroup, -8, 3.15, 0, 0.9, 7.0, 0xffffff);
+    const arrivalPhoto=new THREE.Group();arrivalPhoto.name='ER_ArrivalPhoto';arrivalPhoto.position.set(-10.1,1.75,-3.275);
+    const frame=solid(arrivalPhoto,new THREE.MeshStandardMaterial({color:MEDIA_FRAME_COLOR,roughness:.9}),[0,0,0],[.80,1.04,.035]);
+    const photoCanvas=document.createElement('canvas');photoCanvas.width=720;photoCanvas.height=960;
+    const photoMap=new THREE.CanvasTexture(photoCanvas);photoMap.colorSpace=THREE.SRGBColorSpace;
+    const photoFace=new THREE.Mesh(new THREE.PlaneGeometry(.72,.96),new THREE.MeshStandardMaterial({map:photoMap,roughness:.9}));
+    photoFace.position.z=.02;photoFace.userData={interactable:true,id:'ER_ARRIVAL_PHOTO',type:'identity_photo',photoKey:'er',label:'查看急診入口的工作留影'};
+    arrivalPhoto.add(photoFace);this.zoneGroup.add(arrivalPhoto);this.interactables.push(photoFace);
+    const paintPhoto=()=>{const ctx=photoCanvas.getContext('2d');ctx.fillStyle='#151b18';ctx.fillRect(0,0,720,960);drawSharedPhoto(ctx,'er',0,0,720,960);photoMap.needsUpdate=true;};
+    paintPhoto();void preloadSharedPhoto('er').then(()=>{if(arrivalPhoto.parent)paintPhoto();}).catch(error=>console.warn('[shared-media] ER arrival photo unavailable',error));
+    const arrivalPlant=asset(this.zoneGroup,'plant',[-11.25,0,-2.65],[.62,.62,.62]);arrivalPlant.name='ER_ArrivalPlant';
+    CollisionFactory.addBox(this.colliders,-11.25,.45,-2.65,.58,.9,.58);
+
 
     // ==========================================
     // 2. MAIN ER CORRIDOR (x: -4 to 22, z: -3.5 to 3.5)
@@ -196,7 +209,9 @@ export class FirstCampus2FER {
 
       // Medical gas / monitor headwall box
       const headwall = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.12), this.gf.materials.metal);
+      headwall.name=`ER_MedicalHeadwall_${i+1}`;
       headwall.position.set(bx, 1.4, 9.25);
+      SignAnchor.buildWallPlaque({scene:this.zoneGroup,x:bx,y:2.05,z:9.28,rotationY:Math.PI,width:.60,height:.25,code:String(i+1).padStart(2,'0'),title:'留觀床',subtitle:'',header:''});
       this.zoneGroup.add(headwall);
 
       // Curtain rail partition
@@ -446,10 +461,16 @@ export class FirstCampus2FER {
       this.erNoteInteraction.interactable=!gameState.isTaskComplete('P1_ER_NOTE_DONE')&&!ghostAvailable;
     }
     if(this.janeDoePatient){
-      this.janeDoePatient.visible=gameState.getFlag('ER_JANE_PRESENT')===true;
+      this.janeDoePatient.visible=isIdentityRouteMode()?this.identityAssessmentActive===true:gameState.getFlag('ER_JANE_PRESENT')===true;
       this.janeDoeHit.userData.interactable=this.janeDoePatient.visible;
-      this.janeDoeHit.userData.label=(gameState.getFlag('ER_LIU_IDENTITY_REVEALED')||persistentMemory.data.journalNotes.some(note=>note.id==='LIU_MAINTENANCE_TAG'))?'評估劉志遠／ENG-860214':'評估身分待確認的男性';
+      this.janeDoeHit.userData.label=isIdentityRouteMode()?'評估留觀區 01 床病人':((gameState.getFlag('ER_LIU_IDENTITY_REVEALED')||persistentMemory.data.journalNotes.some(note=>note.id==='LIU_MAINTENANCE_TAG'))?'評估劉志遠／ENG-860214':'評估身分待確認的男性');
     }
+  }
+
+  setIdentityAssessmentActive(active){
+    if(this.identityAssessmentActive===active)return;
+    this.identityAssessmentActive=active;
+    this.syncStoryState();
   }
 
   buildCurtain(x, z) {

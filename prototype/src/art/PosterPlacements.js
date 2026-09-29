@@ -10,7 +10,7 @@ export const ERA_POSTER_PLACEMENTS=Object.freeze({
   ]),
   first_campus_2f:Object.freeze([
     P('poster_08_er_jane_doe_triage',3.5,1.72,8.28,Math.PI,.88,'clean',true,-.008),
-    P('poster_01_restraint_sop',11.0,1.66,9.28,Math.PI,.66,'stained',false,.014),
+    P('poster_01_restraint_sop',9.22,1.76,8.85,Math.PI/2,.60,'stained',true,0),
     P('poster_03_doppelganger_delusion',15.78,1.62,-6.5,-Math.PI/2,.68,'redacted',true,-.018),
     P('poster_05_derealization_dissociation',3.5,1.62,-9.28,0,.70,'stained',false,.01)
   ]),

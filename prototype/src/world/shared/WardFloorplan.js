@@ -12,7 +12,7 @@ import { AccessDoor } from './AccessDoor.js';
 import { KeyedKnobDoor } from './KeyedKnobDoor.js';
 import { CollisionFactory } from './CollisionFactory.js';
 import { SignAnchor } from './SignAnchor.js';
-import {createAnnieMannequin} from './AnnieMannequin.js';
+import {createAnnieMannequin,ANNIE_STATES} from './AnnieMannequin.js';
 import { persistentMemory } from '../../core/PersistentMemory.js';
 import { gameState } from '../../core/GameState.js';
 import {drawMemoryFragment,preloadArtPass2Image} from '../../art/ArtPass2Assets.js';
@@ -54,6 +54,19 @@ export class WardFloorplan {
     // Entrance vestibule storage room on the left, plant bay on the right.
     ordinaryRoom(this,walls,{id:'STORE_ENTRY',label:'儲藏室',rect:[o-12,0,o-7,2],side:'east',door:1,kind:'storage',protectedArea:false,storageLock:'knob'});
 
+    if(second&&this.floor===5){
+      const annie=createAnnieMannequin(this.zoneGroup,{materials:this.gf.materials,state:ANNIE_STATES.STORAGE_STATIC,position:[o-11,0,1],rotationY:Math.PI/2});
+      annie.name='Second5F_StorageAnnie';
+      for(const side of [-1,1]){
+        const cuff=annie.getObjectByName(`Annie_Cuff_${side}`);
+        cuff.material=cuff.material.clone();cuff.material.color.set(0x4c6880);
+      }
+      annie.userData={...annie.userData,interactable:true,id:'SECOND_5F_STORAGE_ANNIE',type:'archive_document',label:'查看儲藏室裡的訓練人偶',
+        documentTitle:'儲藏室裡的訓練人偶',pages:['一具教學人偶坐在固定椅凳上。白袍的兩側袖口是褪色的藍布，沒有可辨認的人名或識別證。\n\n塑膠關節留著反覆練習的磨痕。它安靜地面向門口，身旁留著收放器材的通道。']};
+      this.interactables.push(annie);
+      CollisionFactory.addBox(this.colliders,o-11,.8,1,.78,1.6,.82);
+    }
+
     // Central glass nursing station. Keep the station architecture/workstations,
     // but Identy Loop uses the workstation screen as the dialogue anchor.
     nursingStationV5(this,{x:o,z:-4.3,id:second?'second_station':'first_station'});
@@ -89,6 +102,11 @@ export class WardFloorplan {
     }
 
     if(!second&&this.floor===4){
+      const cart=this.zoneGroup.getObjectByName('ClinicalProp_first_station_medication_cart');
+      const hit=new THREE.Mesh(new THREE.BoxGeometry(.82,.25,.60),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+      hit.name='First4F_ClinicalCartInteraction';hit.position.set(0,1.12,0);
+      hit.userData={interactable:false,id:'IDENTITY_4F_CLINICAL_CART',type:'identity_clinical_cart',label:'協助確認工作車上的藥品與器材'};
+      cart.add(hit);this.interactables.push(hit);
       // Identity Loop uses a real nursing-station workstation as the conversation anchor.
       // Do not create a floating intercom prop beside the station glass.
       const stationComputer=this.workstations.find(item=>item.id==='first_station_A')?.screen;

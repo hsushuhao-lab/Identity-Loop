@@ -62,7 +62,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     ],
     ZHANG_OUTBOUND_8F: [
       event('前往八樓', [
-        {speaker:'內心',text:'鋼索擦過井道。樓層顯示似乎慢了一拍。'}
+        {speaker:'內心',text:'八樓到了。先往天橋，會診還在等我。'}
       ], '搭電梯前往 8F 天橋', { glimpse6f:true }),
       event('八樓天橋門禁', [
         {speaker:'內心',text:'八樓連通道門禁綠燈亮著。剛才電話裡說門禁已經打開。'},
@@ -150,7 +150,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
         {speaker:'劉志遠',text:'「02:17……不要拉三個……紫色……警衛台……」'},
         {speaker:'值班醫師',text:'「先核對吊牌、今晚工單和現場身分。我先看人，不急著建資料。」'},
         {speaker:'內心',text:'吊牌與眼前的人對得上。下一步是到醫師電腦把評估紀錄寫完整。'}
-      ], '評估新病人'),
+      ], '到急診留觀區 01 床評估新病人'),
       event('急診醫師電腦｜書寫紀錄', [
         {speaker:'內心',text:'評估已完成。醫師電腦跳出一個熟悉的行政問題：要不要直接建立新的病歷？'},
         {speaker:'內心',text:'系統空白不代表病人不存在；剛才核對過的吊牌與既有工務資料應該先被沿用。'}
@@ -239,7 +239,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'傳真機',text:'喀噠、喀噠……【醫囑單：無名男性留觀個案 → 既定病區】'},
           {speaker:'急診護理師',text:'「對面連交接單據都開過來了。急診今晚很塞，要不要直接照單把他送進既定病區？手續剛好對平。」'}
         ] : [])
-      ], '核對病人、吊牌與掛號流水號', { erRegistrationChoice: identity==='ZHANG', chenTransportChoice: identity==='CHEN' }),
+      ], '前往急診留觀區 01 床，核對病人與吊牌', { erRegistrationChoice: identity==='ZHANG', chenTransportChoice: identity==='CHEN' }),
       event('00:33 時間異常', [
         {speaker:'急診護理師',text:'「00:33 這筆掛號有編號，可是檢傷區、候診區、留觀床都找不到對應的人。」'},
         {speaker:'值班醫師',text:'「先不要再建新病歷。把 1998-ER-0217 這張掛號聯印給我。」'},
@@ -425,10 +425,10 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
         {speaker:'內心',text:'從這裡回第一院區，得先走過天橋。'}
       ], '接聽監控室電話，經天橋返回第一院區 2F 急診')] : []),
       event('天橋上的白袍人影', [
-        {speaker:'內心',text:'走到天橋中段，視線突然被硬生生扯向玻璃倒影。滑鼠像失去控制，身體卻還在往前。'},
+        {speaker:'內心',text:'玻璃裡的腳步比我慢了半拍。那道白袍輪廓，剛才並不在那裡。'},
         {speaker:'內心',text:'白袍人影突然從後方跑進倒影裡。'},
         {speaker:'內心',text:'「不能回頭……可是我真的很想確認後面是不是有人。」'}
-      ], '走到天橋中段；視角會被強制拉向倒影', { bridgeChoice:true, forcedBridgeReveal:true })
+      ], '沿天橋返回第一院區', { bridgeChoice:true, forcedBridgeReveal:true })
     ],
     ZHANG_6F_FORESHADOW: [event('電梯樓層顯示器', ['5 → 6 → 5 → 4。', '我：「……六？」', '電梯沒有開門。這一次只有樓層顯示異常。'], '等候急診來電')],
     ZHOU_1F_PHOTO: [event('檢視玻璃反射照', [
@@ -697,7 +697,20 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     M9: [event('316 最後身分核對', ['夜班的路徑、動作與記憶已經留下證據。', '最後交班只允許正式提交一次。請手動輸入你認為屬於自己的姓名與員編。'], '在 316 最後交班終端手動輸入姓名與員編')]
   };
   if (!scenes[step]) throw new Error(`Unknown route scene: ${step}`);
-  if(shouldShowAnnie(identity,step,runSeed))scenes[step].push(annieEvent(identity));
+  if(step==='M2'){
+    const cartLines={
+      ZHANG:[{speaker:'晚班護理師',text:'「床位單先留著。離開前，幫我確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'先查看藥盒標籤與包裝，再逐項看過托盤、血壓計及血氧機。只記下眼前確實核對的部分。'}],
+      LI:[{speaker:'晚班護理師',text:'「醫囑單的處理已記下。再協助確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'我按項目核對藥盒與器材，但不替看不清的標示勾選完成。完成核對後，才能回值班室。'}],
+      ZHOU:[{speaker:'晚班護理師',text:'「先別忙著找下一份紀錄，幫我看看工作車上的藥品與器材。」'}, {speaker:'內心',text:'這次不需要照片。我走到車旁，把能看清的標示、包裝與器材逐項告訴護理師。'}],
+      CHEN:[{speaker:'晚班護理師',text:'「離開前，幫忙確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'手已經知道托盤放在哪裡。我仍停下來，核對眼前的藥盒和器材，不只憑熟悉的排列。'}]
+    };
+    const cameo=shouldShowAnnie(identity,step,runSeed);
+    const lines=[...cartLines[identity]];
+    if(cameo)lines.splice(1,0,...annieEvent(identity).lines);
+    scenes[step].push(event('工作車核對',lines,'協助確認工作車上的藥品與器材',{
+      cartCheck:true,flag:cameo?`ANNIE_ROUTE_EVENT_${identity}`:'M2_CART_CHECKED'
+    }));
+  }else if(shouldShowAnnie(identity,step,runSeed))scenes[step].push(annieEvent(identity));
   const locations = {
     ZHANG_OUTBOUND_8F: [
       { zoneId:'first_campus_8f', spawn:'first_8f_lift' },

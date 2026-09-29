@@ -62,7 +62,7 @@ export class KeyedKnobDoor {
     const i=this.zone.colliders.indexOf(this.closedBox);
     if(closed&&i<0)this.zone.colliders.push(this.closedBox);
     if(!closed&&i>=0)this.zone.colliders.splice(i,1);
-    this.interactionData.label=closed?'喇叭鎖：鑰匙開門':'喇叭鎖：關門';
+    this.interactionData.label=this.interactionData.type==='bathroom_door'?(closed?'開啟淋浴間門':'關閉淋浴間門'):(closed?'喇叭鎖：鑰匙開門':'喇叭鎖：關門');
     this.root.updateWorldMatrix(true,true);
   }
 

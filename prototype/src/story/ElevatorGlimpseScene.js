@@ -5,6 +5,13 @@ import { disposeZoneArt } from '../art/ArtResources.js';
 import {createAnnieMannequin,ANNIE_STATES} from '../world/shared/AnnieMannequin.js';
 import {soundManager} from '../audio/SoundManager.js';
 
+export function shouldPreviewSixthFloor({kind,fromFloor,destination,zoneId,gameState}){
+  return kind==='elevator'&&zoneId?.startsWith('first_campus_')&&
+    destination.zoneId==='first_campus_8f'&&fromFloor<6&&
+    !gameState.getFlag('FLOOR6_AVAILABLE')&&!gameState.getFlag('M6_FLOOR6_RESOLVED')&&
+    !gameState.getFlag('CG_ELEVATOR_TO_8F_PREVIEW_PLAYED');
+}
+
 export async function playElevatorGlimpse(container) {
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x030706);
   const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.05,25);

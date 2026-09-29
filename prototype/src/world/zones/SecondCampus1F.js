@@ -115,9 +115,23 @@ export class SecondCampus1F {
     guardLogbook.userData={
       interactable:true,
       id:'IDENTITY_SECOND_GUARD_LOGBOOK',
-      type:'identity_guard_logbook',
-      label:'翻閱警衛訪客簿'
+      type:'archive_document',
+      label:'翻閱警衛訪客簿',
+      documentTitle:'第二院區 1F｜訪客簿',
+      pages:[
+        '訪客登記抄本｜日期欄已有磨損\n\n15:10　器材保養人員兩名；核對工作單後由院內人員陪同進入。\n15:45　離院；借用識別牌已歸還。\n16:05　探視者一名；由病房人員到警衛台接領。\n\n姓名與證件欄以遮條封住，只保留登記用途與交接狀態。',
+        '值勤備註\n\n臨時識別牌收在桌下抽屜，借出與收回應分開登記。有人經過大廳，不等於已抵達病房；訪客簿不代替病房接收紀錄。\n\n監控室在二樓。設備報修與探視登記分冊保存，不把影像裡無法辨識的人補進訪客姓名欄。',
+        '末頁夾條\n\n舊相簿另放在保溫壺旁，不與本簿混收。這本簿只保留訪客出入用途與交接備註，不提供值班醫師的身分資料。\n\n下一列仍空白，紙上沒有新簽名。看完後，我將簿子放回桌面。'
+      ]
     };
+    const coverCanvas=document.createElement('canvas');coverCanvas.width=512;coverCanvas.height=384;
+    const coverContext=coverCanvas.getContext('2d');coverContext.fillStyle='#e5dfc9';coverContext.fillRect(0,0,512,384);
+    coverContext.strokeStyle='#435b4f';coverContext.lineWidth=8;coverContext.strokeRect(16,16,480,352);
+    coverContext.fillStyle='#33483c';coverContext.font='bold 72px sans-serif';coverContext.fillText('訪客簿',132,175);
+    coverContext.font='30px sans-serif';coverContext.fillText('第二院區｜登記・離院',91,255);
+    const coverMap=new THREE.CanvasTexture(coverCanvas);coverMap.colorSpace=THREE.SRGBColorSpace;
+    const cover=new THREE.Mesh(new THREE.PlaneGeometry(.32,.25),new THREE.MeshStandardMaterial({map:coverMap,roughness:.94}));
+    cover.name='VisitorLogbook_Cover';cover.rotation.x=-Math.PI/2;cover.position.y=.021;guardLogbook.add(cover);
     this.interactables.push(guardLogbook);
 
     // Zhang route: an old photo album must be inspected before the coffee/CCTV clue.

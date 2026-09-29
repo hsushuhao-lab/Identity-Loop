@@ -49,6 +49,7 @@ await test('Open safe retires its hitbox; E selects the badge',()=>{
  gameState.setFlag('CHEN_GREY_BADGE_COLLECTED',true);z.syncStoryState();c.updateRaycast();assert.equal(z.chenGreyBadge.visible,false);assert.notEqual(c.currentInteractable?.id,'CHEN_GREY_BADGE');return aim;
 });
 await test('Bathroom has real fixtures and a collision-safe walking route',()=>{
+ z.keyedDoors.second_duty_bathroom.setClosed(false);
  const b=z.secondDutyBathroom;assert(b,'bathroom topology missing');for(const name of b.fixtures){const o=b.root.getObjectByName('SecondDutyBathroom_'+name);assert(o?.isMesh,name);assert(visible(o));}
  c.teleport(...b.walkingPath[0]);assert(!c.checkCollision(c.position.x,c.position.z));
  for(const dest of b.walkingPath.slice(1)){const count=Math.ceil(Math.hypot(dest[0]-c.position.x,dest[2]-c.position.z)/.04),dx=(dest[0]-c.position.x)/count,dz=(dest[2]-c.position.z)/count;for(let j=0;j<count;j++)c.moveWithCollision(dx,dz);assert(Math.hypot(c.position.x-dest[0],c.position.z-dest[2])<.05,'blocked route to '+dest);}
@@ -63,7 +64,7 @@ await test('CCTV phone has a separate supporting desk and its own E-ray',()=>{
  const hit=z.interactables.find(o=>o.userData.id==='IDENTITY_SECOND_2F_CCTV_PHONE');hit.userData.interactable=true;return approach(z,hit);
 });
 await test('Li 408C -> 409 -> order with irregular knocking; other seeds unchanged',()=>{
- const scene=getIdentityRouteScene('M2','LI');assert.equal(scene.length,4);assert(scene[1].furiousKnock);assert(scene[2].knock409);
+ const scene=getIdentityRouteScene('M2','LI');assert.equal(scene.length,5);assert(scene[4].cartCheck);assert(scene[1].furiousKnock);assert(scene[2].knock409);
  const d=Object.create(IdentityRouteDirector.prototype);d.manager={currentIdentity:'LI'};
  for(const [i,id]of [[1,'408C_BED_PLAQUE'],[2,'BED33_409_SEALED'],[3,'BED33_ASSIGNMENT']])assert.equal(d.bindingFor('M2',i).id,id);
  d.step='M2';d.beatIndex=2;d.beats=scene;assert(d.matchesBinding({type:'duty_door',doorId:'room_409'}),'real door knob must match visit');

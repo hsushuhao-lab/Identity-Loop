@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { playIdentityM6Memory } from './IdentityM6Memories.js';
-import {playElevatorGlimpse} from './ElevatorGlimpseScene.js';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
@@ -33,6 +32,7 @@ const NAVIGATION_TYPES = new Set([
 // the current route target. Posters, photos, documents and ordinary props stay usable.
 const IDENTITY_STORY_CRITICAL_TYPES = new Set([
   'identity_nurse_station_4f',
+  'identity_clinical_cart',
   'identity_second_5f_nurse_station',
   'key',
   'duty_log',
@@ -324,7 +324,13 @@ export class IdentityRouteDirector {
     this.renderObjective();
   }
 
+  syncAssessmentPresence(){
+    const active=this.step==='LI_ER_2005'||(this.step==='M3'&&this.beatIndex===0);
+    this.worldRouter.activeZoneInstance?.setIdentityAssessmentActive?.(active);
+  }
+
   update() {
+    this.syncAssessmentPresence();
     this.updateZhangArchivePressure();
     if(
       this.step==='M5' &&
@@ -487,6 +493,7 @@ export class IdentityRouteDirector {
         id:'IDENTITY_4F_NURSE_STATION',
         prompt:'使用 4F 護理站電腦，確認 408C 狀況'
       };
+      if(index===offset+3) return {id:'IDENTITY_4F_CLINICAL_CART',prompt:'協助確認工作車上的藥品與器材'};
       if(index===offset) return { id:'408C_BED_PLAQUE', prompt:'到 408C 確認敲牆聲' };
       if(index===offset+1) return { id:'BED33_409_SEALED', prompt:'確認 409 封閉房與敲擊來源' };
       if(index===offset+2) return {
@@ -729,12 +736,14 @@ export class IdentityRouteDirector {
         this.worldRouter.loadZone(zoneId, beat.spawn || route.spawn);
       } else {
         this.awaitingZone = zoneId;
+        this.syncAssessmentPresence();
         this.renderObjective();
         return;
       }
     }
 
     this.awaitingZone = null;
+    this.syncAssessmentPresence();
     if(beat.chenWheelchairPush){
       this.gameState.setFlag('CHEN_WHEELCHAIR_BLOCKING',true);
     }
@@ -1185,13 +1194,9 @@ export class IdentityRouteDirector {
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
       if(beat.glimpse6f){
-        const finish=()=>{void this.completeBeat();};
-        // Normal elevator travel already shows this shot. Never replay it as an
-        // explanatory slideshow when the player reaches the landing.
-        if(this.gameState.getFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED')){finish();return;}
-        void playElevatorGlimpse(document.body).then(()=>{
-          this.gameState.setFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED',true);
-        }).catch(error=>{console.warn('[glimpse] playback unavailable',error);}).finally(finish);
+        // The elevator transition owns the physical preview before arrival.
+        // This landing beat must never replay it after stepping onto 8F.
+        void this.completeBeat();
         return;
       }
       if(beat.cctvCg){
@@ -1575,7 +1580,7 @@ export class IdentityRouteDirector {
     };
     let objective;
     if(this.step==='LI_ER_2005'){
-      objective=this.beatIndex===0?'評估新病人':'到急診電腦書寫紀錄';
+      objective=this.beatIndex===0?'到急診留觀區 01 床評估新病人':'到急診電腦書寫紀錄';
     }else if(this.step==='LI_ER_0033'){
       objective='查看無名氏異常病歷';
     }else if(this.step==='LI_316_ARCHIVE'){
@@ -1623,6 +1628,7 @@ export class IdentityRouteDirector {
 
     try {
       if (beat.flag) this.gameState.setFlag(beat.flag, true);
+      if (beat.cartCheck) this.gameState.setFlag('M2_CART_CHECKED',true);
       if(this.step==='M2'&&this.beatIndex===0&&this.manager.currentIdentity==='ZHANG'){
         this.gameState.setFlag('IDENTITY_4F_TEMP_ACCESS_CARD',true);
       }

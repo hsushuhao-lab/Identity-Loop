@@ -61,6 +61,7 @@ try{
   await page.locator('#chen-badge-done').click();await page.waitForFunction(()=>window.__storyQA.identityRouteDirector.beatIndex===6);assert.equal(await page.evaluate(()=>window.__storyQA.gameState.getFlag('CHEN_GREY_BADGE_COLLECTED')),true);
   await page.setViewportSize({width:1280,height:860});const phone=await e();assert.equal(phone.id,'CHEN_5F_DUTY_PHONE');assert.equal(await page.evaluate(()=>window.__storyQA.gameState.getFlag('PHONE_RING_ACTIVE')),false);return {lock,badge,phone};
  });
+ await e('second_duty_bathroom');
  await check('5F bathroom physically walkable',async()=>page.evaluate(()=>{
   const q=window.__storyQA,z=q.worldRouter.activeZoneInstance,c=q.controller,path=z.secondDutyBathroom.walkingPath;
   c.teleport(...path[0]);for(const dest of path.slice(1)){const n=Math.ceil(Math.hypot(dest[0]-c.position.x,dest[2]-c.position.z)/.03),dx=(dest[0]-c.position.x)/n,dz=(dest[2]-c.position.z)/n;for(let i=0;i<n;i++)c.moveWithCollision(dx,dz);if(Math.hypot(c.position.x-dest[0],c.position.z-dest[2])>.05)throw Error('Bathroom movement blocked');}q.lookAt([80.8,1.1,3.0]);return {path,end:c.position.toArray()};
@@ -76,19 +77,23 @@ try{
   const interactions=[];interactions.push(await e());interactions.push(await e());assert.equal(await page.evaluate(()=>window.__storyQA.identityRouteDirector.beatIndex),2);
   assert.match(await page.locator('#task-panel').innerText(),/409/);interactions.push(await e());assert.equal(await page.evaluate(()=>window.__storyQA.identityRouteDirector.beatIndex),3);
   interactions.push(await e());await page.locator('#btn-bed33-reject').waitFor({state:'visible',timeout:15000});await page.locator('#btn-bed33-reject').click();
-  await page.evaluate(()=>window.__storyQA.identityRouteDirector.update());await page.waitForFunction(()=>window.__storyQA.identityRouteDirector.step==='LI_DUTY_CALL_2000');
+  await page.evaluate(()=>window.__storyQA.identityRouteDirector.update());
+  await page.waitForFunction(()=>window.__storyQA.identityRouteDirector.currentBeat?.cartCheck);
+  interactions.push(await e());await page.waitForFunction(()=>window.__storyQA.identityRouteDirector.step==='LI_DUTY_CALL_2000');
   const door=await e('duty_room');
   await page.evaluate(()=>{const q=window.__storyQA,c=q.controller;c.teleport(-6.6,1.7,6);for(let i=0;i<100;i++)c.moveWithCollision(-.029,0);if(c.position.x> -8.3)throw Error('Cannot walk into duty room');q.identityRouteDirector.update();});
   await dialogue();await page.waitForTimeout(3900);await page.waitForFunction(()=>window.__storyQA.identityRouteDirector.beatIndex===1);assert.equal(await page.evaluate(()=>window.__storyQA.gameState.getFlag('PHONE_RING_ACTIVE')),true);await shot('li-409-to-rest-call');return {interactions,door};
  });
- await start('ZHANG');await seed('ZHANG_OUTBOUND_8F');
- await check('DutyNight-style physical glimpse closes and releases the task',async()=>{
-  await page.waitForFunction(()=>!!window.__storyQA.uiManager.dialogueSequence,{},{timeout:15000});await dialogue();
+ await start('ZHANG');await seed('M1');
+ await check('DutyNight physical glimpse plays before arriving on 8F',async()=>{
+  await e('first_campus_3f_elevator');await page.locator('[data-floor="first_campus_8f"]').click();
   await page.locator('.elevator-glimpse-canvas').waitFor({state:'attached',timeout:15000});
+  assert.equal(await page.evaluate(()=>window.__storyQA.worldRouter.activeZoneId),'first_campus_3f');
   await page.waitForTimeout(1150);await shot('physical-elevator-glimpse');
   await page.locator('.elevator-glimpse-canvas').waitFor({state:'detached',timeout:15000});
-  await page.waitForFunction(()=>window.__storyQA.gameState.getFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED')===true);
-  return {canvasRemoved:true,sequenceFlag:true};
+  await page.waitForFunction(()=>window.__storyQA.worldRouter.activeZoneId==='first_campus_8f');
+  assert.equal(await page.evaluate(()=>window.__storyQA.gameState.getFlag('CG_ELEVATOR_TO_8F_PREVIEW_PLAYED')),true);
+  return {before:'first_campus_3f',after:'first_campus_8f',canvasRemoved:true};
  });
  assert.deepEqual(report.errors,[]);assert.deepEqual(report.resources,[]);report.verdict='PASS';
 }catch(error){report.verdict='FAIL';report.failure=error.stack;process.exitCode=1;console.error(error);if(page)await shot('failure').catch(()=>{});}

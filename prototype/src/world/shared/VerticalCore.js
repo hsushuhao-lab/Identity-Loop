@@ -51,7 +51,7 @@ export function buildVerticalCore(zone,zoneId){
  }
 
  SignAnchor.buildWallPlaque({scene:root,x:0,y:2.75,z:3.69,rotationY:Math.PI,width:1.2,height:.3,code:'',title:`${zone.floor||Number(zoneId.match(/_(\d)f/)?.[1])}F 電梯`,subtitle:'',header:''});
- const stair=new THREE.Group();stair.position.set(first?(zoneId==='first_campus_2f'?-7:7.78):-5,0,first?0:3.78);stair.rotation.y=first?-Math.PI/2:Math.PI;root.add(stair);
+ const stair=new THREE.Group();stair.position.set(first?7.78:-5,0,first?(zoneId==='first_campus_2f'?1:0):3.78);stair.rotation.y=first?-Math.PI/2:Math.PI;root.add(stair);
  for(const sx of [-.64,.64])solid(stair,m.metal,[sx,1.2,0],[.10,2.4,.16]);solid(stair,m.metal,[0,2.42,0],[1.38,.12,.16]);
  const leaf=solid(stair,m.metal,[0,1.18,.02],[1.16,2.36,.1]);solid(stair,m.stainless,[0,1,.1],[.9,.06,.08]);
  leaf.userData={interactable:true,id:`${zoneId}_stairs`,type:'travel_selector',kind:'stairs',label:'安全梯：選擇樓層'};zone.interactables.push(leaf);
@@ -66,6 +66,6 @@ export function buildVerticalCore(zone,zoneId){
  SignAnchor.buildWallPlaque({scene:stair,x:0,y:2.7,z:.1,width:1.1,height:.3,code:'',title:'安全梯',subtitle:'',header:''});
  root.updateWorldMatrix(true,true);for(const c of local.colliders)zone.colliders.push(c.applyMatrix4(root.matrixWorld));
  zone.walkables.push(...local.walkables);zone.colliders.push(new THREE.Box3().setFromObject(leaf));
- zone.verticalCore={origin,layout:first?'FIRST_CORE_V1':'SECOND_CORE_V1',lift:[0,3.81],panel:[1.65,3.72],stairs:first?(zoneId==='first_campus_2f'?[-7,0]:[7.78,1]):[-5,3.78],root};
+ zone.verticalCore={origin,layout:first?'FIRST_CORE_V1':'SECOND_CORE_V1',lift:[0,3.81],panel:[1.65,3.72],stairs:first?[7.78,1]:[-5,3.78],root};
  if(zone.levelInstance){zone.elevatorLight=button;zone.levelInstance.elevatorLight=button;}
 }

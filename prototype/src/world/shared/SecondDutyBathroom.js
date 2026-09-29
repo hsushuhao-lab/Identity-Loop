@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import {solid} from '../../art/ArtDetails.js';
 import {PlanWalls} from './PlanArchitecture.js';
 import {CollisionFactory} from './CollisionFactory.js';
+import {KeyedKnobDoor} from './KeyedKnobDoor.js';
 
-// Enclosed wet area inside the existing room. The south doorway stays open;
-// no extra key or story condition is required to use the bathroom.
+// Enclosed wet area; the privacy door is manually operable without a key or story gate.
 export function buildSecondDutyBathroom(zone, origin) {
   const m=zone.gf.materials, root=new THREE.Group();
   root.name='IdentitySecond5F_DutyBathroom';zone.zoneGroup.add(root);
@@ -13,6 +13,9 @@ export function buildSecondDutyBathroom(zone, origin) {
   wall.line('x',5.25,origin+8.12,origin+10.8);
   wall.cut('x',5.25,origin+9.25,1.15);
   wall.build();
+  const door=new KeyedKnobDoor(zone,{id:'second_duty_bathroom',x:origin+9.25,z:5.25,width:1.15,title:'淋浴間',openDirection:1});
+  door.interactionData.type='bathroom_door';
+  door.leaf.material=m.wallBumper;door.setClosed(true);
   zone.gf.buildFloor(root,zone.walkables,origin+9.46,.004,3.66,2.66,3.17,m.floorTile);
   // Name every solid that owns collision so tests check geometry, not marker strings.
   const fixture=(name,material,position,size,collide=false)=>{

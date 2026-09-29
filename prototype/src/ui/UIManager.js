@@ -2,7 +2,7 @@ import { mediaPresentation, sharedPosterCommentary } from '../story/SharedMedia.
 import { preloadSharedSequence, renderSharedMemory, drawSharedPhoto, preloadSharedPhoto } from '../art/SharedMediaArt.js';
 import { drawIdentityM6Memory } from '../art/IdentityM6MemoryArt.js';
 // UIManager.js - Handles HUD, HIS computer terminal, Duty Log, and Elevator transition
-import { playElevatorGlimpse } from '../story/ElevatorGlimpseScene.js';
+import { playElevatorGlimpse,shouldPreviewSixthFloor } from '../story/ElevatorGlimpseScene.js';
 import {isIdentityRouteMode,anonymousNarrative} from '../story/IdentityPrivacy.js';
 import { PatientizationScene } from '../story/PatientizationScene.js';
 import { soundManager } from '../audio/SoundManager.js';
@@ -1190,10 +1190,10 @@ export class UIManager {
     }
     this.travelTimer=setTimeout(async()=>{
       try {
-        const preview6F=kind==='elevator'&&this.gameState.getFlag('SECOND_CAMPUS_ACCESS')&&!this.gameState.getFlag('FLOOR6_AVAILABLE')&&!this.gameState.getFlag('M6_FLOOR6_RESOLVED')&&!this.gameState.getFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED');
+        const preview6F=shouldPreviewSixthFloor({kind,fromFloor,destination,zoneId:window.worldRouter?.activeZoneId,gameState:this.gameState});
         if(preview6F){
           this.gameState.setFlag('CG_ELEVATOR_6F_PREVIEW_ACTIVE',true);
-          try{await Promise.all([preloadPromise,playElevatorGlimpse(this.elevatorCutscene)]);this.gameState.setFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED',true);}
+          try{await Promise.all([preloadPromise,playElevatorGlimpse(document.body)]);this.gameState.setFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED',true);this.gameState.setFlag('CG_ELEVATOR_TO_8F_PREVIEW_PLAYED',true);}
           finally{this.gameState.setFlag('CG_ELEVATOR_6F_PREVIEW_ACTIVE',false);}
         }else await preloadPromise;
         await onSelect(destination);
