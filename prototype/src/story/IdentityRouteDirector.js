@@ -264,6 +264,14 @@ export class IdentityRouteDirector {
       if(this.step==='LI_3F_EVIDENCE')this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
     }
 
+    // GameState is rebuilt on refresh. Restore this physical item only when
+    // this run actually recorded its M4 inspection; never infer it from the seed.
+    if(this.step==='CHEN_M8_DISPATCH' && this.manager.currentIdentity==='CHEN' &&
+      this.manager.runSave.evidence['route:M4:5']){
+      this.gameState.setFlag('CHEN_GREY_BADGE_INSPECTED',true);
+      this.gameState.setFlag('CHEN_GREY_BADGE_COLLECTED',true);
+    }
+
     if(this.step==='ZHANG_3F_ARCHIVE'){
       this.gameState.setFlag('ARCHIVE_ACCESS_KEY',true);
       this.startZhangArchivePressure();
@@ -348,6 +356,9 @@ export class IdentityRouteDirector {
 
     if(
       this.step==='LI_3F_EVIDENCE' &&
+      this.worldRouter.activeZoneId==='first_campus_3f' &&
+      !this.awaitingZone &&
+      !this.uiManager.dialogueSequence &&
       !this.busy &&
       !this.manager.runSave.runEnded &&
       this.gameState.getFlag('ADMIN_OFFICE_ENTERED') &&
@@ -1617,7 +1628,9 @@ export class IdentityRouteDirector {
     }else if(this.step==='LI_3F_EVIDENCE'){
       const admin=this.gameState.getFlag('ADMIN_OFFICE_ENTERED');
       const archive=this.gameState.getFlag('ARCHIVE_ROOM_ENTERED');
-      objective=admin&&archive?'回 316 辦公室':!admin?'打開行政辦公室':'打開文史室';
+      objective=this.awaitingZone
+        ? (this.worldRouter.activeZoneId==='b2_archive'?'離開 B2，返回 3F 行政辦公室與文史室':'前往第一院區 3F 行政辦公室與文史室')
+        : admin&&archive?'回 316 辦公室':!admin?'打開行政辦公室':'打開文史室';
     }else if(this.step==='M6'&&this.awaitingZone==='phantom_6f'){
       objective='回 4F 值班室；搭乘一般電梯';
     }else if(this.step==='M1'&&!this.awaitingZone&&this.beatIndex>0&&this.beatIndex<6){

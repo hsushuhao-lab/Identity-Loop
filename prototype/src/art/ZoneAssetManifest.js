@@ -21,7 +21,8 @@ export const zoneAssetManifest = Object.freeze({
   second_campus_5f: indoor([...clinicalFurniture, 'hospitalBed']),
   second_campus_std: indoor([...clinicalFurniture, 'hospitalBed']),
   phantom_6f: indoor(clinicalFurniture),
-  b2_archive: indoor(clinicalFurniture)
+  b2_archive: indoor(clinicalFurniture),
+  b1_dispatch_hub: indoor(clinicalFurniture)
 });
 
 function preloadEntries(entries,optional=false) {
