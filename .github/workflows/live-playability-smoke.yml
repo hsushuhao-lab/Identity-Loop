@@ -1,0 +1,60 @@
+name: Live production playability smoke
+on:
+  push:
+    branches: [audit-live-playability-20260929]
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [A, B]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: prototype/package-lock.json
+      - run: npm ci
+        working-directory: prototype
+      - run: npx playwright install --with-deps chromium
+        working-directory: prototype
+      - name: Normal public URL with real player input; no QA mode or teleport
+        working-directory: prototype
+        env:
+          SMOKE_SAMPLE: ${{ matrix.sample }}
+        run: node scripts/live-playability-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-playability-${{ matrix.sample }}
+          path: prototype/qa-results/live-playability/
+  cleanup:
+    needs: smoke
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write
+    steps:
+      - name: Remove this temporary audit branch, leave production unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          const branch='audit-live-playability-20260929';
+          if(process.env.GITHUB_REF!==`refs/heads/${branch}`)throw Error('Unexpected ref');
+          const url=`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/refs/heads/${branch}`;
+          const headers={Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'};
+          const response=await fetch(url,{headers});if(!response.ok)throw Error(`Read ref: ${response.status}`);
+          const ref=await response.json();if(ref.object.sha!==process.env.GITHUB_SHA)throw Error('Audit branch changed; keep it');
+          const removed=await fetch(url,{method:'DELETE',headers});if(removed.status!==204)throw Error(`Delete ref: ${removed.status}`);
+          console.log('Temporary audit branch removed; main was not changed.');
+          JS
