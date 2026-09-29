@@ -30,7 +30,7 @@ await test('409 form resolves into the real medication-and-equipment cart on all
   const d=director(id,'M2',form+1);d.beats=beats;
   const binding=d.bindingFor();assert.equal(binding.id,'IDENTITY_4F_CLINICAL_CART');
   assert(z.interactables.find(o=>o.userData?.id===binding.id)?.isObject3D);
-  assert.equal(beats.some(b=>b.flag===`ANNIE_ROUTE_EVENT_${id}`),shouldShowAnnie(id,'M2',seed));
+  assert.equal(beats.some(b=>b.annieFlag===`ANNIE_ROUTE_EVENT_${id}`),shouldShowAnnie(id,'M2',seed));
  }
 });
 await test('Guard visitor log has real neutral pages and is separate from the old album',()=>{

@@ -362,7 +362,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'內心',text:'輪子壓過地面接縫時，固定發出三聲：喀啦、喀啦、喀啦。'}
         ], '親手把輪椅往前推開兩公尺', { chenWheelchairPush:true })
       ] : []),
-      event(identity==='ZHANG'?'離開 5F 護理站':'監視器室的閃爍', reaction({
+      event(identity==='ZHANG'?'離開 5F 護理站':identity==='ZHOU'?'想再看一眼照片':'監視器室的閃爍', reaction({
         ZHANG:[
           {speaker:'內心',text:'走出 504B，太陽穴忽然一陣一陣抽痛，視野邊緣微微發黑。'},
           {speaker:'內心',text:'「胃裡空得發慌，掌心也有點涼……我需要黑咖啡。濃到發苦的那種。」'},
@@ -374,8 +374,8 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'內心',text:'「是不是壞掉了？先去二樓警衛休息室找有空的警衛來處理好了。」'}
         ],
         ZHOU:[
-          {speaker:'內心',text:'走出護理站時，監視器狀態燈像是突然失去同步。'},
-          {speaker:'內心',text:'「先去二樓看看。」'}
+          {speaker:'內心',text:'會診已交代完，口袋裡的便條卻還沒寫完。八樓那張合照的構圖又浮上來。'},
+          {speaker:'內心',text:'「第二院區二樓警衛休息室也有舊照片……我想再看一下。看完就回 316 補交班。」'}
         ],
         CHEN:[
           {speaker:'內心',text:'剛才電話說監視器拍到另一個「我」正在天橋上推輪椅。'},
@@ -385,7 +385,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
         ? '前往第二院區 1F 警衛台找咖啡'
         : identity==='LI'
           ? '前往第二院區 2F 警衛休息室找警衛'
-          : '前往第二院區 2F 監視器室查看異常', { lightFlicker: identity==='LI' })
+          : identity==='ZHOU'?'前往第二院區 2F 警衛休息室看照片':'前往第二院區 2F 監視器室查看異常', { lightFlicker: identity==='LI' })
     ],
     ZHANG_SECOND_CAMPUS_SECURITY: [
       event('警衛台舊相簿', [
@@ -403,6 +403,10 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
       ], '喝完咖啡後，前往第二院區 2F CCTV 監控室', { art:'coffee', flag:'ZHANG_CCTV_HINT_RECEIVED' })
     ],
     M5: [
+      ...(identity==='ZHOU' ? [event('警衛休息室的值勤照片', [
+        {speaker:'內心',text:'警衛休息室牆上留著幾張舊照片。我先看構圖，再找玻璃反射裡沒有拍清楚的角落。'},
+        {speaker:'內心',text:'「再看清楚一點就好……」'}
+      ], '到第二院區 2F 警衛休息室翻看值勤照片', {photoAlbum:'M5_GUARD_REST_LOG',flag:'ZHOU_GUARD_REST_PHOTOS_REVIEWED'})] : []),
       ...(identity==='LI' ? [event('警衛休息室的錄影帶', [
         {speaker:'內心',text:'警衛不在。桌上只留著一卷舊監視錄影帶。'},
         {speaker:'錄影帶標籤',text:'「走廊燈閃／CAM 02／天橋；異常時到隔壁 202 回放。」'},
@@ -416,7 +420,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           ZHOU:'畫面總在關鍵一格跳掉。手指竟然下意識想按快門。',
           CHEN:'同一條跨院路線，畫面裡的方向和我記得的走法對不上。'
         })}
-      ], '到隔壁監控室查看錄影帶與即時回放', { cctvCg: identity==='ZHANG', chenCctvCg: identity==='CHEN' }),
+      ], identity==='ZHOU'?'到隔壁監控室查看即時回放':'到隔壁監控室查看錄影帶與即時回放', { cctvCg: identity==='ZHANG', chenCctvCg: identity==='CHEN' }),
       ...(identity==='ZHANG' ? [event('監控室電話', [
         {speaker:'電話',text:'鈴——鈴——鈴——'},
         {speaker:'內心',text:'「監控室的電話？誰會知道我在這裡？」'},
@@ -704,13 +708,17 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
       ZHOU:[{speaker:'晚班護理師',text:'「先別忙著找下一份紀錄，幫我看看工作車上的藥品與器材。」'}, {speaker:'內心',text:'這次不需要照片。我走到車旁，把能看清的標示、包裝與器材逐項告訴護理師。'}],
       CHEN:[{speaker:'晚班護理師',text:'「離開前，幫忙確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'手已經知道托盤放在哪裡。我仍停下來，核對眼前的藥盒和器材，不只憑熟悉的排列。'}]
     };
-    const cameo=shouldShowAnnie(identity,step,runSeed);
-    const lines=[...cartLines[identity]];
-    if(cameo)lines.splice(1,0,...annieEvent(identity).lines);
-    scenes[step].push(event('工作車核對',lines,'協助確認工作車上的藥品與器材',{
-      cartCheck:true,flag:cameo?`ANNIE_ROUTE_EVENT_${identity}`:'M2_CART_CHECKED'
+    scenes[step].push(event('工作車核對',cartLines[identity],'協助確認工作車上的藥品與器材',{
+      cartCheck:true,flag:'M2_CART_CHECKED'
     }));
-  }else if(shouldShowAnnie(identity,step,runSeed))scenes[step].push(annieEvent(identity));
+  }
+  // A seeded glimpse is an observation within the existing interaction, not a
+  // new mandatory task at the chapter's fallback spawn. Keep its original flag.
+  if(shouldShowAnnie(identity,step,runSeed)){
+    const beat=scenes[step].at(-1),cameo=annieEvent(identity);
+    beat.lines.splice(1,0,...cameo.lines);
+    beat.annieFlag=cameo.flag;
+  }
   const locations = {
     ZHANG_OUTBOUND_8F: [
       { zoneId:'first_campus_8f', spawn:'first_8f_lift' },
@@ -746,7 +754,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
           { zoneId:'skybridge', spawn:'bridge_from_second' }
         ]
-      : identity==='LI'
+      : identity==='LI'||identity==='ZHOU'
         ? [
             { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'201', yaw:0 },
             { zoneId:'second_campus_2f', spawn:'m9_second_campus_2f', room:'202', yaw:0 },
@@ -777,10 +785,10 @@ export function shouldShowAnnie(identity,step,runSeed=null){
 
 function annieEvent(identity){
   const lines={
-    ZHANG:['技能人偶安靜地坐在走廊末端，袖口沾著藍色印泥。','我先確認急救箱封條完整，再把注意力放回病床。'],
-    LI:['計時器停在 02:17，訓練人偶沒有呼吸起伏。','我將設備歸零，沒有替空白的巡查欄補上時間。'],
+    ZHANG:['技能人偶安靜地坐在走廊末端，袖口沾著藍色印泥。','我沒有靠近，只把注意力放回眼前尚未做完的事。'],
+    LI:['視線邊緣多了一具訓練人偶，姿勢僵硬，沒有呼吸起伏。','我停了一秒，再看回眼前的紀錄。它沒有給出任何答案。'],
     ZHOU:['玻璃反射裡多出一具坐著的訓練人偶，沒有相機快門聲。','我記下位置，不再為了得到照片而延誤值班。'],
-    CHEN:['天橋輪聲停止後，訓練人偶坐在通道轉角，前方沒有輪椅。','我先清出通道，再逐項確認車次與床位。']
+    CHEN:['天橋輪聲停止後，訓練人偶坐在通道轉角，前方沒有輪椅。','我停住腳步。熟悉的方向沒有變，轉角卻顯得陌生。']
   };
-  return event('走廊盡頭的訓練人偶',lines[identity],'確認設備與通道後繼續',{flag:`ANNIE_ROUTE_EVENT_${identity}`});
+  return {lines:lines[identity],flag:`ANNIE_ROUTE_EVENT_${identity}`};
 }

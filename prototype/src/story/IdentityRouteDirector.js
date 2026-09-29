@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { playIdentityM6Memory } from './IdentityM6Memories.js';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
+import { sharedAlbum } from './SharedMedia.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { persistentMemory } from '../core/PersistentMemory.js';
@@ -577,6 +578,11 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M5') {
+      if(identity==='ZHOU'){
+        if(index===0)return {id:'MEMORY_M5_GUARD_REST_LOG',prompt:'翻看警衛休息室的值勤照片'};
+        if(index===1)return {id:'SECOND_2F_CCTV_DESK',prompt:'到隔壁監控室查看即時回放'};
+        if(index===2)return {proximityBridge:true,prompt:'沿天橋返回第一院區'};
+      }
       if(identity==='LI'){
         if(index===0)return {id:'LI_GUARD_LOUNGE_CCTV_CLUE',prompt:'查看警衛休息室桌上的監視錄影帶'};
         if(index===1)return {id:'SECOND_2F_CCTV_DESK',prompt:'到隔壁監控室查看錄影帶與即時回放'};
@@ -1193,6 +1199,22 @@ export class IdentityRouteDirector {
     if(beat.lightFlicker)this.playCurrentZoneLightFlicker();
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
+      if(beat.photoAlbum){
+        let reviewed=false,closed=false;
+        this.busy=true;
+        this.uiManager.openMemorySequence(sharedAlbum(beat.photoAlbum,this.manager.currentIdentity),()=>{
+          if(closed)return;
+          closed=true;this.busy=false;
+          if(reviewed){
+            this.uiManager.showSubtitle('內心','「隔壁監控室好像還在播放……去對一下現在的畫面。」',3800);
+            void this.completeBeat();
+          }else{
+            this.controller.enabled=true;
+            this.renderObjective();
+          }
+        },()=>{reviewed=true;});
+        return;
+      }
       if(beat.glimpse6f){
         // The elevator transition owns the physical preview before arrival.
         // This landing beat must never replay it after stepping onto 8F.
@@ -1579,7 +1601,9 @@ export class IdentityRouteDirector {
       b1_dispatch_hub: 'B1 地下救護車接駁調度室'
     };
     let objective;
-    if(this.step==='LI_ER_2005'){
+    if(this.step==='M1'&&this.awaitingZone&&this.manager.currentIdentity==='ZHOU'){
+      objective='前往第一院區 3F，回 316 補交班';
+    }else if(this.step==='LI_ER_2005'){
       objective=this.beatIndex===0?'到急診留觀區 01 床評估新病人':'到急診電腦書寫紀錄';
     }else if(this.step==='LI_ER_0033'){
       objective='查看無名氏異常病歷';
@@ -1628,6 +1652,7 @@ export class IdentityRouteDirector {
 
     try {
       if (beat.flag) this.gameState.setFlag(beat.flag, true);
+      if (beat.annieFlag) this.gameState.setFlag(beat.annieFlag, true);
       if (beat.cartCheck) this.gameState.setFlag('M2_CART_CHECKED',true);
       if(this.step==='M2'&&this.beatIndex===0&&this.manager.currentIdentity==='ZHANG'){
         this.gameState.setFlag('IDENTITY_4F_TEMP_ACCESS_CARD',true);
