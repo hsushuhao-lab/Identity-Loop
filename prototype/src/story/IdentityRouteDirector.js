@@ -532,8 +532,13 @@ export class IdentityRouteDirector {
 
     if (step === 'M3') {
       if (index === 0) return { id: '2F_JANE_DOE_ASSESSMENT', prompt: '評估急診身分待確認男性' };
-      if (index === 1) return { id: 'ER_GHOST_REGISTRATION', prompt: '查詢 00:33 異常掛號' };
+      // Zhang receives the old slip during the bedside handoff, before being
+      // sent to 316; do not leave a hidden second ER interaction pending.
+      if (index === 1) return identity==='ZHANG'
+        ? {auto:true}
+        : { id: 'ER_GHOST_REGISTRATION', prompt: '查詢 00:33 異常掛號' };
       if (index === 2) return {
+        ...(identity==='ZHANG'?{id:'316_LEGACY_TERMINAL'}:{}),
         type:'legacy_terminal_316',
         prompt:'在 316 舊終端查詢 1998-ER-0217',
         passthrough:true,

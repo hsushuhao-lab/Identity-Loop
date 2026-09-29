@@ -63,6 +63,7 @@ await test('All four route assessments enable the patient parent and a real E ta
   const eye=[10.5,1.7,5.8];assert(!c.checkCollision(eye[0],eye[2]));assert.equal(aim(z.janeDoeHit,eye),'2F_JANE_DOE_ASSESSMENT');
   let got=null;c.onInteract=data=>{got=data.id;};for(const fn of events.keydown)fn({code:'KeyE',preventDefault(){}});assert.equal(got,'2F_JANE_DOE_ASSESSMENT');
   if(id!=='LI'){d.beatIndex=1;await d.placeBeat();z.syncStoryState();assert(!z.janeDoePatient.visible,'00:33 must still have no patient');}
+  d.removeInteractionTarget(); // Dispose the fixture's automatic handoff timer.
  }
 });
 delete global.window;

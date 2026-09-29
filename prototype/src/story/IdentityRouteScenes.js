@@ -240,17 +240,19 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'急診護理師',text:'「對面連交接單據都開過來了。急診今晚很塞，要不要直接照單把他送進既定病區？手續剛好對平。」'}
         ] : [])
       ], '前往急診留觀區 01 床，核對病人與吊牌', { erRegistrationChoice: identity==='ZHANG', chenTransportChoice: identity==='CHEN' }),
-      event('00:33 時間異常', [
+      event(identity==='ZHANG'?'接過急診舊掛號聯':'00:33 時間異常', [
         {speaker:'急診護理師',text:'「00:33 這筆掛號有編號，可是檢傷區、候診區、留觀床都找不到對應的人。」'},
         {speaker:'值班醫師',text:'「先不要再建新病歷。把 1998-ER-0217 這張掛號聯印給我。」'},
         {speaker:'急診護理師',text:'「系統註記寫著：ARCHIVE LOOKUP／316 LEGACY CLIENT。」'},
-        {speaker:'值班醫師',text:'「316 有舊資料終端。我把這張帶回三樓查。」'}
-      ], '帶著 1998-ER-0217 掛號聯回 316', { flag:'ER0033_SLIP_COLLECTED' }),
+        identity==='ZHANG'
+          ? {speaker:'內心',text:'「那我帶回 316辦公室用終端機查查看吧。」'}
+          : {speaker:'值班醫師',text:'「316 有舊資料終端。我把這張帶回三樓查。」'}
+      ], identity==='ZHANG'?'接過護理師列印的 1998-ER-0217 掛號聯':'帶著 1998-ER-0217 掛號聯回 316', { flag:'ER0033_SLIP_COLLECTED' }),
       event('316 舊紀錄索引', [
         {speaker:'316 舊資料終端',text:'「ARCHIVE CLIENT READY｜1998-ER-0217」'},
         {speaker:'內心',text:'急診留下的掛號聯和舊終端終於對上。這不是要我來三樓查一般 HIS，而是查封存索引。'},
         ...(identity==='ZHANG'?[{speaker:'內心',text:'索引不能取代現場。把影本帶回二樓，先核對我見過的病人與 00:33 那張找不到人的掛號聯。'}]:[])
-      ], '回 316，用舊終端查 1998-ER-0217')
+      ], identity==='ZHANG'?'回 316 辦公室，用綠字螢幕的舊資料終端查詢 1998-ER-0217':'回 316，用舊終端查 1998-ER-0217')
     ],
     M4: [
       event('第二院區 5F 護理站報到', reaction({
