@@ -1,22 +1,96 @@
-name: ER and final choice repair workspace
+name: Verify ER single-target and independent final choices
 on:
   push:
     branches: [fix-er-final-choice-20260930]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  source:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 14
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Export exact current source
-        run: |
-          git rev-parse HEAD > source-commit.txt
-          git ls-files -s > source-manifest.txt
-          tar --exclude=prototype/qa-results --exclude=prototype/dist -czf source.tgz prototype .github README.md source-manifest.txt source-commit.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: er-final-choice-source
-          path: source.tgz
-          retention-days: 7
+          node-version: 22
+          cache: npm
+          cache-dependency-path: prototype/package-lock.json
+      - run: npm ci
+        working-directory: prototype
+      - name: Reproduce the baseline defects before patching
+        working-directory: prototype
+        run: |
+          mkdir -p qa-results/er-final/baseline
+          if ER_FINAL_EVIDENCE=qa-results/er-final/baseline node test_er_final_choices_qa.js > qa-results/er-final/baseline/node.log 2>&1; then
+            echo 'Expected baseline regression'; exit 1
+          fi
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const r=JSON.parse(readFileSync('qa-results/er-final/baseline/functional.json'));
+          assert.equal(r.results.filter(x=>x.status==='FAIL').length,5);
+          assert.ok(r.results.find(x=>x.name.includes('one registered')).error.includes('3 !== 1'));
+          JS
+      - name: Apply the exact scoped source patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64,lzma,hashlib,subprocess
+          patch=lzma.decompress(base64.b64decode(Path('.repair/er-final-core.b64').read_text()))
+          assert hashlib.sha256(patch).hexdigest()=='496189fcd2725f6ba3345c5153680eceb9434b4a3b725245cb93e8b4f77c1709'
+          Path('/tmp/er-final.patch').write_bytes(patch)
+          subprocess.run(['git','apply','--check','/tmp/er-final.patch'],check=True)
+          subprocess.run(['git','apply','/tmp/er-final.patch'],check=True)
+          PY
+          git diff --check
+      - name: Unchanged production structural gate
+        working-directory: prototype
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('../.github/workflows/deploy-pages.yml').read_text()
+          block=s.split('      - name: Fast structural QA')[1].split('      - name:')[0].split('        run: |\n')[1]
+          Path('/tmp/er-final-gate.sh').write_text('\n'.join(line[10:] for line in block.splitlines()))
+          PY
+          ER_FINAL_EVIDENCE=qa-results/er-final/functional bash -eo pipefail /tmp/er-final-gate.sh | tee qa-results/er-final/gate.log
+          node scripts/check-asset-budget.mjs > qa-results/er-final/asset-budget.json
+      - name: Build exact tested source
+        working-directory: prototype
+        run: npm run build | tee qa-results/er-final/build.log
+      - run: npx playwright install --with-deps chromium
+        working-directory: prototype
+      - name: Real ER and 316 option interactions
+        working-directory: prototype
+        run: node scripts/test-er-final-choices-browser.mjs qa-results/er-final/browser
+      - name: Preserve Zhang bedside to 316 workflow
+        working-directory: prototype
+        run: node scripts/test-zhang-er-terminal-browser.mjs qa-results/er-final/zhang-terminal
+      - name: Preserve Li and Zhou route transitions
+        working-directory: prototype
+        run: node scripts/test-route-detours-browser.mjs qa-results/er-final/route-detours
+      - name: Store only verified source blobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile,writeFile} from 'node:fs/promises';
+          const paths=['prototype/scripts/run-identity-qa.mjs','prototype/scripts/test-identity-routes-browser.mjs','prototype/scripts/test-er-final-choices-browser.mjs','prototype/src/core/IdentityManager.js','prototype/src/story/IdentityRouteDirector.js','prototype/src/story/IdentityRouteScenes.js','prototype/src/ui/IdentityLoopPanel.js','prototype/src/world/zones/FirstCampus2FER.js','prototype/style.css','prototype/test_identity_routes_qa.js','prototype/test_li_polish_qa.js','prototype/test_er_final_choices_qa.js'];
+          const blobs=[];
+          for(const path of paths){
+            const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs`,{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({content:await readFile(path,'utf8'),encoding:'utf-8'})});
+            if(!response.ok)throw Error(`${path}: ${response.status}`);
+            blobs.push({path,mode:'100644',type:'blob',sha:(await response.json()).sha});
+          }
+          const manifest={base:'6b7a6638adf3e715397136633feadfbb70341484',verificationCommit:process.env.GITHUB_SHA,blobs};
+          await writeFile('prototype/qa-results/er-final/tested-source-blobs.json',JSON.stringify(manifest,null,2));
+          console.log(JSON.stringify(manifest));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: er-final-choice-evidence
+          path: prototype/qa-results/er-final/
+          retention-days: 14
