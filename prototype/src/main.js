@@ -163,6 +163,22 @@ uiManager = new UIManager(
 uiManager.identityMediaContext=()=>identityLoopMode?{identity:identityManager.currentIdentity,step:identityManager.currentRouteStep}:null;
 
 const identityLoopPanel=new IdentityLoopPanel(identityManager,{debug:new URLSearchParams(location.search).get('qa')==='story'||new URLSearchParams(location.search).get('debug')==='1',onNewRun:restartFreshExperience});
+let identityGoodEndingDirector=null;
+let endingModulePromise=null;
+async function playIdentityGoodEnding(result){
+  if(result.type!=='GOOD_END'||identityManager.committedM9Result?.type!=='GOOD_END')return;
+  try{
+    endingModulePromise??=import('./story/IdentityGoodEndingDirector.js');
+    const {IdentityGoodEndingDirector}=await endingModulePromise;
+    identityGoodEndingDirector??=new IdentityGoodEndingDirector({soundManager});
+    await identityGoodEndingDirector.play(result);
+  }catch(error){
+    endingModulePromise=null;
+    console.warn('[ending-cg] module unavailable; committed result preserved',error);
+    uiManager.showSubtitle('最後交班','交班結果已保存。結局動畫暫時無法載入，可從結局面板重新播放。',5000);
+  }
+}
+identityLoopPanel.onReplayEnding=playIdentityGoodEnding;
 if(identityLoopMode)identityLoopPanel.start();
 const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,panel:identityLoopPanel,worldRouter,controller,gameState,uiManager,prepareZone:prepareZoneWithRetry,onEnding:result=>{
   if(result.type==='GOOD_END'){
@@ -170,6 +186,8 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
     gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',false);
     persistentMemory.completePerfectEnding();
     controller.enabled=false;
+    soundManager.setRouteTheme(null,'ENDING');
+    void playIdentityGoodEnding(result);
     return;
   }
   if(result.type==='WRONG_MEMORY_BAD_END'){
@@ -561,20 +579,7 @@ function revealFinal316Handoff({deferred=false}={}) {
   const openForm=()=>{
     controller.enabled=false;
     if(identityLoopMode){
-      identityLoopPanel.openM9({onCommit:result=>{
-        if(result.type==='GOOD_END'){
-          const profile=IDENTITY_PROFILES[result.identity];
-          gameState.setFlag('FINAL_SUCCESS_RECAP_MANAGED',true);
-          gameState.setFlag('GAME_COMPLETE',true);
-          gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',false);
-          persistentMemory.resolveLegend('lastCall');
-          persistentMemory.completePerfectEnding();
-          uiManager.updateTasks();
-          uiManager.showFinalSuccess(profile.name,profile.employeeId);
-          return;
-        }
-        triggerFinalPatientizationFailure(()=>{identityLoopPanel.newRun();controller.enabled=true;});
-      }});
+      identityLoopPanel.openM9({onCommit:result=>identityRouteDirector.finishEnding(result)});
       return;
     }
     uiManager.openFinalHandoff(({name,employeeId})=>{
@@ -645,6 +650,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
   };
   window.__storyQA={
     gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,identityRouteDirector,
+    get identityGoodEndingDirector(){return identityGoodEndingDirector;},
     prefetch:prefetchDestinationAssets,
     load:(zone,spawn)=>{worldRouter.loadZone(zone,spawn);worldRouter.activeZoneInstance?.syncStoryState?.();},
     enter:(zone,spawn)=>{
@@ -1954,7 +1960,7 @@ function animate() {
 
   controller.update(delta);
   worldRouter.update(delta);
-  if(identityLoopMode){identityRouteDirector.update();composer.render();return;}
+  if(identityLoopMode){identityRouteDirector.update();if(!identityGoodEndingDirector?.active)composer.render();return;}
   if(worldRouter.activeZoneId==='first_campus_2f' && controller.enabled && !cinematicDirector.activeId &&
     gameState.getFlag('GHOST_REGISTRATION_AVAILABLE') && !gameState.getFlag('LEGEND_ER0033_RESOLVED') && !gameState.getFlag('CG_00_33_GHOST_REGISTRATION_PLAYED') &&
     controller.position.x>10.5 && controller.position.x<15.5 && controller.position.z>-9.7 && controller.position.z<-4.5){

@@ -30,60 +30,63 @@ export class IdentityLoopPanel{
     this.render();
   }
   openM9({onCommit}={}){
-    if(!this.root)return;
-    if(this.manager.runSave.runEnded)return;
-    this.onCommit=onCommit;this.root.classList.add('visible','m9-open');
-    this.root.classList.remove('archive-open');
-    this.root.querySelector('[data-identity-detail]').textContent='最後交班不再替你列答案。請手動輸入你認為屬於這一輪記憶的姓名與員編；有效身分一旦正式提交就不能更改。';
-    this.root.scrollTop=0;
-    const choices=this.root.querySelector('[data-identity-choices]');
-    choices.replaceChildren();
-
-    const form=document.createElement('div');form.className='identity-entry-form';
-    const name=document.createElement('input');name.type='text';name.autocomplete='off';name.placeholder='姓名';name.setAttribute('aria-label','姓名');
-    const employeeId=document.createElement('input');employeeId.type='text';employeeId.autocomplete='off';employeeId.placeholder='員編（MED-######）';employeeId.setAttribute('aria-label','員編');
+    if(!this.root||this.manager.currentRouteStep!=='M9'||this.manager.runSave.runEnded)return;
+    this.onCommit=onCommit;
+    this.root.classList.add('visible','m9-open');
+    this.root.classList.remove('archive-open','ending-open');
+    this.root.querySelector('[data-identity-detail]').textContent='分別選擇姓名與員編。兩項都必須屬於這一輪的你；選到其他人的資料或不相符的配對，都會使身分核對失敗。正式提交僅有一次，提交後不可更改。';
+    const choices=this.root.querySelector('[data-identity-choices]');choices.replaceChildren();
+    const form=document.createElement('form');form.className='identity-entry-form identity-selection-form';
     const status=document.createElement('div');status.className='identity-entry-status';status.setAttribute('aria-live','polite');
-    const submit=document.createElement('button');submit.type='button';submit.className='identity-entry-submit';submit.textContent='這是我的名字';
-
-    const normalizeName=value=>String(value||'').normalize('NFKC').trim();
-    const normalizeId=value=>String(value||'').normalize('NFKC').trim().toUpperCase().replace(/[‐‑‒–—−]/g,'-').replace(/\s+/g,'');
-    let submitting=false;
-    const submitIdentity=()=>{
-      if(submitting)return;
-      const typedName=normalizeName(name.value);
-      const typedId=normalizeId(employeeId.value);
-      const candidate=getM9Candidates().find(item=>normalizeName(item.name)===typedName&&normalizeId(item.employeeId)===typedId);
-      if(!candidate){
-        status.textContent='STAFF ID NOT RECOGNIZED — RETRY｜姓名或員編無法對應同一筆人事資料。';
-        soundManager.playComputerBeep();
-        return;
+    const summary=document.createElement('p');summary.className='identity-selection-summary';summary.setAttribute('aria-live','polite');
+    const submit=document.createElement('button');submit.type='submit';submit.className='identity-entry-submit';submit.textContent='正式提交交班（不可更改）';submit.disabled=true;
+    const candidates=getM9Candidates(),selected={};
+    // Deliberately different fixed orders: rows do not disclose matched pairs.
+    const orders={name:['LI','ZHANG','ZHOU','CHEN'],employee:['CHEN','LI','ZHANG','ZHOU']};
+    for(const [part,title]of [['name','姓名'],['employee','員編']]){
+      const group=document.createElement('fieldset');group.dataset.identityGroup=part;
+      const legend=document.createElement('legend');legend.textContent=title;group.append(legend);
+      for(const identity of orders[part]){
+        const candidate=candidates.find(item=>item.identity===identity);
+        const label=document.createElement('label');label.className='identity-selection-option';
+        const input=document.createElement('input');input.type='radio';input.name='m9-'+part;input.value=identity;input.required=true;
+        const text=document.createElement('span');text.textContent=part==='name'?candidate.name:candidate.employeeId;
+        input.addEventListener('change',()=>{
+          selected[part]=identity;status.textContent='';
+          const n=candidates.find(x=>x.identity===selected.name),e=candidates.find(x=>x.identity===selected.employee);
+          summary.textContent=`姓名：${n?.name||'尚未選擇'}　／　員編：${e?.employeeId||'尚未選擇'}`;
+          submit.disabled=!(n&&e);
+          soundManager.playClick();
+        });
+        label.append(input,text);group.append(label);
       }
-      submitting=true;
-      form.classList.add('submitting');
-      name.disabled=true;employeeId.disabled=true;submit.disabled=true;
-      status.textContent='IDENTITY RECORD MATCHED｜VERIFYING…';
-      void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playTerminalFanHold(1.2);});
-      setTimeout(()=>{
-        status.textContent='IDENTITY RECORD MATCHED｜COMMITTING…';
-        this.commit(candidate.identity);
-      },1200);
-    };
-    submit.addEventListener('click',submitIdentity);
-    for(const input of [name,employeeId]){
-      input.addEventListener('input',()=>{void soundManager.ensureRunning().then(ready=>{if(ready)soundManager.playTerminalKey();});});
-      input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();submitIdentity();}});
+      form.append(group);
     }
-    form.append(name,employeeId,submit,status);
-    choices.append(form);
-    this.render();
+    let submitting=false;
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      if(submitting||!selected.name||!selected.employee)return;
+      submitting=true;
+      for(const input of form.querySelectorAll('input,button'))input.disabled=true;
+      // Persist the irreversible pair synchronously. Reload during the cinematic
+      // cannot turn a mismatched staff number into a successful name-only result.
+      const result=this.commit(selected.name,selected.employee);
+      if(!result.ok){status.textContent='此回合無法再次提交。';}
+    });
+    summary.textContent='姓名：尚未選擇　／　員編：尚未選擇';
+    form.append(summary,submit,status);choices.append(form);this.root.scrollTop=0;this.render();
   }
-  commit(identity){const result=this.manager.commitM9(identity);if(!result.ok)return result;this.root?.classList.remove('m9-open');this.root?.querySelector('[data-identity-choices]')?.replaceChildren();this.render();this.showEnding(result);this.onCommit?.(result);return result;}
+  commit(identity,employeeIdentity){const result=this.manager.commitM9(identity,employeeIdentity);if(!result.ok)return result;this.root?.classList.remove('m9-open');this.root?.querySelector('[data-identity-choices]')?.replaceChildren();this.render();this.showEnding(result);this.onCommit?.(result);return result;}
   showEnding(result){
     if(!this.root)return;
     this.root.classList.add('visible','ending-open');
     const body=this.root.querySelector('[data-identity-detail]');body.replaceChildren();
     const title=document.createElement('h3');title.textContent=result.type==='GOOD_END'?getGoodEnding(result.identity).title:'WRONG MEMORY';body.append(title);
     const lines=result.type==='GOOD_END'?getGoodEnding(result.identity).lines:WRONG_MEMORY_LINES;for(const line of lines){const p=document.createElement('p');p.textContent=line;body.append(p);}
+    if(result.type==='GOOD_END'){
+      const replay=document.createElement('button');replay.type='button';replay.className='identity-ending-replay';replay.textContent='重看本輪結局動畫';
+      replay.addEventListener('click',()=>this.onReplayEnding?.(result));body.append(replay);
+    }
     const button=document.createElement('button');button.type='button';button.className='identity-loop-new-run';button.textContent='開始新的夜班';button.addEventListener('click',()=>this.newRun());body.append(button);
   }
   newRun(){this.root?.classList.remove('visible','ending-open','archive-open','m9-open');this.root?.querySelector('[data-identity-detail]')?.replaceChildren();this.root?.querySelector('[data-identity-choices]')?.replaceChildren();this.manager.startNewRun();this.render();this.onNewRun();}

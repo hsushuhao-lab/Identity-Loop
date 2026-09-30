@@ -47,13 +47,13 @@ assert.match(scenes,/lightFlicker: identity==='LI'/);
 assert.match(director,/playCurrentZoneLightFlicker/);
 assert.match(director,/LI_SECOND_CAMPUS_LIGHT_FLICKER_SEEN/);
 
-// M9 accepts full-width input via NFKC, rejects typos without committing, and pauses 1.2 s after a real record match.
-assert.match(panel,/normalize\('NFKC'\)/);
-assert.match(panel,/STAFF ID NOT RECOGNIZED — RETRY/);
-assert.match(panel,/setTimeout\(\(\)=>\{[\s\S]*this\.commit\(candidate\.identity\);[\s\S]*\},1200\)/);
-assert.match(panel,/name\.disabled=true;employeeId\.disabled=true;submit\.disabled=true/);
-assert.match(panel,/playTerminalKey/);
-assert.match(panel,/playTerminalFanHold\(1\.2\)/);
+// M9 requires two independent selections and commits the pair without a name-only shortcut.
+assert.match(panel,/input.type='radio'/);
+assert.match(panel,/name:\['LI','ZHANG','ZHOU','CHEN'\]/);
+assert.match(panel,/employee:\['CHEN','LI','ZHANG','ZHOU'\]/);
+assert.match(panel,/this\.commit\(selected.name,selected.employee\)/);
+assert.doesNotMatch(panel,/STAFF ID NOT RECOGNIZED — RETRY|normalize\('NFKC'\)/);
+assert.match(panel,/input.disabled=true/);
 assert.match(sound,/playTerminalKey\(\)/);
 assert.match(sound,/playTerminalFanHold\(duration=1\.2\)/);
 

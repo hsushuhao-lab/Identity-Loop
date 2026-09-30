@@ -18,7 +18,7 @@ const ZHANG_PRE16_ROUTE=Object.freeze(['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND
 const ZHOU_PRE16_ROUTE=Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']);
 const clone=value=>JSON.parse(JSON.stringify(value));
 const freshMeta=()=>({completedGoodEnds:[],identityBag:[],m10Unlocked:false});
-const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,runEnded:false,b2Entered:false,runSeed:null});
+const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,m9CommittedEmployeeChoice:null,m9ChoiceRevision:1,runEnded:false,b2Entered:false,runSeed:null});
 
 function defaultStorage(){
   if(typeof window!=='undefined'&&window.localStorage)return window.localStorage;
@@ -74,8 +74,12 @@ export class IdentityManager{
     if(runSave.currentIdentity==='ZHOU')runSave.zhouRouteRevision=1;
     if(runSave.currentIdentity&&runSave.runSeed==null){runSave.runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;}
     runSave.currentMilestone=IDENTITY_ROUTES[runSave.currentIdentity]?.[runSave.currentRouteStep]||(runSave.runEnded?'M9':metaSave.m10Unlocked?'M10':null);
+    // Old released builds accepted only a matched personnel record. Preserve those
+    // already-finalized choices; never infer the missing half for a new selection.
+    const migrateM9=runSave.runEnded&&validIdentity(runSave.m9CommittedChoice)&&parsed.runSave?.m9ChoiceRevision!==1;
+    if(migrateM9){runSave.m9CommittedEmployeeChoice=runSave.m9CommittedChoice;runSave.m9ChoiceRevision=1;}
     const state={version:2,metaSave,runSave};
-    if(parsed.version!==2||parsed.runSave?.runSeed==null||migrateChen||migrateZhang||migrateZhou)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
+    if(parsed.version!==2||parsed.runSave?.runSeed==null||migrateChen||migrateZhang||migrateZhou||migrateM9)this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(state));
     return state;
   }
 
@@ -143,19 +147,26 @@ export class IdentityManager{
 
   canEnterB2(){return this.currentRouteStep==='B2'&&!this.runSave.runEnded&&!this.runSave.b2Entered;}
 
-  commitM9(selectedIdentity){
+  get committedM9Result(){
+    const {runEnded,currentIdentity:identity,m9CommittedChoice:selectedIdentity,m9CommittedEmployeeChoice:selectedEmployeeIdentity}=this.runSave;
+    if(!runEnded||!validIdentity(selectedIdentity)||!validIdentity(selectedEmployeeIdentity))return null;
+    const correct=selectedIdentity===identity&&selectedEmployeeIdentity===identity;
+    return {ok:true,type:correct?'GOOD_END':'WRONG_MEMORY_BAD_END',identity,selectedIdentity,selectedEmployeeIdentity,m10Unlocked:this.metaSave.m10Unlocked};
+  }
+
+  commitM9(selectedIdentity,selectedEmployeeIdentity){
     if(this.runSave.m9CommittedChoice||this.runSave.runEnded)return {ok:false,reason:'ALREADY_COMMITTED'};
     if(this.currentRouteStep!=='M9'||this.runSave.currentRouteStep!==this.route.length-1)return {ok:false,reason:'M9_NOT_ACTIVE'};
-    if(!validIdentity(selectedIdentity))return {ok:false,reason:'UNKNOWN_IDENTITY'};
-    this.runSave.currentMilestone='M9';this.runSave.m9CommittedChoice=selectedIdentity;this.runSave.runEnded=true;
+    if(!validIdentity(selectedIdentity)||!validIdentity(selectedEmployeeIdentity))return {ok:false,reason:'INCOMPLETE_SELECTION'};
+    this.runSave.currentMilestone='M9';this.runSave.m9CommittedChoice=selectedIdentity;this.runSave.m9CommittedEmployeeChoice=selectedEmployeeIdentity;this.runSave.m9ChoiceRevision=1;this.runSave.runEnded=true;
     this.runSave.completedStoryModules.push('M9');this.runSave.currentRouteStep+=1;
-    const correct=selectedIdentity===this.currentIdentity;
+    const correct=selectedIdentity===this.currentIdentity&&selectedEmployeeIdentity===this.currentIdentity;
     if(correct){
       if(!this.metaSave.completedGoodEnds.includes(this.currentIdentity))this.metaSave.completedGoodEnds.push(this.currentIdentity);
       this.metaSave.m10Unlocked=IDENTITIES.every(identity=>this.metaSave.completedGoodEnds.includes(identity));
-      return this.save()&&{ok:true,type:'GOOD_END',identity:this.currentIdentity,m10Unlocked:this.metaSave.m10Unlocked};
+      this.save();return this.committedM9Result;
     }
     this.save();
-    return {ok:true,type:'WRONG_MEMORY_BAD_END',identity:this.currentIdentity,selectedIdentity};
+    return this.committedM9Result;
   }
 }

@@ -28,13 +28,13 @@ for(const [identity,route] of Object.entries(expected)){
     if(step!=='M9'){
       assert.equal(manager.completeRouteStep('M9'),false);
       if(route[index+1]!=='M9')assert.equal(manager.advanceMilestone('M9'),false);
-      assert.equal(manager.commitM9(identity).reason,'M9_NOT_ACTIVE');
+      assert.equal(manager.commitM9(identity,identity).reason,'M9_NOT_ACTIVE');
       assert.equal(store.value,before);
       assert.equal(manager.completeRouteStep(step),true);
       assert.equal(manager.completeRouteStep(step),false);
     }else{
       assert.equal(manager.completeRouteStep(step),false);
-      assert.equal(manager.commitM9(identity).type,'GOOD_END');
+      assert.equal(manager.commitM9(identity,identity).type,'GOOD_END');
     }
     manager=new IdentityManager(store);
     if(identity==='ZHANG'&&step==='M2')assert.equal(manager.runSave.completedStoryModules.includes('M1'),false);
@@ -44,7 +44,7 @@ for(const [identity,route] of Object.entries(expected)){
   manager.restoreOrStartRun();
   assert.equal(store.value,ended);
   assert.equal(manager.runSave.runEnded,true);
-  assert.equal(manager.commitM9(identity).reason,'ALREADY_COMMITTED');
+  assert.equal(manager.commitM9(identity,identity).reason,'ALREADY_COMMITTED');
   assert.deepEqual(manager.runSave.completedStoryModules,route);
   assert.deepEqual(manager.startNewRun({restart:true,forceIdentity:identity}).metaSave.completedGoodEnds,[identity]);
   assert.equal(manager.currentRouteStep,route[0]);
@@ -276,10 +276,11 @@ assert.match(b2RecapSource,/完整姓名仍需回 3F 文史館核對/);
 assert.match(mainSourceFor316,/hiddenIdentity:identityLoopMode\?identityManager\?\.currentIdentity:null/);
 assert.match(mainSourceFor316,/CURRENT SELF：CORRUPTED｜409-A 死者姓名欄遭除籍塗銷｜員編前綴 MED-87••••/);
 const identityPanelSource=readFileSync(new URL('./src/ui/IdentityLoopPanel.js',import.meta.url),'utf8');
-assert.match(identityPanelSource,/手動輸入你認為屬於這一輪記憶的姓名與員編/);
+assert.match(identityPanelSource,/分別選擇姓名與員編/);
 assert.match(identityPanelSource,/identity-entry-form/);
-assert.match(identityPanelSource,/這是我的名字/);
-assert.doesNotMatch(identityPanelSource,/className='identity-choice'/);
+assert.match(identityPanelSource,/正式提交交班/);
+assert.match(identityPanelSource,/input.type='radio'/);
+assert.doesNotMatch(identityPanelSource,/name.type='text'|employeeId.type='text'/);
 const level3Source=readFileSync(new URL('./src/world/Level3FBlockout.js',import.meta.url),'utf8');
 assert.match(level3Source,/keyGroup\.position\.set\(2\.39, 1\.02, 7\.55\)/);
 assert.match(level3Source,/316_LockerDoor/);
@@ -310,12 +311,12 @@ console.log('PASS legacy advanceMilestone permits only the next route step');
 const wrongStore=storage();
 const wrong=IdentityManager.createForTest('LI',wrongStore);
 while(wrong.currentRouteStep!=='M9')assert.equal(wrong.completeRouteStep(wrong.currentRouteStep),true);
-wrong.commitM9('CHEN');
+wrong.commitM9('CHEN','CHEN');
 const restored=new IdentityManager(wrongStore);
 restored.restoreOrStartRun();
 assert.equal(restored.runSave.runEnded,true);
 assert.equal(restored.runSave.m9CommittedChoice,'CHEN');
-assert.equal(restored.commitM9('LI').reason,'ALREADY_COMMITTED');
+assert.equal(restored.commitM9('LI','LI').reason,'ALREADY_COMMITTED');
 assert.deepEqual(restored.metaSave.completedGoodEnds,[]);
 restored.startNewRun();
 assert.equal(restored.runSave.runEnded,false);

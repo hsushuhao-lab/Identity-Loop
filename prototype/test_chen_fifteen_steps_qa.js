@@ -34,7 +34,7 @@ for(const [index,step] of expected.entries()){
  manager=new IdentityManager(store);assert.equal(manager.currentRouteStep,step);assert.equal(manager.runSave.chenRouteRevision,1);
  assert.deepEqual(manager.runSave.completedStoryModules,expected.slice(0,index));
  assert.equal(manager.completeRouteStep('NOT_THE_CURRENT_STEP'),false);
- if(step==='M9')assert.equal(manager.commitM9('CHEN').type,'GOOD_END');else assert(manager.completeRouteStep(step));
+ if(step==='M9')assert.equal(manager.commitM9('CHEN','CHEN').type,'GOOD_END');else assert(manager.completeRouteStep(step));
 }
 assert.equal(new IdentityManager(store).currentRouteStep,null);
 // Upgrade all eleven old checkpoints by name, not by shifted index. No made-up completion.
@@ -50,7 +50,7 @@ for(const [index,step] of old.entries()){
 for(const correct of [true,false]){
  const ended=storage(JSON.stringify({version:2,metaSave:{completedGoodEnds:correct?['CHEN']:[]},runSave:{currentIdentity:'CHEN',currentRouteStep:11,currentMilestone:'M9',completedStoryModules:old,runSeed:42,runEnded:true,m9CommittedChoice:correct?'CHEN':'LI'}}));
  const m=new IdentityManager(ended);assert.equal(m.currentRouteStep,null);assert.equal(m.runSave.currentRouteStep,15);
- assert.equal(m.commitM9('CHEN').reason,'ALREADY_COMMITTED');assert.deepEqual(m.runSave.completedStoryModules,old);
+ assert.equal(m.commitM9('CHEN','CHEN').reason,'ALREADY_COMMITTED');assert.deepEqual(m.runSave.completedStoryModules,old);
 }
 // Exercise the real choice branch: retry does not grant a flag, journal entry or completion.
 const oldAudio=soundManager.ensureRunning;soundManager.ensureRunning=async()=>false;

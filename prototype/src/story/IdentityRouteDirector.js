@@ -221,9 +221,8 @@ export class IdentityRouteDirector {
     this.panel.render();
     this.panel.root?.classList.add('visible');
     if (this.manager.runSave.runEnded) {
-      const { currentIdentity: identity, m9CommittedChoice: selectedIdentity } = this.manager.runSave;
-      const type = selectedIdentity === identity ? 'GOOD_END' : 'WRONG_MEMORY_BAD_END';
-      const result = { ok: true, type, identity, selectedIdentity };
+      const result=this.manager.committedM9Result;
+      const type=result.type;
       this.panel.showEnding(result);
       this.gameState.setFlag('GAME_COMPLETE', type === 'GOOD_END');
       if (type === 'WRONG_MEMORY_BAD_END') await this.onEnding(result);
@@ -690,7 +689,7 @@ export class IdentityRouteDirector {
     }
 
     if (step === 'M8') return { auto: true };
-    if (step === 'M9') return { type: 'legacy_terminal_316', prompt: '使用 316 舊終端完成最後交班' };
+    if (step === 'M9') return { type: 'legacy_terminal_316', prompt: '使用 316 舊終端選擇姓名與員編，完成最後交班' };
 
     return { contextual: true, fromSpawn: true, distance: 1.45, prompt: this.beats[index]?.review || this.beats[index]?.label || '查看' };
   }

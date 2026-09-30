@@ -926,3 +926,17 @@ body.his-flicker #canvas-container{animation:his-power-flicker .42s linear}
 .memory-footer button{background:#293a32;color:#eee9d8;border:1px solid #797563;padding:10px 18px;border-radius:3px}
 .memory-footer button:disabled{opacity:.38;cursor:default}
 .memory-footer button:not(:disabled):hover{background:#3d5145}
+
+/* M9 only: two independent personnel choices; no free-text inputs. */
+.identity-selection-form fieldset{min-width:0;margin:0;padding:8px;border:1px solid #75877a;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.identity-selection-form legend{padding:0 5px;color:#e2d3b8;font-size:14px;font-weight:700}
+.identity-selection-form .identity-selection-option{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px;background:#18231c;border:1px solid #627267;border-radius:3px;cursor:pointer;font-size:14px;box-sizing:border-box}
+.identity-selection-form input[type=radio]{width:18px;height:18px;margin:0;padding:0;flex:0 0 18px;accent-color:#aac9b4}
+.identity-selection-option:has(input:checked){background:#355342;border-color:#e1c999}
+.identity-selection-option:focus-within{outline:2px solid #e1c999;outline-offset:2px}
+.identity-selection-summary{margin:4px 0;color:#ded7c8;line-height:1.6;overflow-wrap:anywhere}
+.identity-entry-submit:disabled{cursor:not-allowed}
+.identity-ending-replay{width:100%;padding:10px;background:#1e3026;color:#f3f1e9;border:1px solid #889b8e;border-radius:3px;cursor:pointer;margin:6px 0}
+.identity-loop-panel.ending-open .identity-loop-evidence{display:none}
+.identity-ending-playing .identity-loop-panel{visibility:hidden;pointer-events:none}
+@media(max-width:600px){.identity-route-mode .identity-loop-panel.m9-open{max-height:calc(100dvh - 90px);bottom:58px;top:auto}.identity-selection-form fieldset{grid-template-columns:1fr}.identity-selection-form{font-size:14px}}

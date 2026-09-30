@@ -83,7 +83,7 @@ async function walk(identity,{wrong=false,mobile=false}={}){
     assert.equal(state.body,state.width,'no horizontal overflow');
 
     const choiceVisible=await page.locator('[data-identity-choices] .identity-choice').count();
-    const manualEntryVisible=await page.locator('[data-identity-choices] .identity-entry-form').count();
+    const manualEntryVisible=await page.locator('[data-identity-choices] .identity-selection-form').count();
     if(!choiceVisible&&!manualEntryVisible){
       assert.doesNotMatch(state.text,forbidden,`visible leak before M9 choice ${identity}/${state.step}`);
       assert.doesNotMatch(state.canvasText,forbidden,`world canvas name leak before M9 ${identity}/${state.step}`);
@@ -153,11 +153,11 @@ async function walk(identity,{wrong=false,mobile=false}={}){
 
     if(manualEntryVisible){
       assert.equal(state.step,'M9');
-      assert.equal(choiceVisible,0,'M9 must not expose answer buttons');
+      assert.equal(await page.locator('.identity-selection-form input[type=radio]').count(),8,'M9 must offer two independent four-choice groups');
       const selected=wrong?Object.keys(IDENTITY_PROFILES).find(x=>x!==identity):identity;
-      await page.locator('.identity-entry-form input[aria-label="姓名"]').fill(IDENTITY_PROFILES[selected].name);
-      await page.locator('.identity-entry-form input[aria-label="員編"]').fill(IDENTITY_PROFILES[selected].employeeId);
-      await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-manual-entry`);
+      await page.locator(`input[name="m9-name"][value="${selected}"]`).check();
+      await page.locator(`input[name="m9-employee"][value="${selected}"]`).check();
+      await shot(`${identity}${wrong?'-wrong':''}${mobile?'-mobile':''}-choice-pair`);
       await page.locator('.identity-entry-submit').click();
       await page.waitForFunction(()=>window.__storyQA.identityManager.snapshot().runSave.runEnded===true,{},{timeout:30000});
       const ended=await page.evaluate(()=>window.__storyQA.identityManager.snapshot());
