@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 const tests=[
+  'test_identity_narrative_fairness_p0_qa.js',
   'test_zhou_guard_terminal_b1_qa.js',
   'test_identity_m9_pair_qa.js',
   'test_identity_ending_scene_qa.js',
