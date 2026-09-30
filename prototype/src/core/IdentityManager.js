@@ -15,6 +15,7 @@ export const IDENTITY_STORAGE_KEY='IdentyLoop_IdentityState_v1';
 const IDENTITIES=Object.freeze(Object.values(IdentityEnum));
 const CHEN_PRE15_ROUTE=Object.freeze(['CHEN_OPEN_SKYBRIDGE','M4','M5','M1','M2','M3','M6','M7','B2','CHEN_M8_DISPATCH','M9']);
 const ZHANG_PRE16_ROUTE=Object.freeze(['ZHANG_OPEN_4F','M2','M1','ZHANG_OUTBOUND_8F','M4','ZHANG_SECOND_CAMPUS_SECURITY','M5','M3','M6','M7','B2','ZHANG_3F_ARCHIVE','M9']);
+const ZHOU_PRE_GUARD_ROUTE=Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_1F_WARNING_CALL','ZHOU_2F_WARNING_READBACK','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']);
 const ZHOU_PRE16_ROUTE=Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']);
 const clone=value=>JSON.parse(JSON.stringify(value));
 const freshMeta=()=>({completedGoodEnds:[],identityBag:[],m10Unlocked:false});
@@ -64,14 +65,15 @@ export class IdentityManager{
       runSave.zhangRouteRevision=1;
     }
     if(runSave.currentIdentity==='ZHANG')runSave.zhangRouteRevision=1;
-    const migrateZhou=parsed.version===2&&runSave.currentIdentity==='ZHOU'&&runSave.zhouRouteRevision!==1;
+    const migrateZhou=parsed.version===2&&runSave.currentIdentity==='ZHOU'&&runSave.zhouRouteRevision!==2;
     if(migrateZhou){
-      const previousStep=ZHOU_PRE16_ROUTE[runSave.currentRouteStep];
+      const previousRoute=runSave.zhouRouteRevision===1?ZHOU_PRE_GUARD_ROUTE:ZHOU_PRE16_ROUTE;
+      const previousStep=previousRoute[runSave.currentRouteStep];
       runSave.currentRouteStep=runSave.runEnded?IDENTITY_ROUTES.ZHOU.length:Math.max(0,IDENTITY_ROUTES.ZHOU.indexOf(previousStep));
       // Preserve the actual evidence and completion history, not imagined warning delivery.
-      runSave.zhouRouteRevision=1;
+      runSave.zhouRouteRevision=2;
     }
-    if(runSave.currentIdentity==='ZHOU')runSave.zhouRouteRevision=1;
+    if(runSave.currentIdentity==='ZHOU')runSave.zhouRouteRevision=2;
     if(runSave.currentIdentity&&runSave.runSeed==null){runSave.runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;}
     runSave.currentMilestone=IDENTITY_ROUTES[runSave.currentIdentity]?.[runSave.currentRouteStep]||(runSave.runEnded?'M9':metaSave.m10Unlocked?'M10':null);
     // Old released builds accepted only a matched personnel record. Preserve those
@@ -100,7 +102,7 @@ export class IdentityManager{
     const currentIdentity=forceIdentity||this.drawIdentity();
     if(!validIdentity(currentIdentity))throw new Error('Unknown identity seed');
     const runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;
-    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed,...(currentIdentity==='CHEN'?{chenRouteRevision:1}:{}),...(currentIdentity==='ZHANG'?{zhangRouteRevision:1}:{}),...(currentIdentity==='ZHOU'?{zhouRouteRevision:1}:{})};
+    this.state.runSave={...freshRun(),currentIdentity,currentMilestone:IDENTITY_ROUTES[currentIdentity][0],runSeed,...(currentIdentity==='CHEN'?{chenRouteRevision:1}:{}),...(currentIdentity==='ZHANG'?{zhangRouteRevision:1}:{}),...(currentIdentity==='ZHOU'?{zhouRouteRevision:2}:{})};
     return this.save();
   }
 
@@ -130,6 +132,13 @@ export class IdentityManager{
     if(step==='B2')this.runSave.b2Entered=true;
     this.runSave.completedStoryModules.push(step);
     this.runSave.currentRouteStep+=1;
+    // A migrated Zhou run may have already visited the guard/ER before M2.
+    // Preserve those real completions instead of replaying them after the reorder.
+    if(this.currentIdentity==='ZHOU'){
+      while(this.currentRouteStep!=='M9'&&this.runSave.completedStoryModules.includes(this.currentRouteStep)){
+        this.runSave.currentRouteStep+=1;
+      }
+    }
     this.runSave.currentMilestone=this.currentRouteStep;
     this.save();return true;
   }

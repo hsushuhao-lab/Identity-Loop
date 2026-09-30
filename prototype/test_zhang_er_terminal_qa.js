@@ -32,7 +32,7 @@ await test('Zhang receipt dialogue follows the safe bedside choice, not an unann
 await test('Zhang speaks the requested thought; other routes keep their own handoff',()=>{
  const z=getIdentityRouteScene('M3','ZHANG');
  assert.ok(z[1].lines.some(l=>l.speaker==='內心'&&l.text.includes('那我帶回 316辦公室用終端機查查看吧')));
- for(const id of ['LI','ZHOU','CHEN']){
+ for(const id of ['LI','CHEN']){
   const {d}=fixture(id);assert.equal(d.bindingFor('M3',1).id,'ER_GHOST_REGISTRATION');
   assert.equal(d.bindingFor('M3',2).id,undefined);
   assert.equal(d.beats[1].review,'帶著 1998-ER-0217 掛號聯回 316');

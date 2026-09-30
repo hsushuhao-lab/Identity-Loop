@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { playIdentityM6Memory } from './IdentityM6Memories.js';
 import { ROUTE_STEPS } from './IdentityRoutes.js';
 import { getIdentityRouteScene } from './IdentityRouteScenes.js';
-import { sharedAlbum } from './SharedMedia.js';
+import { sharedAlbum, photoSequence } from './SharedMedia.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { persistentMemory } from '../core/PersistentMemory.js';
@@ -245,6 +245,10 @@ export class IdentityRouteDirector {
     this.revision += 1;
     this.awaitingZone = null;
     this.m1EntryTriggered = false;
+    if(this.step==='M3'&&this.manager.currentIdentity==='ZHOU'&&this.manager.runSave.evidence['route:M3:1']){
+      this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
+      this.beatIndex=2;
+    }
 
     if (route.time === '16:50') {
       this.gameState.gameTime = route.time;
@@ -291,7 +295,7 @@ export class IdentityRouteDirector {
 
     await this.onRouteStep(this.step);
 
-    const firstBeat = this.beats[0];
+    const firstBeat = this.beats[this.beatIndex];
     const targetZone = firstBeat.zoneId || route.zoneId;
     if (forceLoad && this.worldRouter.activeZoneId !== targetZone) {
       await this.prepareZone(targetZone);
@@ -542,13 +546,13 @@ export class IdentityRouteDirector {
 
     if (step === 'M3') {
       if (index === 0) return { id: '2F_JANE_DOE_ASSESSMENT', prompt: '評估急診身分待確認男性' };
-      // Zhang receives the old slip during the bedside handoff, before being
+      // Zhang and Zhou receive the slip during the bedside handoff, before being
       // sent to 316; do not leave a hidden second ER interaction pending.
-      if (index === 1) return identity==='ZHANG'
+      if (index === 1) return ['ZHANG','ZHOU'].includes(identity)
         ? {auto:true}
         : { id: 'ER_GHOST_REGISTRATION', prompt: '查詢 00:33 異常掛號' };
       if (index === 2) return {
-        ...(identity==='ZHANG'?{id:'316_LEGACY_TERMINAL'}:{}),
+        ...(['ZHANG','ZHOU'].includes(identity)?{id:'316_LEGACY_TERMINAL'}:{}),
         type:'legacy_terminal_316',
         prompt:'在 316 舊終端查詢 1998-ER-0217',
         passthrough:true,
@@ -615,11 +619,12 @@ export class IdentityRouteDirector {
     if (step === 'ZHANG_6F_FORESHADOW') return { id: 'IDENTITY_6F_DISPLAY', prompt: '查看電梯樓層顯示' };
 
     if (step === 'ZHOU_1F_PHOTO') {
-      return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛台旁牆上的事故前設備照片' };
+      if(index===0)return {id:'OLD_GUARD_POST',prompt:'找一樓警衛聊聊'};
+      return { id: 'IDENTITY_GUARD_REFLECTION_PHOTO', prompt: '查看警衛指的牆面舊照片' };
     }
 
     if (step === 'ZHOU_SECURITY_TALK') {
-      if(index===0) return { id: 'OLD_GUARD_POST', prompt: '回警衛台詢問老照片' };
+      if(index===0) return {auto:true};
       return { id: 'IDENTITY_GUARD_PHONE', prompt: '接聽正在響的警衛台電話' };
     }
     if(identity==='ZHOU'){
@@ -1214,14 +1219,15 @@ export class IdentityRouteDirector {
     if(beat.lightFlicker)this.playCurrentZoneLightFlicker();
 
     this.uiManager.showDialogue(this.dialogueLines(beat), () => {
-      if(beat.photoAlbum){
+      if(beat.photoAlbum||beat.inspectPhoto){
         let reviewed=false,closed=false;
         this.busy=true;
-        this.uiManager.openMemorySequence(sharedAlbum(beat.photoAlbum,this.manager.currentIdentity),()=>{
+        const sequence=beat.inspectPhoto?photoSequence(beat.inspectPhoto,this.manager.currentIdentity):sharedAlbum(beat.photoAlbum,this.manager.currentIdentity);
+        this.uiManager.openMemorySequence(sequence,()=>{
           if(closed)return;
           closed=true;this.busy=false;
           if(reviewed){
-            this.uiManager.showSubtitle('內心','「隔壁監控室好像還在播放……去對一下現在的畫面。」',3800);
+            if(!beat.inspectPhoto)this.uiManager.showSubtitle('內心','「隔壁監控室好像還在播放……去對一下現在的畫面。」',3800);
             void this.completeBeat();
           }else{
             this.controller.enabled=true;

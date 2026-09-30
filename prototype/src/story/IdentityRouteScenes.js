@@ -130,7 +130,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'內心',text:'單張寫著「Bed 33／既定病區」，但 409 明明仍封閉整修。'},
           {speaker:'內心',text:'如果直接覆核，等於把一間不存在的病房重新寫回正式流程。'},
           ...(identity==='CHEN'?[{speaker:'內心',text:'把 504B 醫囑影本和這張床位單帶到一樓警衛台，先確認今晚有沒有真正的跨院交接。'}]:[]),
-          ...(identity==='ZHOU'?[{speaker:'內心',text:'便條上那句「那張醫囑單先不要——」還沒送到人手上。先到一樓警衛台借電話，把已知的風險說出去，不再等下一張照片。'}]:[])
+          ...(identity==='ZHOU'?[{speaker:'內心',text:'便條上那句「那張醫囑單先不要——」還沒寫完。先把眼前的查房工作做完，再到一樓透口氣。'}]:[])
         ], '回護理站確認醫囑單')
       ])
     ],
@@ -240,19 +240,21 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
           {speaker:'急診護理師',text:'「對面連交接單據都開過來了。急診今晚很塞，要不要直接照單把他送進既定病區？手續剛好對平。」'}
         ] : [])
       ], '前往急診留觀區 01 床，核對病人與吊牌', { erRegistrationChoice: identity==='ZHANG', chenTransportChoice: identity==='CHEN' }),
-      event(identity==='ZHANG'?'接過急診舊掛號聯':'00:33 時間異常', [
+      event(['ZHANG','ZHOU'].includes(identity)?'接過急診舊掛號聯':'00:33 時間異常', [
         {speaker:'急診護理師',text:'「00:33 這筆掛號有編號，可是檢傷區、候診區、留觀床都找不到對應的人。」'},
         {speaker:'值班醫師',text:'「先不要再建新病歷。把 1998-ER-0217 這張掛號聯印給我。」'},
         {speaker:'急診護理師',text:'「系統註記寫著：ARCHIVE LOOKUP／316 LEGACY CLIENT。」'},
         identity==='ZHANG'
           ? {speaker:'內心',text:'「那我帶回 316辦公室用終端機查查看吧。」'}
-          : {speaker:'值班醫師',text:'「316 有舊資料終端。我把這張帶回三樓查。」'}
-      ], identity==='ZHANG'?'接過護理師列印的 1998-ER-0217 掛號聯':'帶著 1998-ER-0217 掛號聯回 316', { flag:'ER0033_SLIP_COLLECTED' }),
+          : identity==='ZHOU'
+            ? {speaker:'內心',text:'「照片裡的設備和他說的位置對上了。我把這張 1998-ER-0217 掛號聯帶回 316，用綠字終端查查看。」'}
+            : {speaker:'值班醫師',text:'「316 有舊資料終端。我把這張帶回三樓查。」'}
+      ], ['ZHANG','ZHOU'].includes(identity)?'接過護理師列印的 1998-ER-0217 掛號聯':'帶著 1998-ER-0217 掛號聯回 316', { flag:'ER0033_SLIP_COLLECTED' }),
       event('316 舊紀錄索引', [
         {speaker:'316 舊資料終端',text:'「ARCHIVE CLIENT READY｜1998-ER-0217」'},
         {speaker:'內心',text:'急診留下的掛號聯和舊終端終於對上。這不是要我來三樓查一般 HIS，而是查封存索引。'},
         ...(identity==='ZHANG'?[{speaker:'內心',text:'索引不能取代現場。把影本帶回二樓，先核對我見過的病人與 00:33 那張找不到人的掛號聯。'}]:[])
-      ], identity==='ZHANG'?'回 316 辦公室，用綠字螢幕的舊資料終端查詢 1998-ER-0217':'回 316，用舊終端查 1998-ER-0217')
+      ], ['ZHANG','ZHOU'].includes(identity)?'回 316 辦公室，用綠字螢幕的舊資料終端查詢 1998-ER-0217':'回 316，用舊終端查 1998-ER-0217')
     ],
     M4: [
       event('第二院區 5F 護理站報到', reaction({
@@ -437,24 +439,27 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
       ], '沿天橋返回第一院區', { bridgeChoice:true, forcedBridgeReveal:true })
     ],
     ZHANG_6F_FORESHADOW: [event('電梯樓層顯示器', ['5 → 6 → 5 → 4。', '我：「……六？」', '電梯沒有開門。這一次只有樓層顯示異常。'], '等候急診來電')],
-    ZHOU_1F_PHOTO: [event('檢視玻璃反射照', [
-      {speaker:'內心',text:'這張照片比八樓那張更接近事故現場。B-Panel、工程人員、警衛都在畫面裡。'},
-      {speaker:'內心',text:'玻璃反射裡有相機、Casio，還有拍攝者的手。看不到臉。'},
-      {speaker:'值班醫師',text:'「拍照的人沒有站進照片裡……」'},
-      {speaker:'內心',text:'先回警衛台問問看，也許有人記得拍攝者。'}
-    ], '看完牆上照片後，回警衛台詢問', { art: 'photo', photoId: 'guard_reflection_1998' })],
+    ZHOU_1F_PHOTO: [
+      event('找警衛聊聊', [
+        {speaker:'值班醫師',text:'「病房剛忙完。警衛大哥，我來坐一下，跟你聊聊。」'},
+        {speaker:'警衛',text:'「好啊。你剛才一直看著牆，是在找什麼？」'},
+        {speaker:'值班醫師',text:'「在八樓和另一棟看了幾張舊照片，有些地方很眼熟。」'},
+        {speaker:'警衛',text:'「那你看後面牆上這張。以前有個年輕醫師很愛拍，連設備壞了、門被封了都拍。」'},
+        {speaker:'內心',text:'他抬手指向警衛台旁的照片。先看他說的是哪一張。'}
+      ], '到第一院區一樓找警衛聊天'),
+      event('警衛指的玻璃反射照', [
+        {speaker:'內心',text:'警衛指的是這張。B-Panel、工程人員、警衛都在畫面裡。'},
+        {speaker:'內心',text:'玻璃反射裡有相機、Casio，還有拍攝者的手。看不到臉。'},
+        {speaker:'值班醫師',text:'「拍照的人沒有站進照片裡……」'}
+      ], '查看警衛指的牆面舊照片', {art:'photo',photoId:'guard_reflection_1998',inspectPhoto:'reflection'})
+    ],
     ZHOU_SECURITY_TALK: [
-      event('詢問老照片', [
-        {speaker:'值班醫師',text:'「牆上那張舊照片，是誰拍的？」'},
-        {speaker:'警衛',text:'「不知道，年代很久了。」'},
-        {speaker:'警衛',text:'「以前好像有一個年輕醫師很愛拍。設備壞了也拍，門被封了也拍。」'},
-        {speaker:'警衛',text:'「有時警衛不讓他進，他就站在外面一直拍。」'},
-        {speaker:'值班醫師',text:'「後來呢？」'},
-        {speaker:'警衛',text:'「不知道。照片倒是留下不少。」'}
-      ], '問完照片後，留意警衛台電話'),
+      event('照片前的電話鈴聲', [
+        {speaker:'內心',text:'我還在看玻璃裡的相機，警衛桌上的電話突然響了。'},
+        {speaker:'警衛',text:'「醫師，急診找你。電話在這裡。」'}
+      ], '回警衛桌接聽急診來電'),
       event('接聽警衛台電話', [
         {speaker:'電話',text:'鈴——鈴——鈴——'},
-        {speaker:'警衛',text:'「找你的吧。這時間會打到警衛台，多半是急診找值班醫師。」'},
         {speaker:'急診護理師',text:'「值班醫師？2F 急診有一名身分待確認的男性，身上有燒焦和煙灰，麻煩現在下來評估。」'},
         {speaker:'值班醫師',text:'「好，我現在過去。」'}
       ], '接完電話後，前往第一院區 2F 急診')
@@ -707,7 +712,7 @@ export function getIdentityRouteScene(step, identity, runSeed=null) {
     const cartLines={
       ZHANG:[{speaker:'晚班護理師',text:'「床位單先留著。離開前，幫我確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'先查看藥盒標籤與包裝，再逐項看過托盤、血壓計及血氧機。只記下眼前確實核對的部分。'}],
       LI:[{speaker:'晚班護理師',text:'「醫囑單的處理已記下。再協助確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'我按項目核對藥盒與器材，但不替看不清的標示勾選完成。完成核對後，才能回值班室。'}],
-      ZHOU:[{speaker:'晚班護理師',text:'「先別忙著找下一份紀錄，幫我看看工作車上的藥品與器材。」'}, {speaker:'內心',text:'這次不需要照片。我走到車旁，把能看清的標示、包裝與器材逐項告訴護理師。'}],
+      ZHOU:[{speaker:'晚班護理師',text:'「先別忙著找下一份紀錄，幫我看看工作車上的藥品與器材。」'}, {speaker:'內心',text:'這次不需要照片。我走到車旁，把能看清的標示、包裝與器材逐項告訴護理師。'}, {speaker:'內心',text:'「這邊先交代好了。我去找警衛聊天好了。」'}],
       CHEN:[{speaker:'晚班護理師',text:'「離開前，幫忙確認工作車上的藥品與器材。」'}, {speaker:'內心',text:'手已經知道托盤放在哪裡。我仍停下來，核對眼前的藥盒和器材，不只憑熟悉的排列。'}]
     };
     scenes[step].push(event('工作車核對',cartLines[identity],'協助確認工作車上的藥品與器材',{

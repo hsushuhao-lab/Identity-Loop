@@ -60,10 +60,10 @@ export class B2Archive {
     solid(this.exitHinge,m.stainless,[1.48,1.12,-.13],[.26,.05,.09]).name='B2_FireDoor_Handle';
     solid(this.exitHinge,m.wallDark,[1.48,.96,-.085],[.10,.16,.035]).name='B2_FireDoor_Lock';
     this.exitHinge.rotation.y=1.05;
-    SignAnchor.buildWallPlaque({scene:exitDoor,x:0,y:2.64,z:.10,rotationY:Math.PI,width:1.55,height:.38,code:'EXIT',title:'封存防火門｜返回 3F',subtitle:'ONE-WAY EXIT',header:'離開後無法返回 B2'});
+    SignAnchor.buildWallPlaque({scene:exitDoor,x:0,y:2.64,z:.10,rotationY:Math.PI,width:1.55,height:.38,code:'EXIT',title:'經由逃生門離開',subtitle:'ONE-WAY EXIT',header:'離開後無法返回 B2'});
     const returnHit=new THREE.Mesh(new THREE.BoxGeometry(1.78,2.30,.62),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
     returnHit.position.set(0,1.15,1.18);
-    returnHit.userData={interactable:true,id:'B2_ONE_WAY_EXIT',type:'b2_exit_door',label:'由封存防火門返回 3F'};
+    returnHit.userData={interactable:true,id:'B2_ONE_WAY_EXIT',type:'b2_exit_door',label:'經由逃生門離開'};
     this.zoneGroup.add(returnHit);this.interactables.push(returnHit);
 
     // Charred archive boxes: visual evidence only.

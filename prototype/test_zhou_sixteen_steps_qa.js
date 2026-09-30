@@ -8,11 +8,11 @@ import {soundManager} from './src/audio/SoundManager.js';
 import {persistentMemory} from './src/core/PersistentMemory.js';
 
 assert.equal(IDENTITY_ROUTES.ZHOU.length,16,'Zhou route must contain exactly 16 actual steps');
-const expected=['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_1F_WARNING_CALL','ZHOU_2F_WARNING_READBACK','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'];
+const expected=['ZHOU_OPEN_8F','M4','M5','M1','M2','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','ZHOU_1F_WARNING_CALL','ZHOU_2F_WARNING_READBACK','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'];
 assert.deepEqual(IDENTITY_ROUTES.ZHOU,expected);
 const extra=['ZHOU_1F_WARNING_CALL','ZHOU_2F_WARNING_READBACK'];
 const old=['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9'];
-assert.deepEqual(expected.filter(s=>!extra.includes(s)),old,'retain all original checkpoints in order');
+assert.deepEqual([...expected.filter(s=>!extra.includes(s))].sort(),[...old].sort(),'retain original checkpoints; 4F now precedes guard visit');
 const forbidden=/陳柏勳|李承禮|周啟文|張守恆|MED-|THE NAME|THE WARNING|B-Panel|車次 094|身分已|員編/;
 const storage=value=>({value,getItem(key){assert.equal(key,IDENTITY_STORAGE_KEY);return this.value;},setItem(_,value){this.value=value;}});
 const bindings=[['OLD_GUARD_POST','IDENTITY_GUARD_PHONE'],['ER_NURSE_COMPUTERS','ER_DOCTOR_CHARTING']];
@@ -31,7 +31,7 @@ for(const [k,step] of extra.entries()){
 // Latest route saves stay on the same checkpoint after every reload.
 const store=storage(null);let manager=IdentityManager.createForTest('ZHOU',store);
 for(const [index,step] of expected.entries()){
- manager=new IdentityManager(store);assert.equal(manager.currentRouteStep,step);assert.equal(manager.runSave.zhouRouteRevision,1);
+ manager=new IdentityManager(store);assert.equal(manager.currentRouteStep,step);assert.equal(manager.runSave.zhouRouteRevision,2);
  assert.deepEqual(manager.runSave.completedStoryModules,expected.slice(0,index));
  assert.equal(manager.completeRouteStep('NOT_THE_CURRENT_STEP'),false);
  if(step==='M9')assert.equal(manager.commitM9('ZHOU','ZHOU').type,'GOOD_END');else assert(manager.completeRouteStep(step));

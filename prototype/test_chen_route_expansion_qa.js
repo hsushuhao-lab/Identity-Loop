@@ -71,7 +71,7 @@ assert.doesNotMatch(scenes,/陳○○/);
 assert.match(scenes,/chenDispatchBadgeSwipe:true/);
 assert.match(scenes,/CHEN_DISPATCH_LOG_VERIFIED/);
 assert.match(scenes,/chenDispatchServiceLift:true/);
-assert.match(dispatch,/Chen_1998_Ambulance/);
+assert.match(readFileSync('./src/art/B1DispatchArt.js','utf8'),/Chen_1998_Ambulance/);
 assert.match(dispatch,/CHEN_DISPATCH_BOARD/);
 assert.match(dispatch,/CHEN_DISPATCH_LOCKER_READER/);
 assert.match(dispatch,/CHEN_DRIVER_LOG/);
