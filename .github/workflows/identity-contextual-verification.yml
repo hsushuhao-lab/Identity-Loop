@@ -1,17 +1,26 @@
-name: One-time Identity Contextual Gameplay Verification
+name: Four Seed Full Opening-to-Ending QA
 on:
   push:
-    branches: [main]
+    branches:
+      - qa/four-seed-full-20261001
 permissions:
   contents: read
 concurrency:
-  group: identity-contextual-once
+  group: four-seed-full-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  contextual-browser:
+  full-route:
+    name: ${{ matrix.identity }} opening-to-ending
+    strategy:
+      fail-fast: false
+      matrix:
+        identity: [LI, ZHANG, ZHOU, CHEN]
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 120
+    env:
+      IDENTITY_QA_ROUTE: ${{ matrix.identity }}
+      IDENTITY_QA_SKIP_CLOSURE: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,20 +31,16 @@ jobs:
       - name: Install dependencies
         working-directory: prototype
         run: npm ci
-      - name: Identity structural QA
-        working-directory: prototype
-        run: npm run test:identity
-      - name: Production build
-        working-directory: prototype
-        run: node scripts/write-build-info.mjs && npm run build
-      - name: Install browser
+      - name: Install Chromium
         working-directory: prototype
         run: npx playwright install --with-deps chromium
-      - name: Four routes contextual browser QA
+      - name: Run ${{ matrix.identity }} full route against deployed main
         working-directory: prototype
-        run: node scripts/test-identity-routes-browser.mjs qa-results/identity-contextual
-      - uses: actions/upload-artifact@v4
+        run: node scripts/test-identity-routes-browser.mjs qa-results/full-${{ matrix.identity }} https://hsushuhao-lab.github.io/Identity-Loop/
+      - name: Preserve ${{ matrix.identity }} evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: identity-contextual-browser-evidence
-          path: prototype/qa-results/
+          name: full-route-${{ matrix.identity }}-evidence
+          path: prototype/qa-results/full-${{ matrix.identity }}/
+          retention-days: 30
