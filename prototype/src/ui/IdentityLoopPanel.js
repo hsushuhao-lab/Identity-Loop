@@ -38,7 +38,7 @@ export class IdentityLoopPanel{
     this.onCommit=onCommit;
     this.root.classList.add('visible','m9-open');
     this.root.classList.remove('archive-open','ending-open');
-    this.root.querySelector('[data-identity-detail]').textContent='分別選擇姓名與員編。兩項都必須屬於這一輪的你；選到其他人的資料或不相符的配對，都會使身分核對失敗。正式提交僅有一次，提交後不可更改。';
+    this.root.querySelector('[data-identity-detail]').textContent='分別選擇姓名與員編。兩項都必須屬於這一輪的你；選到其他人的資料或不相符的配對，都會使身分核對失敗。正式提交僅有一次，提交後不可更改。若姓名與員編配對仍未確認，先退出終端，到同層 3F 文史館翻閱「1998 夜班核心人員名錄」，再回 316 提交。';
     const choices=this.root.querySelector('[data-identity-choices]');choices.replaceChildren();
     const form=document.createElement('form');form.className='identity-entry-form identity-selection-form';
     // Keep the evidence readable during the irreversible decision, without
@@ -55,6 +55,18 @@ export class IdentityLoopPanel{
     }
     if(!binderList.children.length){const li=document.createElement('li');li.textContent='沒有已保存的值班紀錄。可以暫時離開終端閱讀場景原件。';binderList.append(li);}
     binder.append(binderList);form.append(binder);
+
+    const defer=document.createElement('button');
+    defer.type='button';
+    defer.className='identity-entry-defer';
+    defer.textContent='暫不提交，回 3F 文史館查證';
+    defer.addEventListener('click',()=>{
+      soundManager.playClick();
+      choices.replaceChildren();
+      this.root.classList.remove('visible','m9-open');
+      this.onCommit=null;
+    });
+    form.append(defer);
 
     const status=document.createElement('div');status.className='identity-entry-status';status.setAttribute('aria-live','polite');
     const summary=document.createElement('p');summary.className='identity-selection-summary';summary.setAttribute('aria-live','polite');
