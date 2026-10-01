@@ -34,7 +34,13 @@ await context.addInitScript(()=>{
 });
 
 let page;
+const minimalShots=process.env.IDENTITY_QA_MINIMAL_SHOTS==='1';
 async function shot(name){
+  if(minimalShots){
+    const routeOpening=Object.values(IDENTITY_ROUTES).some(route=>name.endsWith(`-${route[0]}`));
+    const keep=routeOpening||name.endsWith('-M9')||/(choice-pair|ending|failure)$/.test(name);
+    if(!keep)return;
+  }
   await page.screenshot({path:`${out}/${name}.png`,timeout:60000});
   report.screenshots.push(`${name}.png`);
 }
