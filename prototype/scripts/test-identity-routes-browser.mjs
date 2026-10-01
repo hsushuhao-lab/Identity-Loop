@@ -8,8 +8,10 @@ import {IDENTITY_ROUTES,ROUTE_STEPS} from '../src/story/IdentityRoutes.js';
 import {IDENTITY_PROFILES} from '../src/core/IdentityManager.js';
 
 const out=process.argv[2]||'qa-results/identity-contextual';
-const closure=spawnSync(process.execPath,['scripts/test-clinical-interactions-browser.mjs',out+'/clinical-closure',...(process.argv[3]?[process.argv[3]]:[])],{stdio:'inherit'});
-if(closure.status!==0)process.exit(closure.status||1);
+if(process.env.IDENTITY_QA_SKIP_CLOSURE!=='1'){
+  const closure=spawnSync(process.execPath,['scripts/test-clinical-interactions-browser.mjs',out+'/clinical-closure',...(process.argv[3]?[process.argv[3]]:[])],{stdio:'inherit'});
+  if(closure.status!==0)process.exit(closure.status||1);
+}
 const supplied=process.argv[3];
 const onlyIdentity=process.env.IDENTITY_QA_ROUTE;
 const stopAfter=process.env.IDENTITY_QA_STOP_AFTER;
