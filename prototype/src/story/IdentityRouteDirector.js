@@ -1756,7 +1756,12 @@ export class IdentityRouteDirector {
         id: `route:${this.step}:${this.beatIndex}`,
         category: 'route',
         milestone: this.step,
-        visibleText: `${beat.label}：${beat.lines.at(-1)}`
+        label: beat.label,
+        source: this.worldRouter.activeZoneId,
+        summary: beat.review || beat.label,
+        verifiedFact: false,
+        // Dialogue is perspective evidence, not a verified historical fact.
+        visibleText: `${beat.label}：${beat.review || (typeof beat.lines.at(-1)==='string' ? beat.lines.at(-1) : beat.lines.at(-1)?.text || '')}`
       });
 
       if (this.step === 'B2' && this.beatIndex === 0 && this.manager.currentIdentity!=='ZHANG') {

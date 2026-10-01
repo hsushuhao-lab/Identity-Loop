@@ -18,7 +18,11 @@ export class IdentityLoopPanel{
     const progress=this.root.querySelector('[data-identity-progress]');
     if(progress)progress.textContent=`記憶 ${runSave.completedStoryModules?.length||0} · Good Ends ${metaSave.completedGoodEnds.length}/4`;
     const evidence=this.root.querySelector('[data-identity-evidence]');
-    if(evidence)evidence.replaceChildren(...Object.values(runSave.evidence).map(item=>{const li=document.createElement('li');li.textContent=item.visibleText;return li;}));
+    if(evidence)evidence.replaceChildren(...Object.values(runSave.evidence).map(item=>{
+      const li=document.createElement('li');
+      li.textContent=String(item.visibleText||item.summary||item.label||'未分類紀錄').replace(/\[object Object\]/g,'舊版敘事內容未保存');
+      return li;
+    }));
   }
   syncMilestone(milestone){this.manager.advanceMilestone(milestone);this.render();}
   recordEvidence(id){const evidence=getVisibleEvidence().find(item=>item.id===id);if(evidence)this.manager.recordEvidence(evidence);this.render();}
@@ -34,9 +38,36 @@ export class IdentityLoopPanel{
     this.onCommit=onCommit;
     this.root.classList.add('visible','m9-open');
     this.root.classList.remove('archive-open','ending-open');
-    this.root.querySelector('[data-identity-detail]').textContent='分別選擇姓名與員編。兩項都必須屬於這一輪的你；選到其他人的資料或不相符的配對，都會使身分核對失敗。正式提交僅有一次，提交後不可更改。';
+    this.root.querySelector('[data-identity-detail]').textContent='分別選擇姓名與員編。兩項都必須屬於這一輪的你；選到其他人的資料或不相符的配對，都會使身分核對失敗。正式提交僅有一次，提交後不可更改。若姓名與員編配對仍未確認，先退出終端，到同層 3F 文史館翻閱「1998 夜班核心人員名錄」，再回 316 提交。';
     const choices=this.root.querySelector('[data-identity-choices]');choices.replaceChildren();
     const form=document.createElement('form');form.className='identity-entry-form identity-selection-form';
+    // Keep the evidence readable during the irreversible decision, without
+    // changing either answer list or giving correctness hints.
+    const binder=document.createElement('details');binder.className='identity-case-binder';
+    const binderTitle=document.createElement('summary');binderTitle.textContent='翻閱今晚的值班紀錄（唯讀）';binder.append(binderTitle);
+    const binderList=document.createElement('ul');
+    for(const item of Object.values(this.manager.runSave.evidence||{})){
+      const li=document.createElement('li');
+      const label=String(item.label||item.milestone||'夜班紀錄');
+      const body=String(item.summary||item.visibleText||'').replace(/\\[object Object\\]/g,'舊版文字遺失，請查看現場原件');
+      li.textContent=`${label}：${body}`;
+      binderList.append(li);
+    }
+    if(!binderList.children.length){const li=document.createElement('li');li.textContent='沒有已保存的值班紀錄。可以暫時離開終端閱讀場景原件。';binderList.append(li);}
+    binder.append(binderList);form.append(binder);
+
+    const defer=document.createElement('button');
+    defer.type='button';
+    defer.className='identity-entry-defer';
+    defer.textContent='暫不提交，回 3F 文史館查證';
+    defer.addEventListener('click',()=>{
+      soundManager.playClick();
+      choices.replaceChildren();
+      this.root.classList.remove('visible','m9-open');
+      this.onCommit=null;
+    });
+    form.append(defer);
+
     const status=document.createElement('div');status.className='identity-entry-status';status.setAttribute('aria-live','polite');
     const summary=document.createElement('p');summary.className='identity-selection-summary';summary.setAttribute('aria-live','polite');
     const submit=document.createElement('button');submit.type='submit';submit.className='identity-entry-submit';submit.textContent='正式提交交班（不可更改）';submit.disabled=true;

@@ -258,21 +258,21 @@ const first3FSource=readFileSync(new URL('./src/world/zones/FirstCampus3F.js',im
 assert.match(first3FSource,/ARCHIVE_HISTORY_PHOTO_WALL/);
 const b2RecapSource=readFileSync(new URL('./src/story/B2FireRecapDirector.js',import.meta.url),'utf8');
 const b2Doctors={
-  ZHANG:{name:'張守恆',masked:'MED-87••••'},
-  LI:{name:'李承禮',masked:'MED-82••••'},
-  ZHOU:{name:'周啟文',masked:'MED-88••••'},
-  CHEN:{name:'陳柏勳',masked:'MED-89••••'}
+  ZHANG:{name:'張守恆',full:'MED-870409',masked:'MED-87••••'},
+  LI:{name:'李承禮',full:'MED-820316',masked:'MED-82••••'},
+  ZHOU:{name:'周啟文',full:'MED-880217',masked:'MED-88••••'},
+  CHEN:{name:'陳柏勳',full:'MED-890605',masked:'MED-89••••'}
 };
+const b2NeutralMap=buildVictimMap();
 for(const [identity,profile] of Object.entries(b2Doctors)){
   const map=buildVictimMap(identity);
-  assert.equal(map.includes(profile.name),false,`B2 must redact active seed name: ${identity}`);
+  assert.equal(map,b2NeutralMap,`B2 visible physician map must be seed-neutral: ${identity}`);
+  assert.equal(map.includes(profile.name),false,`B2 must redact every physician name: ${identity}`);
+  assert.equal(map.includes(profile.full),false,`B2 must redact every full physician employee ID: ${identity}`);
   assert.equal(map.includes(profile.masked),true,`B2 must preserve masked employee prefix: ${identity}`);
-  for(const [otherId,other] of Object.entries(b2Doctors)){
-    if(otherId!==identity)assert.equal(map.includes(other.name),true,`B2 must preserve non-player victim name: ${identity}/${otherId}`);
-  }
 }
-assert.match(b2RecapSource,/buildVictimMap\(hiddenIdentity\)/);
-assert.match(b2RecapSource,/完整姓名仍需回 3F 文史館核對/);
+assert.match(b2RecapSource,/buildVictimMap\(\)/);
+assert.match(b2RecapSource,/完整姓名與完整員編配對必須到 3F 文史館/);
 assert.match(mainSourceFor316,/hiddenIdentity:identityLoopMode\?identityManager\?\.currentIdentity:null/);
 assert.match(mainSourceFor316,/CURRENT SELF：CORRUPTED｜409-A 死者姓名欄遭除籍塗銷｜員編前綴 MED-87••••/);
 const identityPanelSource=readFileSync(new URL('./src/ui/IdentityLoopPanel.js',import.meta.url),'utf8');

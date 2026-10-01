@@ -28,7 +28,7 @@ const B2_FIRE_BEATS=Object.freeze([
     stamp:'火災封存底稿',
     title:'八個人被困在不同位置',
     body:'第一線住院醫師：4F 409-A 鐵床（約束中）；夜間總醫師：1F B-Panel；第二線住院醫師：1F–3F 逃生梯；第二院區支援醫師：空中天橋；夜間警衛：1F 警衛台；夜班護理師：4F 護理站；行政／文史人員：3F 文史室；工務機電技師：B2 排煙道。',
-    evidence:'八個位置屬於同一場事故；其中 409-A 那名第一線住院醫師的姓名欄已被系統覆寫。MED-87•••• 與 316 Legacy Index 相符，但完整姓名仍需回 3F 文史館核對。',
+    evidence:'八個位置屬於同一場事故。四名醫師的完整姓名與完整員編未在 B2 恢復；這裡只能作為事故位置與職務的交叉核對。',
     mode:'map',cue:'paper'
   }),
   Object.freeze({
@@ -58,19 +58,21 @@ const B2_VICTIM_MAP=Object.freeze([
   Object.freeze({identity:null,name:'劉志遠',employeeId:'ENG-860214',role:'工務機電技師',position:'B2 排煙道'})
 ]);
 
-function buildVictimMap(hiddenIdentity){
+// B2 is an objective accident archive, not the identity answer sheet.
+// All four physician candidates are presented with the same redaction rule so
+// no seed can be solved by exclusion. Full physician name <-> employee-ID
+// mapping belongs to the independent 3F personnel archive.
+function buildVictimMap(){
   return B2_VICTIM_MAP.map(item=>{
-    if(item.identity&&item.identity===hiddenIdentity){
-      return `[身分欄遭除籍塗銷]／${item.maskedId}／${item.role}：${item.position}`;
+    if(item.identity){
+      return `[姓名欄封存]／${item.maskedId}／${item.role}：${item.position}`;
     }
     return `${item.name}／${item.employeeId}／${item.role}：${item.position}`;
   }).join('；')+'。';
 }
 
-function buildVictimEvidence(hiddenIdentity){
-  const hidden=B2_VICTIM_MAP.find(item=>item.identity===hiddenIdentity);
-  if(!hidden)return '八個位置屬於同一場事故；封存底稿仍不足以判定目前值班者的身分。';
-  return `八個位置屬於同一場事故；其中「${hidden.role}」的姓名欄被系統覆寫，只剩 ${hidden.maskedId}。完整姓名仍需回 3F 文史館核對。`;
+function buildVictimEvidence(){
+  return '八個位置屬於同一場事故。B2 對四名醫師只保留職務、事故位置與遮罩員編；完整姓名與完整員編配對必須到 3F 文史館的 1998 夜班核心人員名錄交叉核對。';
 }
 
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -201,8 +203,8 @@ export class B2FireRecapDirector{
     this.active=true;
     document.exitPointerLock?.();
     this.root.classList.add('active');
-    const beats=B2_FIRE_BEATS.map(beat=>beat.mode==='map'&&hiddenIdentity
-      ? {...beat,body:buildVictimMap(hiddenIdentity),evidence:buildVictimEvidence(hiddenIdentity)}
+    const beats=B2_FIRE_BEATS.map(beat=>beat.mode==='map'
+      ? {...beat,body:buildVictimMap(),evidence:buildVictimEvidence()}
       : beat
     );
     for(let i=0;i<beats.length;i++)await this.#showBeat(beats[i],i,beats.length);
