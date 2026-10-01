@@ -21,6 +21,7 @@ jobs:
     env:
       IDENTITY_QA_ROUTE: ${{ matrix.identity }}
       IDENTITY_QA_SKIP_CLOSURE: "1"
+      IDENTITY_QA_MINIMAL_SHOTS: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
