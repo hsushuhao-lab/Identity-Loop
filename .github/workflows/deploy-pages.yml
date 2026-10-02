@@ -74,6 +74,11 @@ jobs:
           node scripts/test-408c-clinical-audio.mjs
           node scripts/test-second-campus-exterior-manifest.mjs
           node scripts/test-annie-character.mjs
+          node scripts/test-annie-asset.mjs
+          node scripts/test-annie-load-fallback.mjs
+          node scripts/test-annie-integrated-poses.mjs
+          node scripts/test-touch-control-recovery.mjs
+          node scripts/test-duty-log-status.mjs
           node scripts/test-equipment-attendant.mjs
           node scripts/test-hospital-simulation.mjs
           node scripts/test-static-ward-beds.mjs

@@ -55,6 +55,11 @@ for(const file of await readdir(new URL('textures/',assets))) {
  const bytes=await record(`textures/${file}`);
  if(bytes[0]!==255||bytes[1]!==216)throw new Error(`Invalid JPEG ${file}`);
 }
+const annieBytes=await record('characters/annie/annie-trainer.glb');
+if(annieBytes.readUInt32LE(0)!==0x46546c67||annieBytes.readUInt32LE(4)!==2||annieBytes.readUInt32LE(8)!==annieBytes.length)throw new Error('Invalid Annie GLB');
+const annieManifest=JSON.parse(await readFile(new URL('characters/annie/manifest.json',assets),'utf8'));
+if(!JSON.stringify(annieManifest).includes(createHash('sha256').update(annieBytes).digest('hex')))throw new Error('Annie provenance hash mismatch');
+for(const file of await readdir(new URL('characters/annie/',assets)))if(file!=='annie-trainer.glb')await record(`characters/annie/${file}`);
 const pendingChair=instantiateAsset('officeChair');
 if(getMaterials()!==getMaterials()||materialForSurface('wall',3,2)!==materialForSurface('wall',3,2)||pendingChair?.userData.pendingAsset!=='officeChair')throw new Error('Offline registry/cache contract failed');
 await writeFile(new URL('asset-integrity.json',assets),JSON.stringify({format:1,records},null,2)+'\n');

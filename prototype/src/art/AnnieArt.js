@@ -1,6 +1,16 @@
 import * as THREE from 'three';
 import {worldNarrative} from '../story/IdentityPrivacy.js';
 import {createAnnieCharacter,updateAnnieCharacter,disposeAnnieCharacter} from './AnnieCharacter.js';
+import {createAnnieAsset,updateAnnieAsset,isAnnieAssetReady,preloadAnnieAsset} from './AnnieAsset.js';
+import {withLoadDeadline} from './LoadDeadline.js';
+
+// Character detail is optional; the established mannequin remains playable on
+// a failed/slow request. A late load only affects future factories, never an
+// already-visible encounter or its skeletal hierarchy.
+export async function preloadAnnieArt({timeoutMs=12000}={}){
+  try {await withLoadDeadline(()=>preloadAnnieAsset(),timeoutMs);return true;}
+  catch(error){console.warn('[art] Annie detail unavailable; using trainer fallback',error.message);return false;}
+}
 
 export const ANNIE_STATES = Object.freeze({
   STORAGE_STATIC: 'STORAGE_STATIC',
@@ -137,7 +147,9 @@ export function createZhangStethoscopeProp(parent, {position, rotationX = 0, sca
 
 /** Shared trainer factory; existing scene imports and clue factory stay stable. */
 export function createAnnieArt(parent,options) {
-  const root=createAnnieCharacter(parent,options),cpr=options.state===ANNIE_STATES.FLOOR6_CPR;
+  const detailed=isAnnieAssetReady();
+  const root=detailed?createAnnieAsset(parent,options):createAnnieCharacter(parent,options),cpr=options.state===ANNIE_STATES.FLOOR6_CPR;
+  if(!detailed){
   const upper=root.userData.rig.upperBody,head=root.userData.rig.head;
   const torso=new THREE.Group();torso.name='Annie_Torso';upper.add(torso);
   for(const child of [...upper.children])if(child.isMesh&&child.name.startsWith('AnnieCharacter_')){
@@ -149,13 +161,15 @@ export function createAnnieArt(parent,options) {
   const nose=new THREE.Object3D();nose.name='Annie_MoldedNose';nose.position.set(0,-.025,.106);head.add(nose);
   const hands=new THREE.Group();hands.name='Annie_OverlappedHands';upper.add(hands);
   for(const name of ['Annie_HandStack_Bottom','Annie_HandStack_Top']){const hand=upper.getObjectByName(name);if(hand)hands.add(hand);}
+  }
   // Preserve the prior practical and its exact settings: the redesign does not
   // alter scene illumination to disguise proportions or surface defects.
   const t=ANNIE_ART_TOKENS.lighting,practical=new THREE.SpotLight(t.color,t.intensity,t.distance,t.angle,t.penumbra,t.decay);
   practical.name='Annie_Local_CoolWhite_Practical';practical.position.set(.12,cpr?2.12:2.32,.68);practical.castShadow=true;
   practical.shadow.mapSize.set(512,512);practical.shadow.bias=-.00025;
   practical.target.name='Annie_Local_Practical_Target';practical.target.position.set(0,cpr?.95:1.08,cpr?.87:.06);root.add(practical,practical.target);
-  let released=false;root.userData.disposeArt=()=>{if(released)return;released=true;practical.shadow.dispose();disposeAnnieCharacter(root,{remove:false});};
+  const disposeCharacter=root.userData.disposeArt;
+  let released=false;root.userData.disposeArt=()=>{if(released)return;released=true;practical.shadow.dispose();if(detailed)disposeCharacter();else disposeAnnieCharacter(root,{remove:false});};
   return root;
 }
-export function updateAnnieArt(root,delta){updateAnnieCharacter(root,delta);}
+export function updateAnnieArt(root,delta){if(root?.userData.assetResources)updateAnnieAsset(root,delta);else updateAnnieCharacter(root,delta);}

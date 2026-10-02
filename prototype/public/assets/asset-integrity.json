@@ -298,6 +298,91 @@
       "file": "textures/Wood051_2K-JPG_Roughness.jpg",
       "bytes": 1074832,
       "sha256": "e61044ac8c764542989c24876d82b2cfaa5401ddb04309fec1439e3e8c8a258f"
+    },
+    {
+      "file": "characters/annie/annie-trainer.glb",
+      "bytes": 1709500,
+      "sha256": "eb07cfa1498963b5f2981325216df95c7014651c2f95d2e8fe7a942b52195f1e"
+    },
+    {
+      "file": "characters/annie/coat-base.jpg",
+      "bytes": 12662,
+      "sha256": "562fd19be2a0b50cb0a38b8df4acff29c6b3ca7f98a080cbcaeb74ef8753901f"
+    },
+    {
+      "file": "characters/annie/coat-normal.jpg",
+      "bytes": 21850,
+      "sha256": "b57ee28856cd7bf096ab85dd9cbab938e579540683f492a42f8c5b501d270999"
+    },
+    {
+      "file": "characters/annie/coat-uv.png",
+      "bytes": 69254,
+      "sha256": "cdd80f1a5a520c1d6d0901f52103c5dbb2cfad6fc076f3df5372b7f67284dcbf"
+    },
+    {
+      "file": "characters/annie/eyes-base.jpg",
+      "bytes": 7005,
+      "sha256": "3068e4af07cd5fff00908f9d41559c3706e938c33e4bad17ac5670382ac4c344"
+    },
+    {
+      "file": "characters/annie/LICENSE-CC0.txt",
+      "bytes": 7003,
+      "sha256": "5f3ab0cf6f7ebe92efe4b83213131c617d308d164eeefd5da230373640b0c226"
+    },
+    {
+      "file": "characters/annie/manifest.json",
+      "bytes": 10656,
+      "sha256": "746d3f0ae72ae33e3b305f2bbc70ccc47e66750e2f81d230b369bc08204bab05"
+    },
+    {
+      "file": "characters/annie/PROVENANCE.md",
+      "bytes": 3693,
+      "sha256": "4e3148964477dc352355948795cf2781992121afe112c7556bec282a1c82cf89"
+    },
+    {
+      "file": "characters/annie/scrubs-normal.jpg",
+      "bytes": 4570,
+      "sha256": "d12b56fda56da9edb775bcfc67e6b3daa5973378ad9430e438a1984f0d507cac"
+    },
+    {
+      "file": "characters/annie/scrubs-uv.png",
+      "bytes": 22283,
+      "sha256": "a67778b3ca8a98e86da357ae5dbeb92a675a838ef7fb30adfc9815afafc5edb4"
+    },
+    {
+      "file": "characters/annie/shoes-base.jpg",
+      "bytes": 9699,
+      "sha256": "4e0ec6df77a1c22fbd4eb8282a8f0de8f6e2f4b4125e989daad98169821ae1b6"
+    },
+    {
+      "file": "characters/annie/vinyl-base.jpg",
+      "bytes": 41450,
+      "sha256": "f9342fa81c1d82a160beedd1b6b75b68dfb6b8d89a26d1316e181b47eedaadd6"
+    },
+    {
+      "file": "characters/annie/vinyl-normal.png",
+      "bytes": 169914,
+      "sha256": "9bc6019e172941941de2e6f232a35bc5c846fca1435c5160b937f17bb7165b4d"
+    },
+    {
+      "file": "characters/annie/vinyl-orm.jpg",
+      "bytes": 2073,
+      "sha256": "3429bfe25859146b6db86f87ab9b2672f98ead82b97baf94c61830d757000674"
+    },
+    {
+      "file": "characters/annie/vinyl-uv.png",
+      "bytes": 54242,
+      "sha256": "dcaaebccf0f54028624098cbdc199c03c14005a37421163031ab110cc1e7e4b8"
+    },
+    {
+      "file": "characters/annie/wig-base.png",
+      "bytes": 193353,
+      "sha256": "76c9b60cc5a7ef56b4fa17d97a3f57f1a454a975d2758a01fa5aa8f5e1772ab3"
+    },
+    {
+      "file": "characters/annie/wig-normal.jpg",
+      "bytes": 8337,
+      "sha256": "b6284593d3c9b4177f0ae3609795616d436ae6147dd4e5df10fb5bc063d76c6a"
     }
   ]
 }

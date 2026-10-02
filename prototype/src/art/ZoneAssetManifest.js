@@ -1,5 +1,10 @@
 import { preloadAssetNames } from './AssetRegistry.js';
 import { preloadMaterialSurfaces } from './MaterialRegistry.js';
+import {preloadAnnieArt} from './AnnieArt.js';
+
+// Includes the 8F elevator's existing sixth-floor glimpse. The same cached GLB
+// serves storage, patrol/cart, bridge and CPR; other floors do not request it.
+const annieZones=new Set(['first_campus_3f','first_campus_8f','skybridge','second_campus_5f','phantom_6f']);
 
 const clinicalSurfaces = ['plaster', 'vinyl', 'terrazzo', 'wood'];
 const clinicalFurniture = ['officeChair', 'storageCabinet', 'workDesk', 'printer', 'bench', 'plant'];
@@ -37,7 +42,7 @@ export async function preloadZoneEssential(zoneId) {
   const manifest = zoneAssetManifest[zoneId];
   if (!manifest) throw new Error(`Missing zone asset manifest: ${zoneId}`);
   for(let attempt=0;attempt<3;attempt++) {
-    try {return await preloadEntries(manifest.essential);}
+    try {return await Promise.all([preloadEntries(manifest.essential),annieZones.has(zoneId)?preloadAnnieArt():null]);}
     catch(error) {
       if(attempt===2)throw error;
       await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));

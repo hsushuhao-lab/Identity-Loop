@@ -7,6 +7,8 @@ export const ANNIE_ASSET_STATES=Object.freeze({STORAGE_STATIC:'STORAGE_STATIC',B
 export const ANNIE_ASSET_URL=`${import.meta.env?.BASE_URL??'/'}assets/characters/annie/annie-trainer.glb`;
 const cache=new Map();
 
+export function isAnnieAssetReady(url=ANNIE_ASSET_URL){return cache.get(url)?.loaded===true;}
+
 /** Prefetch the real GLB + its PBR textures before a zone's synchronous factory. */
 export function preloadAnnieAsset({url=ANNIE_ASSET_URL,manager}={}) {
   if(cache.has(url))return cache.get(url).promise;
@@ -64,6 +66,15 @@ function direction(model,bone,target){
   bone.quaternion.copy(bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(worldQ));
 }
 function point(model,bone){model.updateMatrixWorld(true);return model.worldToLocal(bone.getWorldPosition(new THREE.Vector3()));}
+function reachArm(model,upper,lower,hand,target,side){
+  const shoulder=point(model,upper),elbow=point(model,lower),wrist=point(model,hand);
+  const first=shoulder.distanceTo(elbow),second=elbow.distanceTo(wrist),goal=new THREE.Vector3(...target),axis=goal.clone().sub(shoulder);
+  const distance=THREE.MathUtils.clamp(axis.length(),Math.abs(first-second)+.001,first+second-.001);axis.normalize();
+  const along=(first*first-second*second+distance*distance)/(2*distance),height=Math.sqrt(Math.max(0,first*first-along*along));
+  const bend=new THREE.Vector3(side,0,0);bend.addScaledVector(axis,-bend.dot(axis)).normalize();
+  const joint=shoulder.clone().addScaledVector(axis,along).addScaledVector(bend,height);
+  direction(model,upper,joint.toArray());direction(model,lower,goal.toArray());
+}
 function pose(root){
   const {model,bones:b,seated}=root.userData.rig,state=root.userData.state;
   if(seated){
@@ -78,18 +89,26 @@ function pose(root){
   }else if(state==='FLOOR6_CPR'){
     // Bed-height trainer stance: feet stay planted while the torso reaches over
     // the existing target. Kneeling would put adult shoulders below this bed.
-    b.spine_01.rotation.x=.50;b.spine_02.rotation.x=.10;b.head.rotation.x=.08;
+    b.spine_01.rotation.x=.82;b.spine_02.rotation.x=.10;b.head.rotation.x=.08;
   }
   model.updateMatrixWorld(true);
   for(const side of ['l','r']){
     const sign=side==='l'?1:-1,shoulder=point(model,b['upperarm_'+side]);
-    const elbow=seated?[sign*.24,shoulder.y-.26,.12]:state==='FLOOR6_CPR'?[sign*.10,shoulder.y-.13,shoulder.z+.235]:state==='BRIDGE_MANIFEST'?[sign*.235,shoulder.y-.25,.14]:[sign*.235,shoulder.y-.26,.025];
+    if(state==='FLOOR6_CPR'){
+      // Reach the actual bed contact plane with anatomical arm lengths. The
+      // wrists stack; elbows bend outward while the feet/root stay planted.
+      reachArm(model,b['upperarm_'+side],b['lowerarm_'+side],b['hand_'+side],[sign*.012,.98+(side==='r'?.006:0),.75],sign);
+      const h=point(model,b['hand_'+side]);direction(model,b['hand_'+side],[h.x-sign*.012,h.y-.035,h.z+.11]);
+      for(const finger of ['index','middle','ring','pinky'])for(let i=1;i<=3;i++)b[`${finger}_0${i}_${side}`].rotation.x=.10;
+      continue;
+    }
+    const elbow=seated?[sign*.24,shoulder.y-.26,.12]:state==='BRIDGE_MANIFEST'?[sign*.235,shoulder.y-.25,.14]:[sign*.235,shoulder.y-.26,.025];
     direction(model,b['upperarm_'+side],elbow);
     const e=point(model,b['lowerarm_'+side]);
-    const hand=seated?[sign*.095,.62,.30]:state==='FLOOR6_CPR'?[sign*.025,e.y-.10,e.z+.235]:state==='BRIDGE_MANIFEST'?[sign*.055,e.y-.13,e.z+.23]:[sign*.105,e.y-.19,e.z+.13];
+    const hand=seated?[sign*.095,.62,.30]:state==='BRIDGE_MANIFEST'?[sign*.055,e.y-.13,e.z+.23]:[sign*.105,e.y-.19,e.z+.13];
     direction(model,b['lowerarm_'+side],hand);
     const h=point(model,b['hand_'+side]);
-    direction(model,b['hand_'+side],seated?[h.x-sign*.024,h.y-.024,h.z+.12]:state==='FLOOR6_CPR'?[h.x-sign*.02,h.y-.018,h.z+.12]:state==='BRIDGE_MANIFEST'?[h.x-sign*.095,h.y-.024,h.z+.035]:[h.x-sign*.01,h.y-.115,h.z+.025]);
+    direction(model,b['hand_'+side],seated?[h.x-sign*.024,h.y-.024,h.z+.12]:state==='BRIDGE_MANIFEST'?[h.x-sign*.095,h.y-.024,h.z+.035]:[h.x-sign*.01,h.y-.115,h.z+.025]);
     // Mild bend in sculpted finger segments, static molded hands.
     for(const finger of ['index','middle','ring','pinky'])for(let i=1;i<=3;i++)b[`${finger}_0${i}_${side}`].rotation.x=.10;
   }
