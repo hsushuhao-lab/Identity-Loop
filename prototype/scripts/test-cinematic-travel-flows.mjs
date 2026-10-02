@@ -16,7 +16,8 @@ async function startPage(zone){
   const page=await browser.newPage({viewport:{width:1440,height:900}});
   page.on('pageerror',error=>report.errors.push(error.message));
   page.on('response',response=>{if(response.status()>=400)report.errors.push(`${response.status()} ${response.url()}`);});
-  await page.goto(base+'?qa=story');
+  // These legacy flag-driven cinematics are isolated from the identity director.
+  await page.goto(base+'?qa=story&mode=linear');
   await page.waitForFunction(()=>window.__storyQA?.worldRouter?.activeZoneInstance);
   await page.evaluate(zoneId=>{
     const qa=window.__storyQA;
@@ -40,13 +41,13 @@ try{
 
   const previewPage=await startPage('first_campus_3f');
   await previewPage.evaluate(()=>window.__storyQA.setFlag('SECOND_CAMPUS_ACCESS',true));
-  await chooseFloor(previewPage,'first_campus_4f');
+  await chooseFloor(previewPage,'first_campus_8f');
   await previewPage.waitForFunction(()=>window.__storyQA.gameState.getFlag('CG_ELEVATOR_6F_PREVIEW_ACTIVE'));
   await previewPage.waitForTimeout(1450);
   await previewPage.screenshot({path:`${output}/6f-preview-gap.png`});
-  await previewPage.waitForFunction(()=>window.__storyQA.worldRouter.activeZoneId==='first_campus_4f');
+  await previewPage.waitForFunction(()=>window.__storyQA.worldRouter.activeZoneId==='first_campus_8f');
   const previewState=await previewPage.evaluate(()=>({zone:window.__storyQA.worldRouter.activeZoneId,played:window.__storyQA.gameState.getFlag('CG_ELEVATOR_6F_PREVIEW_PLAYED'),resolved:!!window.__storyQA.gameState.getFlag('M6_FLOOR6_RESOLVED'),canvas:!!document.querySelector('.elevator-glimpse-canvas')}));
-  assert.deepEqual(previewState,{zone:'first_campus_4f',played:true,resolved:false,canvas:false});
+  assert.deepEqual(previewState,{zone:'first_campus_8f',played:true,resolved:false,canvas:false});
   report.flows.push({id:'6F_PREVIEW_PRESERVES_DESTINATION',state:previewState});
   await previewPage.close();
 

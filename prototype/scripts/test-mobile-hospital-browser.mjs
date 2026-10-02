@@ -30,10 +30,16 @@ async function start(identity,mobile=true){
  });
  cdp=await context.newCDPSession(page);
 }
-async function shot(name){await page.evaluate(()=>{window.__storyQA.qualitySettings.lastRender=0;window.__sliceFrame?.();});await page.screenshot({path:`${out}/${name}.png`,timeout:30000});report.screenshots.push(name+'.png');}
+async function shot(name){
+ await page.bringToFront();await page.waitForFunction(()=>!document.hidden);
+ // Flush viewport resize before drawing; correlate counters with that frame,
+ // rather than reading a live renderer after an asynchronous PNG capture.
+ const frame=await page.evaluate(async()=>{await new Promise(requestAnimationFrame);window.__storyQA.qualitySettings.lastRender=0;window.__sliceFrame?.();return window.__storyQA.qualitySettings.snapshot();});
+ await page.screenshot({path:`${out}/${name}.png`,timeout:30000});report.screenshots.push(name+'.png');return frame;
+}
 async function aim(id){return page.evaluate(id=>{
  const q=window.__storyQA,c=q.controller,z=q.worldRouter.activeZoneInstance,o=z.interactables.find(o=>o.userData?.id===id);if(!o)throw Error('Missing '+id);
- z.zoneGroup.updateMatrixWorld(true);const center=o.getWorldPosition(c.position.clone()),ray=new c.raycaster.constructor();
+ z.zoneGroup.updateMatrixWorld(true);const center=o.getWorldPosition(c.position.clone()),ray=new c.raycaster.constructor();if(id==='HOSPITAL_STAFF')center.y+=1.1;
  const visible=o=>{for(let n=o;n;n=n.parent)if(!n.visible)return false;return true;};
  for(const radius of [1.5,1.1,.8,1.9,2.3,2.8])for(let i=0;i<64;i++){
    const angle=Math.PI/2+i*Math.PI/32;c.teleport(center.x+radius*Math.cos(angle),1.7,center.z+radius*Math.sin(angle));
@@ -55,11 +61,12 @@ try{
    const before=await page.evaluate(()=>window.__storyQA.identityManager.snapshot());
    const hit=await aim('HOSPITAL_PHONE');await tap();await page.getByRole('textbox',{name:'分機號碼'}).fill('316');await page.getByRole('button',{name:'撥號',exact:true}).click();
    const text=await page.locator('[data-status]').innerText();variants.push(text);assert.doesNotMatch(text,/李承禮|張守恆|周伯彥|陳國偉|MED-/);
+   await page.locator('[data-tab="patrol"]').click();await page.locator('[data-ask]').click();const voice=await page.locator('[data-status]').innerText();assert.doesNotMatch(voice,/李承禮|張守恆|周伯彥|陳國偉|MED-/);
    await page.locator('[data-tab="badge"]').click();await page.locator('[data-scan]').click();const badge=await page.locator('[data-status]').innerText();
    assert.deepEqual(await page.evaluate(()=>window.__storyQA.identityManager.snapshot()),before);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    if(id==='CHEN')await shot('mobile-portrait-badge');
-   await page.locator('#hospital-panel [data-close]').click();return {hit,text,badge};
+   await page.locator('#hospital-panel [data-close]').click();return {hit,text,badge,voice};
   });
  }
  assert.equal(new Set(variants).size,4);
@@ -101,18 +108,41 @@ try{
   await page.locator('#touch-objective').tap();
   await aim('HOSPITAL_PHONE');await tap();assert.equal(await page.locator('#touch-move').isVisible(),false);await page.locator('[data-close]').click();return {continued:true,inputSuspended:true};
  });
+ await check('staff noise response, player yielding and unloaded simulation persist',async()=>{
+  await aim('HOSPITAL_STAFF');await tap();assert.equal(await page.locator('[data-ask]').isVisible(),true);await page.locator('[data-ask]').click();await shot('mobile-patrol-panel');
+  assert.equal(await page.evaluate(()=>{const q=window.__storyQA,z=q.hospitalSimulation.data.staff.z;q.worldRouter.update(.1);return q.hospitalSimulation.data.staff.z===z;}),true,'modal pauses staff');await page.locator('[data-close]').click();
+  const before=await page.evaluate(()=>window.__storyQA.identityManager.snapshot());
+  const outcome=await page.evaluate(()=>{
+   const q=window.__storyQA,s=q.hospitalSimulation,c=q.controller,z=q.worldRouter.activeZoneInstance;
+   c.teleport(5.65,1.7,s.data.staff.z+.5);c.enabled=true;const stop=s.data.staff.z;for(let i=0;i<8;i++)q.worldRouter.update(.1);if(s.data.staff.z!==stop)throw Error('Staff did not yield to player');
+   c.teleport(0,1.7,-12);s.moveWheelchair();z.hospitalSystems.synchronize();
+   for(let i=0;i<450;i++)q.worldRouter.update(.1);
+   if(s.data.staff.investigated!==1)throw Error('Staff investigation did not complete: '+JSON.stringify(s.data.staff));
+   const afterNoise=s.snapshot();q.load('first_campus_3f');c.enabled=true;for(let i=0;i<20;i++)q.worldRouter.update(.1);
+   const unloaded=s.snapshot();if(unloaded.staff.z===afterNoise.staff.z)throw Error('Unloaded staff did not continue');
+   q.load('first_campus_4f');const systems=q.worldRouter.activeZoneInstance.hospitalSystems;
+   if(!c.checkCollision(5.65,s.data.staff.z))throw Error('Staff collider absent');
+   if(systems.staff.position.z!==unloaded.staff.z)throw Error('Staff mesh did not restore');
+   if(q.worldRouter.activeZoneInstance.zoneGroup.getObjectsByProperty('name','HospitalSystems_EquipmentAttendant').length!==1)throw Error('Duplicate staff');
+   return {afterNoise,unloaded,staffPosition:systems.staff.position.toArray(),collider:systems.staffCollider.min.toArray()};
+  });
+  assert.deepEqual(await page.evaluate(()=>window.__storyQA.identityManager.snapshot()),before);
+  await aim('HOSPITAL_STAFF');await shot('mobile-patrol-world');return outcome;
+ });
  await check('portrait/landscape controls, quality persistence and budgets',async()=>{
+  await page.waitForFunction(()=>{const q=window.__storyQA;q.worldRouter.update(.1);return q.worldRouter.activeZoneInstance.staticBedBatchComplete;});
+  const batches=await page.evaluate(()=>window.__storyQA.worldRouter.activeZoneInstance.staticBedBatchStats);assert.equal(batches.beds,32);assert(batches.originals>batches.batches*10);
   const observations=[];
   for(const viewport of [{width:390,height:844},{width:844,height:390}]){
-   await page.setViewportSize(viewport);await aim('HOSPITAL_TERMINAL');await shot(`mobile-world-${viewport.width}`);
+   await page.setViewportSize(viewport);await aim('HOSPITAL_TERMINAL');const info=await shot(`mobile-world-${viewport.width}`);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-   const info=await page.evaluate(()=>window.__storyQA.qualitySettings.snapshot());assert.equal(info.withinSceneBudget,true);observations.push({viewport,...info});
+   observations.push({viewport,...info});report.performance.push({viewport,...info});assert.equal(info.withinSceneBudget,true,JSON.stringify(info));
    await page.locator('#quality-settings summary').tap();await page.getByRole('combobox',{name:'畫質模式'}).selectOption('ultra');
    assert.equal(await page.evaluate(()=>window.__storyQA.qualitySettings.snapshot().pixelRatio),2);
    assert.equal(await page.evaluate(()=>localStorage.getItem('IdentityLoop_Quality_v1')),'ultra');
    await page.getByRole('combobox',{name:'畫質模式'}).selectOption('performance');await page.locator('#quality-settings summary').tap();
   }
-  report.performance.push(...observations);return observations;
+  return {observations,batches};
  });
  await check('pinch zoom position monitor',async()=>{
   await page.setViewportSize({width:390,height:844});
@@ -122,8 +152,8 @@ try{
   assert.match(await page.locator('.hospital-map').getAttribute('style'),/scale\(2/);await page.locator('[data-close]').click();return {zoomed:true};
  });
  await start('LI',false);
- await check('desktop E-key physically reaches all four system props',async()=>{
-  const hits=[];for(const id of ['HOSPITAL_TERMINAL','HOSPITAL_PHONE','HOSPITAL_BADGE','HOSPITAL_WHEELCHAIR']){hits.push(await aim(id));await page.keyboard.press('KeyE');assert.equal(await page.locator('#hospital-panel').evaluate(el=>el.classList.contains('active')),true);if(id==='HOSPITAL_TERMINAL')await shot('desktop-terminal');await page.locator('[data-close]').click();}
+ await check('desktop E-key physically reaches four props and the staff member',async()=>{
+  const hits=[];for(const id of ['HOSPITAL_TERMINAL','HOSPITAL_PHONE','HOSPITAL_BADGE','HOSPITAL_WHEELCHAIR','HOSPITAL_STAFF']){hits.push(await aim(id));await page.keyboard.press('KeyE');assert.equal(await page.locator('#hospital-panel').evaluate(el=>el.classList.contains('active')),true);if(id==='HOSPITAL_TERMINAL')await shot('desktop-terminal');await page.locator('[data-close]').click();}
   await aim('HOSPITAL_TERMINAL');await shot('desktop-world');report.performance.push(await page.evaluate(()=>window.__storyQA.qualitySettings.snapshot()));return hits;
  });
  await check('cancel failed elevator preload retains zone and restores controls',async()=>{

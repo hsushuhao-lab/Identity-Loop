@@ -7,7 +7,7 @@ export class HospitalPanel {
     this.root.className = 'modal-overlay'; this.root.setAttribute('role', 'dialog'); this.root.setAttribute('aria-modal', 'true');
     this.root.setAttribute('aria-label', '護理站夜間設備');
     this.root.innerHTML = `<div class="hospital-shell"><header><div><small>青嶺醫療中心 / 4F</small><h2>夜間設備</h2></div><button data-close>關閉</button></header>
-      <nav aria-label="設備頁籤"><button data-tab="terminal">交班</button><button data-tab="phone">分機</button><button data-tab="badge">門禁</button><button data-tab="cctv">監看</button><button data-tab="wheelchair">輪椅</button></nav>
+      <nav aria-label="設備頁籤"><button data-tab="terminal">交班</button><button data-tab="phone">分機</button><button data-tab="badge">門禁</button><button data-tab="cctv">監看</button><button data-tab="wheelchair">輪椅</button><button data-tab="patrol">巡查</button></nav>
       <div class="hospital-content"></div></div>`;
     document.body.append(this.root);
     this.root.querySelector('[data-close]').onclick = () => this.close();
@@ -17,7 +17,7 @@ export class HospitalPanel {
   open(id) {
     this.previousEnabled = this.controller.enabled; this.controller.enabled = false; this.controller.resetInput();
     document.exitPointerLock?.(); this.root.classList.add('active');
-    this.show({ HOSPITAL_PHONE:'phone', HOSPITAL_BADGE:'badge', HOSPITAL_WHEELCHAIR:'wheelchair' }[id] || 'terminal');
+    this.show({ HOSPITAL_PHONE:'phone', HOSPITAL_BADGE:'badge', HOSPITAL_WHEELCHAIR:'wheelchair', HOSPITAL_STAFF:'patrol' }[id] || 'terminal');
     this.root.querySelector('[data-close]').focus();
   }
   close() {
@@ -46,8 +46,12 @@ export class HospitalPanel {
     } else if (tab === 'badge') {
       content.innerHTML = `<h3>夜間門禁核對</h3><p>授權紀錄與現場通行需分別確認。此讀卡器只讀取值班紀錄。</p><button data-scan>刷卡核對</button>${status}`;
       content.querySelector('[data-scan]').onclick = () => { const {identity,time}=this.context(); this.status(this.simulation.scanBadge(identity,time)); };
+    } else if (tab === 'patrol') {
+      content.innerHTML = `<h3>器材巡查</h3><p>巡查路線在護理站東側走廊。推動輪椅後，人員會到停放位置查看，然後繼續巡查。</p><p data-patrol></p><button data-ask>詢問巡查情況</button>${status}`;
+      content.querySelector('[data-patrol]').textContent = this.simulation.staffStatus();
+      content.querySelector('[data-ask]').onclick = () => this.status(this.simulation.staffReply(this.context()));
     } else if (tab === 'cctv') {
-      content.innerHTML = `<h3>4F 器材區位置監看</h3><p>● 值班醫師　□ 輪椅<br>平面位置示意，依目前現場更新。雙指縮放，雙點還原。</p><div class="hospital-map-frame"><canvas class="hospital-map" width="420" height="420" aria-label="4F 即時位置示意"></canvas></div>`;
+      content.innerHTML = `<h3>4F 器材區位置監看</h3><p>● 值班醫師　□ 輪椅　▲ 巡查人員<br>平面位置示意，依目前現場更新。雙指縮放，雙點還原。</p><div class="hospital-map-frame"><canvas class="hospital-map" width="420" height="420" aria-label="4F 即時位置示意"></canvas></div>`;
       this.drawCCTV(); this.cctvTimer = setInterval(()=>this.drawCCTV(),250);
     } else {
       content.innerHTML = `<h3>輪椅收納</h3><p>椅背收納袋裡是一張無名器材盤點單。車輪有新擦痕。</p><p data-pad></p><button data-push>推到另一個停放位置</button>${status}`;
@@ -77,6 +81,7 @@ export class HospitalPanel {
     ctx.fillStyle='#416253';ctx.fillRect(141,270,138,90);ctx.fillStyle='#d0d8b7';ctx.font='16px sans-serif';ctx.fillText('護理站',180,315);
     const point=(x,z)=>[30+(x+12)*15,30+(z+22)*15];
     if(chair){const [x,y]=point(chair.x,chair.z);ctx.fillStyle='#e4b781';ctx.fillRect(x-5,y-5,10,10);}
+    const [sx,sy]=point(5.65,this.simulation.data.staff.z);ctx.fillStyle='#8fbbb6';ctx.beginPath();ctx.moveTo(sx,sy-7);ctx.lineTo(sx-6,sy+5);ctx.lineTo(sx+6,sy+5);ctx.closePath();ctx.fill();
     const [x,y]=point(p.x,p.z);ctx.fillStyle='#c4e3d1';ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();
   }
 }

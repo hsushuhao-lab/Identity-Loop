@@ -43,12 +43,40 @@ export function installHospitalSystems(zone, zoneId, simulation) {
     box(wheelchair,[.035,.60,.035],[x,.50,0],metal);
   }
   const collider = new THREE.Box3(); zone.colliders.push(collider);
+  // A separate, anonymous equipment attendant; no story NPC or identity badge.
+  const staff = anchor('HOSPITAL_STAFF', '詢問器材巡查人員', [5.65,0,-13.8]);
+  staff.name = 'HospitalSystems_EquipmentAttendant';
+  const uniform = new THREE.MeshStandardMaterial({ color:0x576e66,roughness:.95 });
+  const skin = new THREE.MeshStandardMaterial({ color:0x9b8975,roughness:1 });
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.13,12,8),skin); head.position.y=1.52; staff.add(head);
+  box(staff,[.35,.53,.23],[0,1.1,0],uniform);
+  for(const side of [-1,1]) {
+    box(staff,[.11,.59,.12],[side*.105,.49,0],uniform);
+    box(staff,[.1,.48,.12],[side*.23,1.05,0],uniform);
+    box(staff,[.12,.08,.23],[side*.105,.16,-.04],dark);
+  }
+  box(staff,[.17,.05,.14],[0,1.43,-.015],skin);
+  const staffCollider = new THREE.Box3(); zone.colliders.push(staffCollider);
+  const synchronizeStaff = () => {
+    const state = simulation.data.staff;
+    if(state.z !== staff.position.z) staff.rotation.y = state.z>staff.position.z ? Math.PI : 0;
+    staff.position.z = state.z;
+    staffCollider.set(new THREE.Vector3(5.41,.1,state.z-.22),new THREE.Vector3(5.89,1.66,state.z+.22));
+    staff.updateMatrixWorld(true);
+  };
   const synchronize = () => {
     const state = simulation.snapshot(), [x,z] = pads[state.wheelchairPad];
     wheelchair.position.set(x,0,z); lamp.intensity = state.taskPower ? .5 : 0;
     collider.set(new THREE.Vector3(x-.34,.05,z-.32),new THREE.Vector3(x+.34,1.13,z+.34));
     group.updateMatrixWorld(true);
+    synchronizeStaff();
   };
-  zone.hospitalSystems = { group, wheelchair, synchronize, collider, pads };
+  zone.hospitalSystems = { group, wheelchair, synchronize, collider, pads, staff, staffCollider, synchronizeStaff,
+    blockedStaff: (x,z,player) => {
+      if(player && Math.hypot(player.x-x,player.z-z)<.85) return true;
+      const candidate = new THREE.Box3(new THREE.Vector3(x-.24,.1,z-.22),new THREE.Vector3(x+.24,1.66,z+.22));
+      return zone.colliders.some(box=>box!==staffCollider && candidate.intersectsBox(box));
+    }
+  };
   synchronize();
 }

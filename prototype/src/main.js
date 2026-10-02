@@ -138,6 +138,8 @@ const cinematicDirector = new CinematicDirector({ camera, controller, gameState 
 const worldRouter = new WorldRouter(scene, camera, controller);
 let hospitalStorage; try { hospitalStorage = localStorage; } catch {}
 const hospitalSimulation = new HospitalSimulation({ storage: hospitalStorage, runKey: identityLoopMode ? identityManager.runSave.runSeed : 'linear-session' });
+window.addEventListener('pagehide',()=>hospitalSimulation.save());
+document.addEventListener('visibilitychange',()=>{if(document.hidden)hospitalSimulation.save();});
 worldRouter.hospitalSimulation = hospitalSimulation;
 window.worldRouter = worldRouter;
 window.__materialAudit = () => ({

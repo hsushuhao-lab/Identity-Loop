@@ -12,6 +12,7 @@ import { CollisionFactory } from './shared/CollisionFactory.js';
 import { floorStateManager } from '../core/FloorStateManager.js';
 import { gameState } from '../core/GameState.js';
 import { installHospitalSystems } from './shared/HospitalSystems.js';
+import { batchStaticWardBeds } from '../art/StaticWardBeds.js';
 
 import { FirstCampus3F } from './zones/FirstCampus3F.js';
 import { FirstCampus4F } from './zones/FirstCampus4F.js';
@@ -126,6 +127,7 @@ export class WorldRouter {
       zoneId = 'first_campus_3f';
     }
 
+    this.hospitalSimulation?.save();
     // Clean up current zone
     if (this.activeZoneInstance && typeof this.activeZoneInstance.cleanup === 'function') {
       this.closeZoneDoors(this.activeZoneInstance);
@@ -141,6 +143,7 @@ export class WorldRouter {
     this.activeZoneInstance = new ZoneClass(this.scene, this.gf, { floor: Number(floorMatch?.[1] || 5) });
     this.activeZoneInstance.build();
     if (this.hospitalSimulation) installHospitalSystems(this.activeZoneInstance, zoneId, this.hospitalSimulation);
+    if (zoneId === 'first_campus_4f') batchStaticWardBeds(this.activeZoneInstance);
     applyExteriorTime(this.activeZoneInstance.zoneGroup,gameState.gameTime);
     installEraPosters(this.activeZoneInstance, zoneId);
     installMemoryEvidence(this.activeZoneInstance, zoneId);
@@ -227,7 +230,18 @@ export class WorldRouter {
 
   update(delta) {
     this.activeZoneInstance?.update?.(this.camera,delta);
+    const zone=this.activeZoneInstance;
+    if(this.activeZoneId==='first_campus_4f' && !zone.staticBedBatchComplete){
+      zone.bedBatchWait=(zone.bedBatchWait||0)+delta;
+      if(zone.bedBatchWait>=1){zone.bedBatchWait=0;batchStaticWardBeds(zone);}
+    }
     if (!this.controller?.enabled) return;
+    if (!document.hidden && this.hospitalSimulation) {
+      const systems = this.activeZoneInstance?.hospitalSystems;
+      this.hospitalSimulation.advance(delta, { time:gameState.gameTime,
+        blocked: systems ? (x,z)=>systems.blockedStaff(x,z,this.controller.position) : undefined });
+      systems?.synchronizeStaff();
+    }
     const portal = ROUTE_PORTALS.find(p => {
       const allowed=!p.gated||(p.requiresFlag&&gameState.getFlag(p.requiresFlag));
       return allowed&&p.from===this.activeZoneId&&new THREE.Box3(new THREE.Vector3(...p.bounds[0]),new THREE.Vector3(...p.bounds[1])).containsPoint(this.controller.position);

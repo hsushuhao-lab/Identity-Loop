@@ -1,4 +1,4 @@
-# Identity Loop：mobile-first 醫院沉浸模擬規格與第一階段交付
+# Identity Loop：mobile-first 醫院沉浸模擬規格與可玩增量
 
 基準：`origin/main` 的 `3bc5353`。正式引擎：`prototype/` 的 Three.js + Vite。
 本增量為可玩的第一階段，不代表全院區、原生 App 或 AAA 製作完成。沿用原主線、空間與美術，不變更身份推理答案。
@@ -39,13 +39,16 @@
 - 門禁核對：LI 要求核對授權；ZHANG 無授權來源；ZHOU 第三次顯示 21:17；CHEN 鑰匙槽痕跡。均不顯示姓名或員編。
 - 監看：依真實玩家與輪椅位置更新的 4F 平面示意，250ms 更新一次。這不是多攝影機 3D render-to-texture CCTV。
 - 輪椅：查看收納袋、在兩個停放位置間推動、移動碰撞盒、產生可聽輪椅聲與紀錄。玩家占據目的位置或距離太遠時拒絕推動。沒有坐乘、連續剛體推動、卡門、物品收納或 NPC 推車。
+- 器材巡查人員：獨立匿名低多邊形角色，在護理站東側走廊巡查；E／中央點按可詢問，四 Seed 回覆保持匿名。17:00 等晚班速度 0.65 m/s，00:00–06:59 深夜班 0.45 m/s；不改故事時間。轮椅噪音讓他前往停放位置，查看三秒後回巡查路線。反覆推動只更新最近聲音位置，不堆疊無限事件。
+- 巡查人員有碰撞盒，移動前檢查靜態物件並在玩家 0.85 m 內等待；不穿過現有門。監看平面圖加入巡查人員位置。角色仍是功能原型，沒有新配音、骨骼走路動畫或身份證件。
 
 ## 狀態與分區架構
 
-既有 `GameState`／`IdentityManager`／路線導演管理故事與身份；新增 `HospitalSimulation` 只管理設備。
+既有 `GameState`／`IdentityManager`／路線導演管理故事與身份；新增 `HospitalSimulation` 管理設備與獨立巡查人員。
 設備狀態沒有 Three.js 物件或背景區域實體；`WorldRouter` 建立目前 zone 時，從資料重建實體與碰撞盒。卸載 4F 的 mesh 不會抹除器材資料。
 `IdentityLoop_Hospital_v1` 按 `runSeed` 隔離；新 Loop 重置器材，恢復相同 Loop 取回器材。localStorage 被封鎖時降為本次 session。
-完整背景 NPC 排班／聽覺／逃跑系統尚未實作；既有故事 NPC 狀態未改動。
+巡查狀態保存位置、下一路點、調查／查看狀態與計數；每三秒及區域切換、事件轉換、pagehide／隱藏頁面時保存。舊器材存檔沒有 staff 欄位時採預設巡查狀態，異常位置不載入。離開 4F 仍以純資料模擬，回到 4F 才建立唯一角色與碰撞盒。
+模態／劇情停用控制或頁面隱藏時巡查暫停，不按真實離線時間補算。完整排班表、跨樓層移動、聲學遮蔽、多 NPC／追逐／逃跑系統尚未實作；既有故事 NPC 狀態未改動。
 
 電梯保留目前區域並关門動畫 → 預載目的地 essential 模型／材質 → readiness 成功 → 建立目的地 → 開門／恢復控制。
 必要資料錯誤或 20 秒期限未完成，顯示重試；手動電梯可取消並留在原樓層。逾時永遠不視為 ready，遲到的資源只能進快取，不能自動移動玩家。
@@ -77,6 +80,8 @@
 
 粗指標裝置預設 Performance，其餘預設 Quality，玩家可改且保存。所有模式沿用現有材質與 essential asset，不代表已做低解析貼圖包。
 主場景以 `requestAnimationFrame` 更新，依目標節奏限制 render，背景頁面停止主場景繪製。鏡頭與故事仍更新；結局／獨立 cinematic renderer 沿用原品質設定，後續需統一。
+4F 的 32 張固定病床，832 個重複 mesh 以 26 個 InstancedMesh 批次繪製；只處理明確命名的固定病床。保留原床位 metadata、標牌、碰撞、門與人物。geometry／material 仍由資源 registry 共用，區域清理只釋放 instance buffer。模型尚未 ready 時稍後重試，不能拿空模型當作完成。
+QA 會等視窗 resize 並擷取同一幀的計數：修正前手機 844×390 視角為 1,267 calls（超出 900），修正後為 631 calls／185,035 triangles；390×844 為 258／109,853；桌面 Quality 為 564／169,743。Instancing 較粗的視錐剔除會增加部分三角形，但三個視角均在原預算內，沒有提高上限。
 `QualitySettings.snapshot()` 提供 GPU 工作量、模式、DPR、最近 120 個自然繪製間隔的 p95；只有 `?qa=story` 可透過 `__storyQA` 查看。
 目前截圖回歸採按需繪製，p95 為空，不得拿這些證據聲稱手機 30/60 FPS 達標。
 全套既有 runtime assets 約 71.6 MB；它不是冷啟下載量，沒有自動離線整包快取。
@@ -84,7 +89,7 @@
 ## 階段與下一個驗收門檻
 
 1. **已實作的 slice**：4F 四類實體／器材狀態、分機與匿名 Seed 差異、手機操作、品質模式、電梯錯誤恢复、manifest、可重現 QA。建置、四 Seed 保存／B2／M9 與新增 browser QA 必須通過。
-2. **NPC／連鎖互動**：將值班排班、噪音事件、門與器材相互作用、真正 CCTV 取景做成獨立系統。驗收離區後 NPC 不增生，輪椅不可越過門／玩家，Seed 差異不成為答案；在 4F 完成一段可自由處理的事件。
+2. **NPC／連鎖互動**：已完成最小巡查／噪音事件子階段，含離區純資料模擬、單一角色重建、碰撞避讓與四 Seed 匿名詢問。下一步是完整排班、門與器材相互作用、真正 CCTV 取景；本次不代表整個第二階段完成。驗收離區後 NPC 不增生，輪椅不可越過門／玩家，Seed 差異不成為答案；在 4F 完成一段可自由處理的事件。
 3. **全院區與實機**：逐 zone 增加物件與 NPC；先確認樓層映射，再增加 5F／7F 等。Android 中階與旗艦、iPhone 與 iPad 分別進行 10 分鐘路線、峰值記憶體、thermal、冷／暖載入、旋轉、安全區域與音訊測試。30/60 FPS 只以實機測量驗收。
 4. **發行門檻**：裝置矩陣、無網路／更新回復策略、HTTPS PWA 安裝與版本一致、完整四路線人工遊玩與 UI 無障礙。原生封裝由實機結果決定。合併、push、部署或商店發行需另有授權。
 
@@ -94,8 +99,9 @@
 手機同網路試玩可自行執行 `npm run dev -- --host 0.0.0.0`，以電腦的區網位址連線；需要該網路及 Windows 防火牆允许。主畫面安裝留待正式 HTTPS 環境驗收。
 正常遊戲從 3F 進行交班後前往 4F，設備可自由探索。測試使用明確的 checkpoint fixture，不能冒充從頭到尾人工遊玩。
 
-新增命令：`npm run test:hospital`、`npm run test:mobile`。預設 screenshot／JSON 證據輸出到 checkout 外的 `../../qa-evidence/mobile-hospital`。
-既有 `npm run test:identity`，加 CI structural checks 與臨床／M9 browser regression；詳見本次工作區 `qa-evidence/HANDOFF.md` 的最終結果與既有失敗。
+新增命令：`npm run test:hospital`、`npm run test:mobile`，固定病床批次另有 `node scripts/test-static-ward-beds.mjs` 驗证精確矩陣、raycast、動態物件保留與待載入防護。預設 screenshot／JSON 證據輸出到 checkout 外的 `../../qa-evidence/mobile-hospital`。
+既有 `npm run test:identity`，加 CI structural checks 與臨床／M9 browser regression；詳見本次工作區 `qa-evidence/HANDOFF.md`。巡查與效能修正的最終截圖／JSON 在 `qa-evidence/mobile-hospital-phase2-optimized/`。
+三項基線 QA 已修復：臨床音訊 source 擷取正規化 CRLF；樓梯遍歷支援混合互動清單並核對九個正式面板；舊 cinematic 流程明確用 linear fixture，六樓預覽目的地改為實際 8F。只改測試，沒有改主線電梯／音訊規則。
 
 平台事實來源：
 - [MDN Pointer Events](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events)

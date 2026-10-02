@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
-const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
+// Git's Windows checkout may use CRLF; handler boundaries are authored with LF.
+const source=readFileSync(new URL('../src/main.js',import.meta.url),'utf8').replace(/\r\n/g,'\n');
 const between=(start,end)=>{
   const a=source.indexOf(start),b=source.indexOf(end,a+start.length);
   assert(a>=0&&b>a,'production handler boundaries must exist: '+start);
