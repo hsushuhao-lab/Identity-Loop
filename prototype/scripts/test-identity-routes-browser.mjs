@@ -37,11 +37,22 @@ async function shot(name){
   report.screenshots.push(`${name}.png`);
 }
 async function ready(){
-  await page.waitForFunction(
-    ()=>window.__storyQA?.identityRouteDirector&&!window.__storyQA.identityRouteDirector.busy&&!!window.__storyQA.worldRouter.activeZoneInstance,
-    {},
-    {timeout:120000}
-  );
+  // Required albums keep the director busy until actual page controls are used.
+  await page.waitForFunction(()=>{
+    const q=window.__storyQA,d=q?.identityRouteDirector,b=d?.beats?.[d.beatIndex];
+    return !!d&&!!q.worldRouter.activeZoneInstance&&(!d.busy||(q.uiManager.memorySequence&&(b?.photoAlbum||b?.inspectPhoto)));
+  },{}, {timeout:120000});
+  const manual=await page.evaluate(()=>{const q=window.__storyQA,d=q.identityRouteDirector,b=d.beats[d.beatIndex];return d.busy&&q.uiManager.memorySequence&&(b?.photoAlbum||b?.inspectPhoto);});
+  if(manual){
+    const count=await page.evaluate(()=>window.__storyQA.uiManager.memoryPresentation.frames.length);
+    for(let i=0;i<count;i++){
+      if(i)await page.locator('#btn-memory-next').click();
+      await page.waitForFunction(()=>document.getElementById('memory-frame-canvas').dataset.mediaLoaded==='true',{}, {timeout:15000});
+      assert.doesNotMatch(await page.locator('#memory-modal').innerText(),forbidden,'required album must remain anonymous');
+    }
+    await page.locator('#btn-close-memory').click();
+    await page.waitForFunction(()=>!window.__storyQA.identityRouteDirector.busy,{}, {timeout:120000});
+  }
 }
 async function fresh(identity,width=1440){
   if(page)await page.close();

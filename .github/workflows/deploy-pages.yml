@@ -73,6 +73,7 @@ jobs:
           node test_ward_circulation_qa.js
           node scripts/test-408c-clinical-audio.mjs
           node scripts/test-second-campus-exterior-manifest.mjs
+          node scripts/test-equipment-attendant.mjs
           node scripts/test-hospital-simulation.mjs
           node scripts/test-static-ward-beds.mjs
           node scripts/test-hospital-side-case.mjs

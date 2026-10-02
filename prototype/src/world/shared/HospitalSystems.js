@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {buildEquipmentAttendant} from '../../art/EquipmentAttendant.js';
 import {dressHospitalSlice} from '../../art/HospitalAtmosphere.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {PATROL_STOPS} from '../../core/HospitalSimulation.js';
 
 const pads = [[6.45, -5.05], [6.45, -6.45]];
 export function installHospitalSystems(zone, zoneId, simulation) {
@@ -53,9 +54,9 @@ export function installHospitalSystems(zone, zoneId, simulation) {
   const staffCollider = new THREE.Box3(); zone.colliders.push(staffCollider);
   const synchronizeStaff = (delta=0,player) => {
     const state = simulation.data.staff;
-    if(state.z !== staff.position.z) staff.rotation.y = state.z>staff.position.z ? Math.PI : 0;
     staff.position.z = state.z;
-    actor.update(delta,state,player);
+    const target=state.mode==='investigate'?state.targetZ:PATROL_STOPS[state.waypoint];
+    actor.update(delta,state,player,{heading:target>=state.z?Math.PI:0});
     staffCollider.set(new THREE.Vector3(5.41,.1,state.z-.22),new THREE.Vector3(5.89,1.66,state.z+.22));
     staff.updateMatrixWorld(true);
   };
@@ -70,6 +71,10 @@ export function installHospitalSystems(zone, zoneId, simulation) {
   zone.hospitalSystems = { group, wheelchair, synchronize, collider, pads, staff, actor, staffCollider, synchronizeStaff,
     blockedStaff: (x,z,player) => {
       if(player && Math.hypot(player.x-x,player.z-z)<.85) return true;
+      // Turn before taking another stride at patrol reversals. Pure simulation
+      // still runs when this zone is unloaded; only a loaded pose needs a turn.
+      const desired=z>=simulation.data.staff.z?Math.PI:0;
+      if(Math.abs(Math.atan2(Math.sin(desired-staff.rotation.y),Math.cos(desired-staff.rotation.y)))>.35)return true;
       const candidate = new THREE.Box3(new THREE.Vector3(x-.24,.1,z-.22),new THREE.Vector3(x+.24,1.66,z+.22));
       return zone.colliders.some(box=>box!==staffCollider && candidate.intersectsBox(box));
     }

@@ -34,7 +34,6 @@ export function dressHospitalSlice(zone,{group,terminal,phone,badge,shelf,wheelc
   let index=0;for(const x of [-.3,.3])for(let i=0;i<8;i++){dummy.position.set(x,.32,.08);dummy.rotation.set(i*Math.PI/8,0,Math.PI/2);dummy.updateMatrix();spokes.setMatrixAt(index++,dummy.matrix);}spokes.instanceMatrix.needsUpdate=true;wheelchair.add(spokes);
   attachLabel(wheelchair,['器材盤點','未署名 / ORIGINAL'],[0,.85,.238],[.30,.14],[0,Math.PI,0]);
   contact(group,3.05,-2.4,2.25,.85);contact(wheelchair,0,0,.95,1.1);
-  contact(zone.hospitalSystems.staff,0,0,.6,.6);
   const taskLamp=new THREE.SpotLight(0xffd2a1,20,4.8,.55,.55,2);taskLamp.position.set(3.1,2.7,-1.5);taskLamp.target.position.set(3.1,.8,-2.4);taskLamp.castShadow=true;taskLamp.shadow.mapSize.set(512,512);taskLamp.shadow.bias=-.0002;group.add(taskLamp,taskLamp.target);
   solid(group,m.metal,[3.1,2.72,-1.5],[.42,.045,.12]);
   const emitter=solid(group,m.lightWarm,[3.1,2.693,-1.5],[.35,.009,.06]);

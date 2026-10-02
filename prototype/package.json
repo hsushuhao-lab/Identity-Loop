@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:identity": "node scripts/run-identity-qa.mjs",
     "test:distant-landscape": "node scripts/test-distant-landscape.mjs",
+    "test:character": "node scripts/test-equipment-attendant.mjs",
     "test:hospital": "node scripts/test-hospital-simulation.mjs",
     "test:mobile": "node scripts/test-mobile-hospital-browser.mjs",
     "test:exploration": "node scripts/test-hospital-side-case.mjs && node scripts/test-signal-ledger-quest.mjs && node scripts/test-hospital-surface-kit.mjs",
