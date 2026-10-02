@@ -11,7 +11,8 @@ export class QualitySettings {
     this.apply(QUALITY_PRESETS[stored] ? stored : matchMedia('(pointer: coarse)').matches ? 'performance' : 'quality');
     const root = document.createElement('details'); root.id = 'quality-settings';
     root.innerHTML = `<summary>設定</summary><label>畫質 <select aria-label="畫質模式"></select></label>
-      <label><input type="checkbox" id="haptic-enabled">震動回饋</label><p>請戴耳機。手機建議橫向使用。</p>`;
+      <label><input type="checkbox" id="haptic-enabled">震動回饋</label><p>請戴耳機。手機建議橫向使用。</p>
+      <p id="save-checkpoint-note">主線在章節切換時保存進度；未完成章節的互動可能需重做。</p>`;
     const select = root.querySelector('select');
     for (const [key,preset] of Object.entries(QUALITY_PRESETS)) { const option = new Option(preset.label,key); select.add(option); }
     select.value = this.mode; select.onchange = () => this.apply(select.value);
