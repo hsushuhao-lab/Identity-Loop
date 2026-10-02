@@ -29,7 +29,7 @@
 .touch-mode .modal-overlay > :first-child { max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow-y: auto; box-sizing: border-box; }
 .touch-mode button { min-height: 44px; }
 .touch-mode .identity-loop-panel.m9-open, .touch-mode .identity-loop-panel.ending-open { z-index: 350; bottom: 12px; top: 75px; max-height: calc(100dvh - 87px); overflow: auto; width: min(390px,calc(100vw - 24px)); }
-#hospital-panel { z-index: 400; }
+#hospital-panel, #hospital-case-panel { z-index: 400; }
 .hospital-shell { width: min(760px,94vw); max-height: 90dvh; display: flex; flex-direction: column; color: #e5e3d5; background: #14221c; border: 1px solid #8b9880; box-shadow: 0 20px 80px #000b; }
 .hospital-shell header { display: flex; justify-content: space-between; gap: 16px; padding: 18px; border-bottom: 1px solid #526654; }
 .hospital-shell h2 { margin: 3px 0; font: 500 24px serif; }
@@ -38,6 +38,10 @@
 .hospital-shell button, .hospital-shell input { min-height: 44px; padding: 8px 14px; color: #eeecd9; background: #263c30; border: 1px solid #687e69; border-radius: 3px; font: inherit; box-sizing: border-box; }
 .hospital-shell button[aria-pressed=true] { background: #4b6046; border-color: #ded9b7; }
 .hospital-content { padding: 8px 22px 22px; overflow-y: auto; line-height: 1.75; }
+.case-mainline-hint { color:#a9c0b0; border-top:1px solid #526654; padding-top:12px; font-size:.9em; }
+#hospital-case-panel [data-case-resolve] { display:block; width:100%; margin:10px 0; text-align:left; }
+#hospital-annex-return { position:fixed; right:max(12px,env(safe-area-inset-right)); top:125px; z-index:150; min-height:44px; padding:10px 15px; border:1px solid #c2b98f; color:#ede4c6; background:#263b31; border-radius:4px; }
+.hospital-zone-transition { position:fixed; inset:0; z-index:48000; display:grid; place-items:center; background:#0c1512; color:#d4d6bd; font-size:20px; }
 .hospital-content h3 { margin-top: 4px; color: #d2debd; }
 .hospital-content form { display: flex; flex-wrap: wrap; gap: 10px; }
 .hospital-content input { width: 100px; }

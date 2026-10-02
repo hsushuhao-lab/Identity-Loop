@@ -35,7 +35,7 @@ export class HospitalPanel {
       content.querySelector('[data-power]').textContent = state.taskPower ? '供電中' : '已關閉';
       content.querySelector('[data-power-switch]').onclick = () => { this.simulation.setTaskPower(!this.simulation.data.taskPower); this.worldRouter.activeZoneInstance?.hospitalSystems?.synchronize(); this.show(tab); };
     } else if (tab === 'phone') {
-      content.innerHTML = `<h3>院內分機</h3><p>316 總醫師室 · 409 病房 · 112 急診</p><form><label>分機號碼 <input aria-label="分機號碼" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" required autocomplete="off"></label><button>撥號</button></form>${status}<h4>最近通話</h4><ol data-calls></ol>`;
+      content.innerHTML = `<h3>院內分機</h3><p>316 總醫師室 · 409 病房 · 112 急診 · 708 器材巡查</p><form><label>分機號碼 <input aria-label="分機號碼" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" required autocomplete="off"></label><button>撥號</button></form>${status}<h4>最近通話</h4><ol data-calls></ol>`;
       content.querySelector('form').onsubmit = e => {
         e.preventDefault(); soundManager.playTerminalKey();
         const result = this.simulation.dial(content.querySelector('input').value,this.context()); this.status(result.text);

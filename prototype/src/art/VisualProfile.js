@@ -10,6 +10,7 @@ export const VisualProfile = Object.freeze({
 const zones = {
   first_campus_3f: { lamps: [[-8, 0], [-1.5, 0], [6.5, 0], [14, 0], [6, 5.5]], intensity: 4.2 },
   first_campus_4f: { lamps: [[0, 6], [-11, 6], [0, -3], [-2, -9], [0, -15], [8, -3]], intensity: 4.0 },
+  ward_service_annex:{lamps:[[0,5],[0,-1],[-4,-4],[4,-4]],intensity:2.0,width:2.0},
   first_campus_2f: { lamps: [[-8, 0], [0, 0], [8, 0], [16, 0], [3.5, 6], [14.5, 6.5], [3.5, -6.5], [12.5, -6.5]], intensity: 4.8, color: 0xf1f4ed },
   first_campus_1f: { lamps: [[-7, 0], [2, -3], [2, 3], [12, 0]], intensity: 6.0, y: 3.65, width: 5 },
   first_campus_8f: { lamps: [[-8, 0], [-2, 0]], intensity: 3.8 },

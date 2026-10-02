@@ -10,6 +10,7 @@ const withExterior = models => ({ essential: { models, surfaces: clinicalSurface
 export const zoneAssetManifest = Object.freeze({
   first_campus_3f: withExterior(clinicalFurniture),
   first_campus_4f: indoor([...clinicalFurniture, 'hospitalBed']),
+  ward_service_annex:indoor(['workDesk','storageCabinet']),
   first_campus_2f: withExterior([...clinicalFurniture, 'hospitalBed']),
   first_campus_1f: withExterior(clinicalFurniture),
   first_campus_8f: withExterior(clinicalFurniture),

@@ -39,7 +39,7 @@ export class TouchControls {
     const interact = this.root.querySelector('#touch-interact');
     interact.addEventListener('pointerdown', e => {
       if (this.blocked() || !controller.enabled) return;
-      e.preventDefault(); interact.setPointerCapture(e.pointerId); this.held = false;
+      e.preventDefault(); interact.setPointerCapture(e.pointerId); this.held = false; this.pendingClick = false;
       this.holdTimer = setTimeout(() => {
         this.holdTimer = null; this.held = true;
         if (!this.blocked() && controller.enabled) this.inspect(controller.currentInteractable);
@@ -48,9 +48,15 @@ export class TouchControls {
     interact.addEventListener('pointerup', e => {
       e.preventDefault(); const pending = this.holdTimer;
       clearTimeout(this.holdTimer); this.holdTimer = null;
-      if (pending && !this.held && !this.blocked() && controller.enabled) controller.interact();
+      this.pendingClick = Boolean(pending && !this.held);
     });
-    for (const type of ['pointercancel', 'lostpointercapture']) interact.addEventListener(type, () => { clearTimeout(this.holdTimer); this.holdTimer = null; });
+    // Open the modal after the browser has selected the click target. Opening it
+    // during pointerup can send the synthesized touch click to a new answer button.
+    interact.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation(); const pending = this.pendingClick; this.pendingClick = false;
+      if (pending && !this.blocked() && controller.enabled) controller.interact();
+    });
+    for (const type of ['pointercancel', 'lostpointercapture']) interact.addEventListener(type, e => { clearTimeout(this.holdTimer); this.holdTimer = null; if(type==='pointercancel')this.pendingClick=false; });
     const run = this.root.querySelector('#touch-run');
     run.addEventListener('pointerdown', e => { e.preventDefault(); if (!this.blocked()) { run.setPointerCapture(e.pointerId); controller.touchRun = true; } });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) run.addEventListener(type, () => { controller.touchRun = false; });
@@ -71,6 +77,7 @@ export class TouchControls {
     this.points.clear(); this.controller.touchMove.x = this.controller.touchMove.z = 0;
     this.controller.touchRun = false; this.controller.resetInput();
     clearTimeout(this.holdTimer); this.holdTimer = null;
+    this.pendingClick = false;
   }
   refresh() {
     this.root.classList.toggle('input-blocked', this.blocked() || !this.controller.enabled);

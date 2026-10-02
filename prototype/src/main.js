@@ -16,6 +16,8 @@ import { ROUTE_STEPS } from './story/IdentityRoutes.js';
 import { anonymousNarrative } from './story/IdentityPrivacy.js';
 import { HospitalSimulation } from './core/HospitalSimulation.js';
 import { HospitalPanel } from './ui/HospitalPanel.js';
+import {HospitalCasePanel} from './ui/HospitalCasePanel.js';
+import {HospitalExcursion} from './story/HospitalExcursion.js';
 import { TouchControls, installEvidenceZoom } from './player/TouchControls.js';
 import { QualitySettings } from './art/QualitySettings.js';
 import { withLoadDeadline } from './art/LoadDeadline.js';
@@ -241,6 +243,10 @@ const identityRouteDirector=new IdentityRouteDirector({manager:identityManager,p
     location.reload();
   });
 },onRouteStep:step=>soundManager.setRouteTheme(identityManager.currentIdentity,step)});
+const hospitalCasePanel=new HospitalCasePanel({simulation:hospitalSimulation,controller,worldRouter,
+  context:()=>({identity:identityManager.currentIdentity,mainline:identityLoopMode?(identityRouteDirector.bindingFor()?.prompt||'依任務面板繼續目前章節'):'依任務面板繼續值班流程'})});
+const hospitalExcursion=new HospitalExcursion({simulation:hospitalSimulation,worldRouter,controller,
+  director:identityLoopMode?identityRouteDirector:null,gameState,uiManager,casePanel:hospitalCasePanel});
 
 const actPresentationDirector=new ActPresentationDirector({
   gameState,
@@ -679,6 +685,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
   };
   window.__storyQA={
     gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,identityRouteDirector,hospitalSimulation,hospitalPanel,touchControls,qualitySettings,
+    hospitalCasePanel,hospitalExcursion,
     get identityGoodEndingDirector(){return identityGoodEndingDirector;},
     prefetch:prefetchDestinationAssets,
     load:(zone,spawn)=>{worldRouter.loadZone(zone,spawn);worldRouter.activeZoneInstance?.syncStoryState?.();},
@@ -805,6 +812,8 @@ function completeSecondCampus5FWardReport(){
 }
 
 controller.onInteract = async (interactable) => {
+  if(interactable.type==='hospital_annex'){await hospitalExcursion.travel(interactable.action);return;}
+  if(interactable.type==='hospital_case'){hospitalCasePanel.open(interactable.id);return;}
   if (interactable.type === 'hospital_system') { hospitalPanel.open(interactable.id); return; }
   if(identityLoopMode){
     if(identityRouteDirector.handleInteract(interactable)) return;
@@ -1990,7 +1999,7 @@ function animate() {
 
   controller.update(delta);
   worldRouter.update(delta);
-  if(identityLoopMode){identityRouteDirector.update();if(!identityGoodEndingDirector?.active)qualitySettings.render(performance.now());return;}
+  if(identityLoopMode){if(!hospitalExcursion.active&&!hospitalExcursion.transitioning)identityRouteDirector.update();if(!identityGoodEndingDirector?.active)qualitySettings.render(performance.now());return;}
   if(worldRouter.activeZoneId==='first_campus_2f' && controller.enabled && !cinematicDirector.activeId &&
     gameState.getFlag('GHOST_REGISTRATION_AVAILABLE') && !gameState.getFlag('LEGEND_ER0033_RESOLVED') && !gameState.getFlag('CG_00_33_GHOST_REGISTRATION_PLAYED') &&
     controller.position.x>10.5 && controller.position.x<15.5 && controller.position.z>-9.7 && controller.position.z<-4.5){

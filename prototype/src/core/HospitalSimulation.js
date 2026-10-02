@@ -1,15 +1,17 @@
 // Run-scoped world state. No meshes, timers or story progression live here.
 export const PATROL_STOPS = Object.freeze([-13.8, -7.6, -4.2, -7.6]);
+import {freshSideCase,restoreSideCase,hasCaseEvidence,caseReaction} from './HospitalSideCase.js';
 const defaultStaff = () => ({ z: PATROL_STOPS[0], waypoint: 1, mode: 'patrol', targetZ: -5.05, remaining: 0, investigated: 0, shift: '晚班' });
 export class HospitalSimulation {
   constructor({ storage, runKey }) {
     this.storage = storage;
     this.runKey = String(runKey);
-    this.data = { runKey: this.runKey, taskPower: true, wheelchairPad: 0, noise: 0, calls: [], badgeScans: 0, staff: defaultStaff() };
+    this.data = { runKey: this.runKey, taskPower: true, wheelchairPad: 0, noise: 0, calls: [], badgeScans: 0, staff: defaultStaff(), sideCase:freshSideCase() };
     this.unsavedSeconds = 0;
     try {
       const saved = JSON.parse(storage?.getItem('IdentityLoop_Hospital_v1') || 'null');
       if (saved?.runKey === this.runKey) {
+        this.data.sideCase=restoreSideCase(saved.sideCase);
         this.data.taskPower = saved.taskPower !== false;
         this.data.wheelchairPad = saved.wheelchairPad === 1 ? 1 : 0;
         this.data.noise = Number.isFinite(saved.noise) ? Math.max(0, saved.noise) : 0;
@@ -74,7 +76,31 @@ export class HospitalSimulation {
       CHEN: '「先讓聲音停下來。我會走過去看。」'
     }[identity] || '「我正在巡查器材區。」';
     const staff = this.data.staff;
-    return `${perception}\n目前：${this.staffStatus()}。完成器材噪音查看 ${staff.investigated} 次。`;
+    return `${perception}\n目前：${this.staffStatus()}。完成器材噪音查看 ${staff.investigated} 次。\n${caseReaction(identity,this.data.sideCase.outcome)}\n入口儲藏室後方是封存檢修廊，可從原始單據或測試台調查。`;
+  }
+  inspectCase(clue) {
+    if(!['paper','relay'].includes(clue))return false;
+    if(!this.data.sideCase.clues.includes(clue))this.data.sideCase.clues.push(clue);
+    this.save();return true;
+  }
+  toggleCasePower(){this.data.sideCase.power=!this.data.sideCase.power;this.save();return this.data.sideCase.power;}
+  toggleCaseDamper(){this.data.sideCase.damper=!this.data.sideCase.damper;this.save();return this.data.sideCase.damper;}
+  observeCaseAir() {
+    const data=this.data.sideCase;
+    if(!data.power)return {ok:false,text:'測試回路未供電。紙條靜止不能證明風道是否暢通。'};
+    const clue=data.damper?'air_flow':'no_air';
+    if(!data.clues.includes(clue))data.clues.push(clue);this.save();
+    return {ok:true,text:data.damper?'紙條隨氣流抖動。這段低壓測試風道有氣流，不能推論全院消防系統。':'測試指示燈亮起，風口紙條卻沒有動。供電紀錄與現場結果不一致。'};
+  }
+  resolveCase(method) {
+    const data=this.data.sideCase;
+    if(!hasCaseEvidence(data))return {ok:false,text:'先讀原始單據，或檢查接點並觀察帶電測試的風口。'};
+    if(method==='verify' && !(data.power && data.damper && data.clues.includes('relay') && data.clues.includes('air_flow')))return {ok:false,text:'尚未確認接點、低壓供電、測試擋板與現場氣流。'};
+    if(!['archive','verify'].includes(method))return {ok:false,text:'請選擇紀錄方式。'};
+    if(data.outcome!==method)data.revisions++;
+    data.outcome=method;
+    if(method==='archive'){data.power=false;data.damper=false;}
+    this.save();return {ok:true,text:method==='archive'?'已關閉測試電源、保留原件與未確認事項。回訪時仍可補做測試。':'已保留原件與新的氣流觀察回執。僅確認這段低壓測試回路。'};
   }
   staffStatus() {
     const staff = this.data.staff;
@@ -103,10 +129,12 @@ export class HospitalSimulation {
       }[identity] || '總醫師室暫無人接聽。';
     } else if (extension === '409') {
       text = ['聽筒裡只有規律的敲牆聲。', '電話接通了，沒有人說話。'][Math.abs(Number(seed) || 0) % 2];
+    } else if (extension === '708') {
+      text=caseReaction(identity,this.data.sideCase.outcome)+' 入口儲藏室後方的封存檢修廊，還留著1998年的驗收單與低壓測試台。';
     } else if (extension === '112') {
       text = time === '00:33' ? '急診：現場沒有病人，請勿新增紀錄。' : '急診：交接前請核對現場腕帶與病歷。';
     } else text = '此分機無人接聽。';
-    const call = { extension, time, text, connected: ['316', '409', '112'].includes(extension) };
+    const call = { extension, time, text, connected: ['316', '409', '112','708'].includes(extension) };
     this.data.calls.push(call); this.data.calls = this.data.calls.slice(-12); this.save();
     return { ...call };
   }

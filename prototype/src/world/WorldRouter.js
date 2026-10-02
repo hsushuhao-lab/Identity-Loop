@@ -26,6 +26,7 @@ import { SecondCampus1F } from './zones/SecondCampus1F.js';
 import { Phantom6F } from './zones/Phantom6F.js';
 import { B2Archive } from './zones/B2Archive.js';
 import { B1DispatchHub } from './zones/B1DispatchHub.js';
+import {WardServiceAnnex,annexDoor} from './zones/WardServiceAnnex.js';
 
 export class WorldRouter {
   constructor(scene, camera, controller) {
@@ -63,6 +64,7 @@ export class WorldRouter {
       'phantom_6f': Phantom6F,
       'b2_archive': B2Archive,
       'b1_dispatch_hub': B1DispatchHub
+      ,'ward_service_annex':WardServiceAnnex
     };
 
     this.zoneLabels = {
@@ -80,6 +82,7 @@ export class WorldRouter {
       'phantom_6f': '6F 臨床技能中心',
       'b2_archive': 'B2 封存隔離層',
       'b1_dispatch_hub': 'B1 地下救護車接駁調度室'
+      ,'ward_service_annex':'第一院區 4F 封存檢修廊'
     };
 
     this.lightingGroup = new THREE.Group();
@@ -140,9 +143,10 @@ export class WorldRouter {
     this.lightingZoneId=lightingZone;
     const ZoneClass = this.zones[zoneId];
     const floorMatch = zoneId.match(/_([0-9])f(?:_|$)/);
-    this.activeZoneInstance = new ZoneClass(this.scene, this.gf, { floor: Number(floorMatch?.[1] || 5) });
+    this.activeZoneInstance = new ZoneClass(this.scene, this.gf, { floor: Number(floorMatch?.[1] || 5),hospitalSimulation:this.hospitalSimulation });
     this.activeZoneInstance.build();
     if (this.hospitalSimulation) installHospitalSystems(this.activeZoneInstance, zoneId, this.hospitalSimulation);
+    if(zoneId==='first_campus_4f')annexDoor(this.activeZoneInstance,[-11.82,0,1],Math.PI/2,'HOSPITAL_ANNEX_ENTRY','enter');
     if (zoneId === 'first_campus_4f') batchStaticWardBeds(this.activeZoneInstance);
     applyExteriorTime(this.activeZoneInstance.zoneGroup,gameState.gameTime);
     installEraPosters(this.activeZoneInstance, zoneId);
@@ -240,7 +244,7 @@ export class WorldRouter {
       const systems = this.activeZoneInstance?.hospitalSystems;
       this.hospitalSimulation.advance(delta, { time:gameState.gameTime,
         blocked: systems ? (x,z)=>systems.blockedStaff(x,z,this.controller.position) : undefined });
-      systems?.synchronizeStaff();
+      systems?.synchronizeStaff(delta,this.controller.position);
     }
     const portal = ROUTE_PORTALS.find(p => {
       const allowed=!p.gated||(p.requiresFlag&&gameState.getFlag(p.requiresFlag));
