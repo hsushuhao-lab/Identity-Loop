@@ -85,7 +85,7 @@ import { FinalSuccessDirector } from './story/FinalSuccessDirector.js';
 import { B2FireRecapDirector } from './story/B2FireRecapDirector.js';
 import { photoSequence, sharedAlbum, FLOOR_PHOTO_KEYS } from './story/SharedMedia.js';
 import { IdentityManager, IDENTITY_PROFILES } from './core/IdentityManager.js';
-import { IdentityLoopPanel } from './ui/IdentityLoopPanel.js';
+import { IdentityLoopPanel, resumeM9WorldInput } from './ui/IdentityLoopPanel.js';
 
 
 // Setup Three.js Scene & Renderer
@@ -622,7 +622,7 @@ function revealFinal316Handoff({deferred=false}={}) {
   const openForm=()=>{
     controller.enabled=false;
     if(identityLoopMode){
-      identityLoopPanel.openM9({onCommit:result=>identityRouteDirector.finishEnding(result)});
+      identityLoopPanel.openM9({onCommit:result=>identityRouteDirector.finishEnding(result),onDefer:()=>resumeM9WorldInput(controller,identityManager,uiManager)});
       return;
     }
     uiManager.openFinalHandoff(({name,employeeId})=>{

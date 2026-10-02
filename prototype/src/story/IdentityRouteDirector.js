@@ -7,6 +7,7 @@ import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { persistentMemory } from '../core/PersistentMemory.js';
 import { M1_FLAGS, M1_TASKS, captureM1Checkpoint, restoreM1Checkpoint, firstPendingM1Beat } from '../core/M1HandoffCheckpoint.js';
+import { resumeM9WorldInput } from '../ui/IdentityLoopPanel.js';
 
 const PHOTO_FILES = {
   history_group_1998: 'history-group.png',
@@ -1680,7 +1681,7 @@ export class IdentityRouteDirector {
     if (this.step === 'M9') {
       this.removeInteractionTarget();
       this.controller.enabled = false;
-      this.panel.openM9({ onCommit: result => this.finishEnding(result) });
+      this.panel.openM9({ onCommit: result => this.finishEnding(result),onDefer:()=>resumeM9WorldInput(this.controller,this.manager,this.uiManager) });
       return true;
     }
 
