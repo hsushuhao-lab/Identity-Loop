@@ -68,6 +68,10 @@ export class TouchControls {
     // Cover a modal opening while a finger is held down.
     this.observer = new MutationObserver(() => { if (this.blocked() || !controller.enabled) this.reset(); this.refresh(); });
     this.observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class','open'] });
+    // Route completion can restore controller.enabled after the final DOM mutation.
+    // Keep the visible controls in sync with that asynchronous state as well.
+    this.refreshTimer = setInterval(() => this.refresh(), 100);
+    this.refresh();
   }
   setActive(active) {
     this.active = active; this.controller.touchMode = active;
@@ -82,6 +86,12 @@ export class TouchControls {
   refresh() {
     this.root.classList.toggle('input-blocked', this.blocked() || !this.controller.enabled);
     this.root.querySelector('#touch-continue').hidden = !this.hasDialogue();
+  }
+  dispose() {
+    clearInterval(this.refreshTimer);
+    this.observer.disconnect();
+    this.reset();
+    this.root.remove();
   }
 }
 
