@@ -13,6 +13,9 @@ import { floorStateManager } from '../core/FloorStateManager.js';
 import { gameState } from '../core/GameState.js';
 import { installHospitalSystems } from './shared/HospitalSystems.js';
 import { batchStaticWardBeds } from '../art/StaticWardBeds.js';
+import {installHospitalSurfaceKit,finishHospitalLighting} from '../art/HospitalSurfaceKit.js';
+import {isMaterialSurfaceReady} from '../art/MaterialRegistry.js';
+import {installSignalLedgerProps} from '../art/SignalLedgerProps.js';
 
 import { FirstCampus3F } from './zones/FirstCampus3F.js';
 import { FirstCampus4F } from './zones/FirstCampus4F.js';
@@ -115,6 +118,7 @@ export class WorldRouter {
       roomLamps:this.roomLamps
     });
     const codeBlack=gameState.getFlag('M8_IDENTITY_BATTLE_ACTIVE')&&!gameState.getFlag('GAME_COMPLETE');
+    if(this.lightingZoneId==='first_campus_4f')finishHospitalLighting(this.lightingGroup);
     if(this.identityAlarmLight){
       this.identityAlarmLight.intensity=codeBlack?.48:0;
       if(codeBlack&&!this.identityAlarmLight.parent)this.lightingGroup.add(this.identityAlarmLight);
@@ -125,6 +129,7 @@ export class WorldRouter {
    * Loads a specific zone by ID and teleports player to a designated spawn point.
    */
   loadZone(zoneId, spawnId = null) {
+    this.beforeZoneChange?.();
     if (!this.zones[zoneId]) {
       console.warn(`[WorldRouter] Unknown zone: ${zoneId}, defaulting to first_campus_3f`);
       zoneId = 'first_campus_3f';
@@ -133,6 +138,7 @@ export class WorldRouter {
     this.hospitalSimulation?.save();
     // Clean up current zone
     if (this.activeZoneInstance && typeof this.activeZoneInstance.cleanup === 'function') {
+      this.activeZoneInstance.hospitalSurfaceKit?.dispose();
       this.closeZoneDoors(this.activeZoneInstance);
       this.activeZoneInstance.cleanup();
       this.activeZoneInstance = null;
@@ -148,6 +154,8 @@ export class WorldRouter {
     if (this.hospitalSimulation) installHospitalSystems(this.activeZoneInstance, zoneId, this.hospitalSimulation);
     if(zoneId==='first_campus_4f')annexDoor(this.activeZoneInstance,[-11.82,0,1],Math.PI/2,'HOSPITAL_ANNEX_ENTRY','enter');
     if (zoneId === 'first_campus_4f') batchStaticWardBeds(this.activeZoneInstance);
+    if(zoneId==='first_campus_4f'&&this.hospitalSimulation)installSignalLedgerProps(this.activeZoneInstance);
+    this.installReadySurfaceKit(zoneId,this.activeZoneInstance);
     applyExteriorTime(this.activeZoneInstance.zoneGroup,gameState.gameTime);
     installEraPosters(this.activeZoneInstance, zoneId);
     installMemoryEvidence(this.activeZoneInstance, zoneId);
@@ -232,6 +240,12 @@ export class WorldRouter {
     }
   }
 
+  installReadySurfaceKit(zoneId,zone){
+    if(zoneId!=='first_campus_4f'||!zone?.staticBedBatchComplete||zone.hospitalSurfaceKit)return;
+    if(!['plaster','vinyl','terrazzo','wood'].every(isMaterialSurfaceReady))return;
+    zone.hospitalSurfaceKit=installHospitalSurfaceKit(zone,{equipment:false});
+  }
+
   update(delta) {
     this.activeZoneInstance?.update?.(this.camera,delta);
     const zone=this.activeZoneInstance;
@@ -239,6 +253,7 @@ export class WorldRouter {
       zone.bedBatchWait=(zone.bedBatchWait||0)+delta;
       if(zone.bedBatchWait>=1){zone.bedBatchWait=0;batchStaticWardBeds(zone);}
     }
+    this.installReadySurfaceKit(this.activeZoneId,zone);
     if (!this.controller?.enabled) return;
     if (!document.hidden && this.hospitalSimulation) {
       const systems = this.activeZoneInstance?.hospitalSystems;

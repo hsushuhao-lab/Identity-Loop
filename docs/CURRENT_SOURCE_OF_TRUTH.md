@@ -4,7 +4,7 @@ This file exists to prevent stale branches, old design packets, screenshots, and
 
 ## Single active line
 
-The repository's default branch is currently **`master`**. Treat it as the only active/mainline source.
+The repository's default branch is **`main`** (verified through GitHub on 2026-10-02). Treat it as the active/mainline source; authorized feature work is integrated there after validation.
 
 Any other branch is non-authoritative, even if its name contains `feat/`, `fix/`, `release/`, or a newer-looking date.
 

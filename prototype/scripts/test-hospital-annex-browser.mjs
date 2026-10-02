@@ -62,12 +62,18 @@ try{
  }
  await start('LI',true);
  await check('continuous keyboard walk reaches both annex rooms and exit corridor',async()=>{await enter();const legs=await walk([[0,-4.7],[-4,-4.7],[-4,-6],[-4,-4.7],[0,-4.7],[4,-4.7],[4,-6],[4,-4.7],[0,-4.7],[0,5.8]]);await shot('mobile-annex-entry');await back();return {legs};});
+ await start('LI',true);
+ await check('mobile opens the existing storage door then continuously walks to annex and back',async()=>{
+  await page.evaluate(()=>{const q=window.__storyQA;q.gameState.markTaskComplete('KEY_PICKUP');q.controller.teleport(-5.7,1.7,1);q.lookAt([-7,1.175,1]);});await page.locator('#touch-interact').tap();assert.equal(await page.evaluate(()=>window.__storyQA.worldRouter.activeZoneInstance.keyedDoors.storage_STORE_ENTRY.closed),false);
+  const inbound=await walk([[-10.5,1]]);await page.evaluate(()=>window.__storyQA.lookAt([-11.82,1.13,1]));await page.locator('#touch-interact').tap();await page.waitForFunction(()=>window.__storyQA.worldRouter.activeZoneId==='ward_service_annex'&&!window.__storyQA.hospitalExcursion.transitioning);
+  await back();const outbound=await walk([[-5.7,1]]);return {checkpoint:'M2 after mandatory M1 KEY_PICKUP',inbound,outbound};
+ });
  await check('mechanical path needs no paper, fan animation and two outcomes on revisit',async()=>{
   await enter();await use('CASE_RELAY');await close();await use('CASE_POWER');await page.locator('[data-case-power]').click();await close();await use('CASE_FLOW');assert.match(await page.locator('[data-case-text]').innerText(),/沒有動/);await close();
   await use('CASE_DAMPER');await page.locator('[data-case-damper]').click();await close();await use('CASE_FLOW');assert.match(await page.locator('[data-case-text]').innerText(),/抖動/);await close();
   const animation=await page.evaluate(()=>{const z=window.__storyQA.worldRouter.activeZoneInstance,before=z.fan.rotation.z;z.update(null,.5);return {before,after:z.fan.rotation.z,strip:z.paperStrip.rotation.x};});assert.notEqual(animation.before,animation.after);
   await use('CASE_REPORT');assert.equal(await page.evaluate(()=>window.__storyQA.hospitalSimulation.data.sideCase.outcome),'pending','opening panel must not click an answer');await page.locator('[data-case-resolve="verify"]').click();const first=await page.evaluate(()=>window.__storyQA.hospitalSimulation.snapshot().sideCase);assert.equal(first.outcome,'verify');assert.equal(first.clues.includes('paper'),false);await close();
-  const budget=await shot('mobile-annex-verified');assert.equal(budget.withinSceneBudget,true,JSON.stringify(budget));await back();await enter();assert.equal(await page.evaluate(()=>window.__storyQA.hospitalSimulation.data.sideCase.outcome),'verify');
+  await page.evaluate(()=>{const q=window.__storyQA;q.controller.teleport(0,1.7,-6);q.lookAt([0,1.8,-8.6]);});const budget=await shot('mobile-annex-verified');assert.equal(budget.withinSceneBudget,true,JSON.stringify(budget));await back();await enter();assert.equal(await page.evaluate(()=>window.__storyQA.hospitalSimulation.data.sideCase.outcome),'verify');
   await use('CASE_REPORT');await page.locator('[data-case-resolve="archive"]').click();const revised=await page.evaluate(()=>window.__storyQA.hospitalSimulation.snapshot().sideCase);assert.equal(revised.outcome,'archive');assert.equal(revised.power,false);assert(revised.clues.includes('air_flow'));await close();await back();return {first,revised,animation,budget};
  });
  await check('reload inside annex preserves case and safely restores mainline',async()=>{
@@ -79,6 +85,29 @@ try{
   await enter();await page.locator('#hospital-annex-return').click();await page.waitForFunction(()=>window.__storyQA.worldRouter.activeZoneId==='first_campus_4f');
   assert.equal(await page.evaluate(()=>window.__storyQA.hospitalSimulation.data.sideCase.outcome),'pending');
   await page.evaluate(()=>window.__storyQA.gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',true));assert.equal(await page.evaluate(()=>window.__storyQA.hospitalExcursion.travel('enter')),false);assert.equal(await page.evaluate(()=>window.__storyQA.worldRouter.activeZoneId),'first_campus_4f');return {exitAlwaysAvailable:true,emergencyProtected:true};
+ });
+ for(const identity of ['LI','ZHANG','ZHOU','CHEN']){
+  await start(identity,identity==='CHEN');
+  await check(identity+' physical ledger paper solution, wrong answer recovery and mainline unchanged',async()=>{
+   const before=await page.evaluate(()=>({manager:window.__storyQA.identityManager.snapshot(),beat:window.__storyQA.identityRouteDirector.beatIndex}));
+   await use('SIGNAL_LEDGER_STRIPS');assert.equal(await page.evaluate(()=>window.__storyQA.signalLedgerQuest.snapshot().outcome),'investigating','touch entry cannot click a decision');await page.locator('[data-ledger-close]').click();
+   await use('SIGNAL_LEDGER_CARBON');await page.locator('[data-ledger-order]').selectOption('B-A');await page.locator('[data-ledger-submit]').click();assert.match(await page.locator('[data-ledger-status]').innerText(),/來源先後/);
+   await page.locator('[data-ledger-order]').selectOption('A-B');await page.locator('[data-ledger-submit]').click();const data=await page.evaluate(()=>window.__storyQA.signalLedgerQuest.snapshot());assert.equal(data.outcome,'sequence-preserved');assert.deepEqual(data.observed,['strips','carbon']);
+   const text=await page.locator('#signal-ledger-panel').innerText();assert.doesNotMatch(text,/李承禮|張守恆|周伯彥|陳國偉|MED-/);await shot(identity+'-ledger-paper');await page.locator('[data-ledger-close]').click();
+   const after=await page.evaluate(()=>({manager:window.__storyQA.identityManager.snapshot(),beat:window.__storyQA.identityRouteDirector.beatIndex}));assert.deepEqual(after,before);return {data,voice:text,before,after};
+  });
+ }
+ await start('LI',true);
+ await check('physical mobile ledger clock solution, uncertainty, reload and four separate props',async()=>{
+  await use('SIGNAL_LEDGER_STRIPS');await page.locator('[data-ledger-preserve]').click();assert.equal(await page.evaluate(()=>window.__storyQA.signalLedgerQuest.snapshot().outcome),'uncertainty-preserved');await page.locator('[data-ledger-close]').click();
+  await use('SIGNAL_LEDGER_CALIBRATION');await page.locator('[data-ledger-close]').click();await use('SIGNAL_LEDGER_SEAL');await page.locator('[data-ledger-method]').selectOption('clock');await page.locator('[data-ledger-correction]').selectOption('0');await page.locator('[data-ledger-submit]').click();assert.match(await page.locator('[data-ledger-status]').innerText(),/必須減 3/);
+  await page.locator('[data-ledger-method]').selectOption('clock');await page.locator('[data-ledger-correction]').selectOption('-3');await page.locator('[data-ledger-submit]').click();const before=await page.evaluate(()=>window.__storyQA.signalLedgerQuest.snapshot());assert.equal(before.method,'clock');assert.equal(before.observed.includes('carbon'),false);await shot('mobile-ledger-clock');await page.locator('[data-ledger-close]').click();
+  const budget=await shot('mobile-ledger-world');assert.equal(budget.withinSceneBudget,true);await page.goto('http://127.0.0.1:4213/?qa=story');await page.waitForFunction(()=>window.__storyQA?.identityRouteDirector&&!window.__storyQA.identityRouteDirector.busy);assert.deepEqual(await page.evaluate(()=>window.__storyQA.signalLedgerQuest.snapshot()),before);await use('SIGNAL_LEDGER_STRIPS');assert.match(await page.locator('[data-ledger-summary]').innerText(),/A → B/);await page.locator('[data-ledger-close]').click();return {before,budget};
+ });
+ await check('ledger closes on zone unload, surface kit installs only after readiness and mainline events block entry',async()=>{
+  const surface=await page.evaluate(()=>window.__storyQA.worldRouter.activeZoneInstance.hospitalSurfaceKit?.stats);assert(surface.changedMeshes>0);assert.equal(surface.addedDrawCalls,1);assert.equal(surface.addedLights,0);
+  await use('SIGNAL_LEDGER_STRIPS');await page.evaluate(()=>window.__storyQA.load('first_campus_3f','first_3f_lift'));assert.equal(await page.evaluate(()=>window.__storyQA.signalLedgerPanel.active),false);assert.equal(await page.evaluate(()=>window.__storyQA.signalLedgerQuest.getView().active),false);assert.equal(await page.evaluate(()=>window.__storyQA.controller.enabled),true);
+  await page.evaluate(()=>window.__storyQA.load('first_campus_4f','first_4f_lift'));await page.evaluate(()=>window.__storyQA.gameState.setFlag('M8_IDENTITY_BATTLE_ACTIVE',true));assert.equal(await page.evaluate(()=>window.__storyQA.signalLedgerPanel.open()),false);return {surface,closedOnUnload:true,emergencyProtected:true};
  });
  assert.deepEqual(report.errors,[]);report.verdict='PASS';
 }catch(error){report.verdict='FAIL';report.failure=error.stack;process.exitCode=1;console.error(error);if(page)await shot('failure').catch(()=>{});}

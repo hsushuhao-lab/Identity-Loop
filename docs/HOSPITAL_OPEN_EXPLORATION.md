@@ -4,7 +4,7 @@ The production engine remains Vite/Three.js. Desktop and touch browsers share on
 
 ## World mapping
 
-Keep existing first-campus 3F administration/history, 4F wards/nursing station, 8F bridge and identity-only B2 unchanged. The proposed 6F skills center, broader ER, parking, morgue and remaining floors require later content and route review. `ward_service_annex` is a new 4F service annex reached behind the existing entrance storage-room door, not a replacement floor or elevator destination.
+Keep existing first-campus 3F administration/history, 4F wards/nursing station, 8F bridge, scripted 6F clinical skills center and identity-only B2 unchanged. Broader ER systems, parking, morgue and remaining floors require later content and route review. `ward_service_annex` is a new 4F service annex reached behind the existing entrance storage-room door, not a replacement floor or elevator destination.
 
 ## Playable addition: 沒有風的驗收
 
@@ -13,6 +13,8 @@ The annex has a walkable vestibule, archive and low-voltage test room. Inspect t
 The test circuit never controls the hospital/B-Panel or establishes fire origin, culpability or identity. No outcome gates M1–M9 or writes identity evidence. B2 remains one-way and M9 retains one declaration. The excursion removes the mainline interaction binding only after assets are ready and rebinds the same beat on return. Cancel before readiness retains the current zone. A permanently available return control covers incomplete investigations. Reload returns to the saved mainline checkpoint, preserving local case records.
 
 ## Rendering and input
+
+The separate 4F equipment-shelf folder, **交班訊號缺頁**, has four physical paper/card targets. Players can compare carbon impressions or calibrate relative equipment readings, retry a wrong answer, preserve uncertainty and return at any time. Its run-specific save, four anonymous voices and outcomes remain independent from identity evidence. `SignalLedgerPanel` connects the imported data-only module to real E/touch input and closes on zone unload. `HospitalSurfaceKit` installs only after PBR readiness and static-bed batching, contributes one merged relief draw and no lights, and disposes zone-owned resources on unload.
 
 The anonymous equipment attendant has cloth grain, mask, articulated arms/legs, distance-driven gait, inspection pose and nearby-player orientation. Supported props gain rounded edges, readable source labels, wheelchair spokes/casters, local warm lighting and contact shading. Existing shared licensed models/PBR assets are reused; new geometry and canvas labels are generated in code.
 

@@ -29,7 +29,11 @@
 .touch-mode .modal-overlay > :first-child { max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow-y: auto; box-sizing: border-box; }
 .touch-mode button { min-height: 44px; }
 .touch-mode .identity-loop-panel.m9-open, .touch-mode .identity-loop-panel.ending-open { z-index: 350; bottom: 12px; top: 75px; max-height: calc(100dvh - 87px); overflow: auto; width: min(390px,calc(100vw - 24px)); }
-#hospital-panel, #hospital-case-panel { z-index: 400; }
+#hospital-panel, #hospital-case-panel, #signal-ledger-panel { z-index: 400; }
+#signal-ledger-panel label { display:block; margin:12px 0; }
+#signal-ledger-panel select { min-height:44px; max-width:100%; color:#ede9d5; background:#25392e; }
+#signal-ledger-panel [data-ledger-points] { display:flex; gap:8px; flex-wrap:wrap; }
+#signal-ledger-panel [data-ledger-status] { white-space:pre-wrap; color:#e0c597; }
 .hospital-shell { width: min(760px,94vw); max-height: 90dvh; display: flex; flex-direction: column; color: #e5e3d5; background: #14221c; border: 1px solid #8b9880; box-shadow: 0 20px 80px #000b; }
 .hospital-shell header { display: flex; justify-content: space-between; gap: 16px; padding: 18px; border-bottom: 1px solid #526654; }
 .hospital-shell h2 { margin: 3px 0; font: 500 24px serif; }

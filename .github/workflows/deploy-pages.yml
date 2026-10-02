@@ -73,6 +73,11 @@ jobs:
           node test_ward_circulation_qa.js
           node scripts/test-408c-clinical-audio.mjs
           node scripts/test-second-campus-exterior-manifest.mjs
+          node scripts/test-hospital-simulation.mjs
+          node scripts/test-static-ward-beds.mjs
+          node scripts/test-hospital-side-case.mjs
+          node scripts/test-signal-ledger-quest.mjs
+          node scripts/test-hospital-surface-kit.mjs
       - name: Report runtime asset budget
         if: steps.freshness.outputs.current == 'true'
         working-directory: prototype
