@@ -4,6 +4,10 @@ import { getVisibleEvidence } from '../story/IdentityLoopEvidence.js';
 import { ROUTE_STEPS } from '../story/IdentityRoutes.js';
 import { soundManager } from '../audio/SoundManager.js';
 
+export function resumeM9WorldInput(controller,manager,uiManager){
+  controller.enabled=!manager.runSave.runEnded&&!uiManager.dialogueSequence;
+  return controller.enabled;
+}
 
 export class IdentityLoopPanel{
   constructor(manager,{debug=false,onNewRun=()=>{}}={}){this.manager=manager;this.debug=debug;this.onNewRun=onNewRun;this.root=document.getElementById('identity-loop-panel');this.onCommit=null;}
@@ -33,9 +37,20 @@ export class IdentityLoopPanel{
     if(body){body.replaceChildren();const heading=document.createElement('h3');heading.textContent='B2 / IDENTITY ARCHIVE';body.append(heading);const p=document.createElement('p');p.textContent='CURRENT SELF = CORRUPTED｜客觀檔案已恢復，當前身分仍未判定。';body.append(p);const list=document.createElement('ul');for(const item of B2_ARCHIVE_IDENTITIES){const li=document.createElement('li');li.textContent=`封存人員｜${item.role}｜姓名與員編待最終核對`;list.append(li);}body.append(list);const fire=document.createElement('p');fire.className='identity-loop-fire-memory';fire.textContent=B2_FIRE_MEMORY.join(' · ');body.append(fire);}
     this.render();
   }
-  openM9({onCommit}={}){
+  deferM9(){
+    if(!this.root?.classList.contains('m9-open')||this.manager.runSave.runEnded)return false;
+    this.root.querySelector('[data-identity-choices]')?.replaceChildren();
+    this.root.classList.remove('visible','m9-open');
+    const onDefer=this.onDefer;
+    this.onCommit=null;
+    this.onDefer=null;
+    onDefer?.();
+    return true;
+  }
+  openM9({onCommit,onDefer}={}){
     if(!this.root||this.manager.currentRouteStep!=='M9'||this.manager.runSave.runEnded)return;
     this.onCommit=onCommit;
+    this.onDefer=onDefer;
     this.root.classList.add('visible','m9-open');
     this.root.classList.remove('archive-open','ending-open');
     this.root.querySelector('[data-identity-detail]').textContent='分別選擇姓名與員編。兩項都必須屬於這一輪的你；選到其他人的資料或不相符的配對，都會使身分核對失敗。正式提交僅有一次，提交後不可更改。若姓名與員編配對仍未確認，先退出終端，到同層 3F 文史館翻閱「1998 夜班核心人員名錄」，再回 316 提交。';
@@ -62,9 +77,7 @@ export class IdentityLoopPanel{
     defer.textContent='暫不提交，回 3F 文史館查證';
     defer.addEventListener('click',()=>{
       soundManager.playClick();
-      choices.replaceChildren();
-      this.root.classList.remove('visible','m9-open');
-      this.onCommit=null;
+      this.deferM9();
     });
     form.append(defer);
 
