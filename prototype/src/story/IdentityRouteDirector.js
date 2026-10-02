@@ -8,6 +8,7 @@ import { soundManager } from '../audio/SoundManager.js';
 import { persistentMemory } from '../core/PersistentMemory.js';
 import { M1_FLAGS, M1_TASKS, captureM1Checkpoint, restoreM1Checkpoint, firstPendingM1Beat } from '../core/M1HandoffCheckpoint.js';
 import { resumeM9WorldInput } from '../ui/IdentityLoopPanel.js';
+import { restoreEarnedArchiveAccess } from '../core/ArchiveAccessRecovery.js';
 
 const PHOTO_FILES = {
   history_group_1998: 'history-group.png',
@@ -276,6 +277,8 @@ export class IdentityRouteDirector {
     if(this.manager.runSave.completedStoryModules.includes('M1')){
       this.ensureIdentityDutyAccess();
     }
+
+    restoreEarnedArchiveAccess(this.gameState, this.manager.runSave);
 
     if(this.manager.currentIdentity==='LI'){
       this.gameState.setFlag('LI_2117_PATROL_ACTIVE',this.step==='LI_2117_PATROL');

@@ -1,0 +1,9 @@
+# Earned archive access across chapter reload
+
+The M1 transaction checkpoint deliberately covers only 316 handoff actions. The later B2 physical archive access award was set in GameState when Li/Zhang completed B2 beat 1, but not rebuilt when the same run resumed M9 after refresh. Completing the 3F investigation had also moved the director past its chapter-specific access setup. The 3082/302 spare-key route remained possible, but replaying it should not be necessary for an already earned award.
+
+`restoreEarnedArchiveAccess` runs before the resumed zone is constructed. It requires an active Li/Zhang run, completed B2 and the existing `route:B2:1` journal entry with B2 provenance. It sets only `ARCHIVE_ACCESS_KEY`; it does not unlock 302, add a task or evidence, replay the B2 presentation, alter the route or spend M9. Missing/legacy unproven records keep existing gates and the 302 fallback. Other identities, ended and new runs cannot inherit this award. No general GameState snapshot or storage schema change.
+
+The unit test covers same-run serialized reload and later chapters, missing completion/evidence, incorrect provenance, other identities and ended/new runs. Browser QA starts with an explicit saved M9 fixture and a B2 award journal, reloads the whole page, checks the unchanged save and unrelated flags, then uses real supported-raycast E (Li) or native touch (Zhang) to open the actual archive door. This is targeted reload QA; continuous route/ending evidence remains the independent QA owner's responsibility.
+
+Evidence: task-2 `qa-evidence/archive-access-recovery-before` contains the actual pre-fix failure; `archive-access-recovery` contains the repaired runs. Run `node scripts/test-archive-access-recovery.mjs` and `node scripts/test-archive-access-recovery-browser.mjs` after build. No publication is authorized by this fix.
