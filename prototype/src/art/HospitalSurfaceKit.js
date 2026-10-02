@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createStationContactShading } from './StationContactShading.js';
 
 /** Optional finish pass. No story, collision, navigation, NPC or runtime dependencies. */
 export const HOSPITAL_SURFACE_STYLE = Object.freeze({
@@ -6,11 +7,11 @@ export const HOSPITAL_SURFACE_STYLE = Object.freeze({
   atlasSize: 512,
   // Small trims become cooler, while the existing amber reading/task pools remain.
   finishes: Object.freeze({
-    wall: { color: 0xe5e7df, roughness: .91 },
+    wall: { color: 0xede9df, roughness: .94 },
     wallDark: { color: 0x687c75, roughness: .86 },
     wallBumper: { color: 0x536d65, roughness: .77 },
     ceiling: { color: 0xd7ddd7, roughness: .98 },
-    floorTile: { color: 0xd3d9cf, roughness: .64 },
+    floorTile: { color: 0xe2ded3, roughness: .76 },
     counterTop: { color: 0xbac9c0, roughness: .62 },
     metal: { color: 0x9daaa5, roughness: .53, metalness: .52 },
     stainless: { color: 0xc1cbc6, roughness: .42, metalness: .72 },
@@ -189,14 +190,17 @@ export function installHospitalSurfaceKit(zone, {
   }
   for (const [parent, mesh] of details) parent.add(mesh);
   const lighting = finishHospitalLighting(lightingGroup);
+  const contactShading = createStationContactShading(zone);
   const handle = {
     stats: Object.freeze({ changedMeshes: originals.length, materialVariants: replacements.size,
-      addedDrawCalls: details.length, addedTriangles: details.reduce((sum, [, mesh]) => sum + mesh.geometry.attributes.position.count / 3, 0),
+      addedDrawCalls: details.length + (contactShading ? 1 : 0), addedTriangles: details.reduce((sum, [, mesh]) => sum + mesh.geometry.attributes.position.count / 3, 0) + (contactShading?.triangles || 0),
+      contactShadingTextureBytes: contactShading?.textureBytes || 0,
       addedLights: 0, shadowCasters: 0, atlasBytesRGBA: atlas ? 512 * 512 * 4 : 0,
       atlasBytesWithMipmapsEstimate: atlas ? Math.ceil(512 * 512 * 4 * 4 / 3) : 0,
       finishedOverheads: lighting.count }),
     dispose() {
       if (disposed) return; disposed = true;
+      contactShading?.dispose();
       for (const [mesh, original] of originals) mesh.material = original;
       for (const [parent, mesh] of details) { parent.remove(mesh); mesh.geometry.dispose(); }
       detailMaterial?.dispose(); atlas?.dispose();

@@ -12,7 +12,7 @@ export class QualitySettings {
     const root = document.createElement('details'); root.id = 'quality-settings';
     root.innerHTML = `<summary>設定</summary><label>畫質 <select aria-label="畫質模式"></select></label>
       <label><input type="checkbox" id="haptic-enabled">震動回饋</label><p>請戴耳機。手機建議橫向使用。</p>
-      <p id="save-checkpoint-note">主線在章節切換時保存進度；未完成章節的互動可能需重做。</p>`;
+      <p id="save-checkpoint-note">主線在章節切換時保存。316 交班的領匙、簽到、登入卡、HIS 送出與解鎖另會保存；其他未完成章節的互動可能需重做。對話從尚未完成的事件重新開始。</p>`;
     const select = root.querySelector('select');
     for (const [key,preset] of Object.entries(QUALITY_PRESETS)) { const option = new Option(preset.label,key); select.add(option); }
     select.value = this.mode; select.onchange = () => this.apply(select.value);

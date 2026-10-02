@@ -48,7 +48,8 @@ export class GeometryFactory {
 
   buildWall(scene, colliders, x, y, z, width, height, depth, material = this.materials.wall) {
     const geo = new THREE.BoxGeometry(width, height, depth);
-    const mesh = new THREE.Mesh(geo, this.surface(material, width, height));
+    // A wall along Z has depth as its visible length, not the .22m thickness.
+    const mesh = new THREE.Mesh(geo, this.surface(material, Math.max(width, depth), height));
     mesh.position.set(x, y, z);
     mesh.castShadow = true;
     mesh.receiveShadow = true;

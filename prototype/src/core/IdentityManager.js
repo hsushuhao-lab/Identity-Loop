@@ -1,4 +1,5 @@
 import { IDENTITY_ROUTES } from '../story/IdentityRoutes.js';
+import { validateM1Checkpoint } from './M1HandoffCheckpoint.js';
 
 export const IdentityEnum=Object.freeze({
   ZHANG:'ZHANG',LI:'LI',ZHOU:'ZHOU',CHEN:'CHEN'
@@ -19,7 +20,7 @@ const ZHOU_PRE_GUARD_ROUTE=Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F
 const ZHOU_PRE16_ROUTE=Object.freeze(['ZHOU_OPEN_8F','M4','M5','M1','ZHOU_1F_PHOTO','ZHOU_SECURITY_TALK','M3','M2','ZHOU_2117_RETURN','M6','M7','B2','M8','M9']);
 const clone=value=>JSON.parse(JSON.stringify(value));
 const freshMeta=()=>({completedGoodEnds:[],identityBag:[],m10Unlocked:false});
-const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m9CommittedChoice:null,m9CommittedEmployeeChoice:null,m9ChoiceRevision:1,runEnded:false,b2Entered:false,runSeed:null});
+const freshRun=()=>({currentIdentity:null,currentRouteStep:0,completedStoryModules:[],currentMilestone:null,evidence:{},m1HandoffCheckpoint:null,m9CommittedChoice:null,m9CommittedEmployeeChoice:null,m9ChoiceRevision:1,runEnded:false,b2Entered:false,runSeed:null});
 
 function defaultStorage(){
   if(typeof window!=='undefined'&&window.localStorage)return window.localStorage;
@@ -76,6 +77,7 @@ export class IdentityManager{
     if(runSave.currentIdentity==='ZHOU')runSave.zhouRouteRevision=2;
     if(runSave.currentIdentity&&runSave.runSeed==null){runSave.runSeed=Math.floor(this.rng()*0x1_0000_0000)>>>0;}
     runSave.currentMilestone=IDENTITY_ROUTES[runSave.currentIdentity]?.[runSave.currentRouteStep]||(runSave.runEnded?'M9':metaSave.m10Unlocked?'M10':null);
+    runSave.m1HandoffCheckpoint=runSave.currentMilestone==='M1'?validateM1Checkpoint(runSave.m1HandoffCheckpoint,runSave):null;
     // Old released builds accepted only a matched personnel record. Preserve those
     // already-finalized choices; never infer the missing half for a new selection.
     const migrateM9=runSave.runEnded&&validIdentity(runSave.m9CommittedChoice)&&parsed.runSave?.m9ChoiceRevision!==1;
@@ -86,6 +88,12 @@ export class IdentityManager{
   }
 
   save(){this.storage.setItem(IDENTITY_STORAGE_KEY,JSON.stringify(this.state));return this.snapshot();}
+  saveM1HandoffCheckpoint(checkpoint){
+    if(this.currentRouteStep!=='M1'||this.runSave.runEnded)return false;
+    const valid=validateM1Checkpoint(checkpoint,this.runSave);
+    if(!valid||JSON.stringify(valid)===JSON.stringify(this.runSave.m1HandoffCheckpoint))return false;
+    this.runSave.m1HandoffCheckpoint=valid;this.save();return true;
+  }
   snapshot(){return clone(this.state);}
   get metaSave(){return this.state.metaSave;}
   get runSave(){return this.state.runSave;}
@@ -140,6 +148,7 @@ export class IdentityManager{
       }
     }
     this.runSave.currentMilestone=this.currentRouteStep;
+    if(step==='M1')this.runSave.m1HandoffCheckpoint=null;
     this.save();return true;
   }
 

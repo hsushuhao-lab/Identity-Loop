@@ -105,8 +105,8 @@
     },
     {
       "file": "models/shrub_02/shrub_02_2k.gltf",
-      "bytes": 8083,
-      "sha256": "9ce5762223498bfbaf33d03ef6cf4fdaeeb449cf4745d551e012e7d622a5367e",
+      "bytes": 8519,
+      "sha256": "7596095d378e3e382a13f17292fff353417b6b31710ff769b1a8145b6d0062ab",
       "variants": {
         "shrub_02_a": {
           "dimensions": [
@@ -165,8 +165,8 @@
     },
     {
       "file": "models/fern_02/fern_02_2k.gltf",
-      "bytes": 6899,
-      "sha256": "50540d37531f93fd693d5340d5b3095c9d6d2834fa05c74bea797d54f290cb6a",
+      "bytes": 7290,
+      "sha256": "340dd5c493cb0f8f7dc8510a6ac24d565e5528848c239083ffa9bfb991c4338c",
       "variants": {
         "fern_02_b": {
           "dimensions": [
@@ -238,6 +238,21 @@
       "file": "textures/Ground037_2K-JPG_Roughness.jpg",
       "bytes": 1189976,
       "sha256": "6b1c979f795e18730f1de2ff0035c2dee88ed211a451cba475e505fb73f6b4d5"
+    },
+    {
+      "file": "textures/PaintedPlaster017_1K-JPG_Color.jpg",
+      "bytes": 66372,
+      "sha256": "f293a6332bf792109f80389737e38b31aad718b8bfadb7d9584006c23381ddbc"
+    },
+    {
+      "file": "textures/PaintedPlaster017_1K-JPG_NormalGL.jpg",
+      "bytes": 369203,
+      "sha256": "38d22aa3277ed42d7fa8f193bab99a52ad3f36c06ac7d4dbec95f9423925898f"
+    },
+    {
+      "file": "textures/PaintedPlaster017_1K-JPG_Roughness.jpg",
+      "bytes": 41073,
+      "sha256": "e7e882cb37a3065acc836189f29bc46f24cec2f8c50e550326dd8ae9ced66567"
     },
     {
       "file": "textures/Plastic010_2K-JPG_Color.jpg",

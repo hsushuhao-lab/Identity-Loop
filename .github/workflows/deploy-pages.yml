@@ -80,6 +80,8 @@ jobs:
           node scripts/test-hospital-side-case.mjs
           node scripts/test-signal-ledger-quest.mjs
           node scripts/test-hospital-surface-kit.mjs
+          node scripts/test-metric-surface.mjs
+          node test_m1_handoff_checkpoint_qa.js
       - name: Report runtime asset budget
         if: steps.freshness.outputs.current == 'true'
         working-directory: prototype

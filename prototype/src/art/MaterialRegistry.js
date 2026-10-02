@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 const textureRoot = `${import.meta.env?.BASE_URL ?? '/'}assets/textures/`;
 const sources = {
-  plaster: { id: 'Plastic010', metres: .5 },
+  plaster: { id: 'PaintedPlaster017', resolution: '1K', metres: 1, metresY: .5 },
   vinyl: { id: 'Plastic010', metres: .35 },
   terrazzo: { id: 'Terrazzo001', metres: 2 },
   wood: { id: 'Wood051', metres: .8 },
@@ -19,7 +19,7 @@ const definitions = {
   floorTile: { color: 0xe7e0d2, roughness: .7, surface: 'terrazzo' },
   floorWood: { color: 0xe5d2af, roughness: .72, surface: 'wood' },
   ceiling: { color: 0xefede4, roughness: .97, surface: 'plaster' },
-  doorWood: { color: 0xdfc8a5, roughness: .67, surface: 'wood' },
+  doorWood: { color: 0xf3e8d5, roughness: .76, surface: 'wood' },
   metal: { color: 0x929991, roughness: .47, metalness: .65 },
   stainless: { color: 0xb4b8b3, roughness: .38, metalness: .8 },
   glass: { color: 0xc8d5ce, transparent: true, opacity: .22, roughness: .15 },
@@ -49,9 +49,9 @@ export function getMaterials() { return materials; }
 
 function loadMaterialEntries(entries) {
   const loader = new THREE.TextureLoader();
-  return Promise.all(entries.map(async ([surface, { id }]) => {
+  return Promise.all(entries.map(async ([surface, { id, resolution = '2K' }]) => {
     const textures = await Promise.all(['Color', 'NormalGL', 'Roughness'].map(async channel => {
-      const texture = await loader.loadAsync(`${textureRoot}${id}_2K-JPG_${channel}.jpg`);
+      const texture = await loader.loadAsync(`${textureRoot}${id}_${resolution}-JPG_${channel}.jpg`);
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.colorSpace = channel === 'Color' ? THREE.SRGBColorSpace : THREE.NoColorSpace;
       texture.anisotropy = 8;
@@ -64,7 +64,7 @@ function loadMaterialEntries(entries) {
       // Keep the scanned albedo on painted surfaces. The previous implementation
       // explicitly nulled plaster.map, which made walls/ceilings render as flat color
       // even though the texture files had been downloaded successfully.
-      const normalStrength = surface === 'plaster' ? .11 : surface === 'vinyl' ? .12 : surface === 'wood' ? .20 : .24;
+      const normalStrength = surface === 'plaster' ? .065 : surface === 'vinyl' ? .12 : surface === 'wood' ? .12 : .24;
       material.normalScale.set(normalStrength, normalStrength);
       material.needsUpdate = true;
     }

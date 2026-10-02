@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { instantiateAsset } from './AssetRegistry.js';
+import { applyMetricSurfaceUVs } from './MetricSurfaceUVs.js';
 
 export function artRoot(parent, name) {
   const root = new THREE.Group();
@@ -21,6 +22,7 @@ export function asset(parent, name, position, scale = [1, 1, 1], yaw = 0) {
 
 export function solid(parent, material, position, size, radius = 0.012) {
   const mesh = new THREE.Mesh(new RoundedBoxGeometry(...size, 2, Math.min(radius, ...size.map(v => v / 4))), material);
+  applyMetricSurfaceUVs(mesh.geometry, material);
   mesh.position.set(...position);
   mesh.castShadow = true;
   mesh.receiveShadow = true;

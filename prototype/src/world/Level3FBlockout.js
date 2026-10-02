@@ -575,8 +575,14 @@ export class Level3FBlockout {
     this.dutyLogMesh = logHitbox;
 
     // HIS credentials are hidden in the mobile pedestal under the main desk.
-    const credentialDrawer=new THREE.Mesh(new THREE.BoxGeometry(.72,.62,.66),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-    credentialDrawer.position.set(6.75,.39,6.2);
+    // Expose the drawer face at the desk's front edge. The old hotspot was
+    // buried inside the solid desk body, reachable only through opaque geometry.
+    const credentialFace=new THREE.Mesh(new THREE.BoxGeometry(.70,.58,.065),new THREE.MeshStandardMaterial({color:0x66503c,roughness:.76}));
+    credentialFace.name='316_CredentialDrawer_Front';credentialFace.position.set(6.75,.39,5.465);this.scene.add(credentialFace);
+    const credentialHandle=new THREE.Mesh(new THREE.BoxGeometry(.22,.025,.045),this.materials.metal);
+    credentialHandle.position.set(6.75,.57,5.415);this.scene.add(credentialHandle);
+    const credentialDrawer=new THREE.Mesh(new THREE.BoxGeometry(.72,.62,.14),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+    credentialDrawer.position.set(6.75,.39,5.37);
     credentialDrawer.userData={
       interactable:true,id:'316_CREDENTIAL_DRAWER',type:'credential_drawer_316',
       label:'打開書桌下方活動櫃',

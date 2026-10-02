@@ -55,7 +55,8 @@ for(const file of await readdir(new URL('textures/',assets))) {
  const bytes=await record(`textures/${file}`);
  if(bytes[0]!==255||bytes[1]!==216)throw new Error(`Invalid JPEG ${file}`);
 }
-if(getMaterials()!==getMaterials()||materialForSurface('wall',3,2)!==materialForSurface('wall',3,2)||instantiateAsset('officeChair')!==null)throw new Error('Offline registry/cache contract failed');
+const pendingChair=instantiateAsset('officeChair');
+if(getMaterials()!==getMaterials()||materialForSurface('wall',3,2)!==materialForSurface('wall',3,2)||pendingChair?.userData.pendingAsset!=='officeChair')throw new Error('Offline registry/cache contract failed');
 await writeFile(new URL('asset-integrity.json',assets),JSON.stringify({format:1,records},null,2)+'\n');
 console.log(`PASS: 8 GLBs + 2 vegetation glTF collections parsed, ${records.length} local files hashed; ${records.reduce((sum,r)=>sum+r.bytes,0)} bytes`);
 for(const record of records)if(record.variants)console.log(record.file,JSON.stringify(record.variants));

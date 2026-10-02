@@ -1,0 +1,43 @@
+{
+  "source": "https://ambientcg.com/view?id=PaintedPlaster017",
+  "download": "https://ambientcg.com/get?file=PaintedPlaster017_1K-JPG.zip",
+  "license": "CC0 1.0 Universal",
+  "technique": "Surface photogrammetry",
+  "adaptation": "Pillow JPEG re-encode quality88 4:4:4, no resize; three local channels only",
+  "zipSHA256": "bae0380d82b6ccac8943b4980417cb3c9de5c896218339c108056f1dfb8e886c",
+  "maps": [
+    {
+      "file": "public/assets/textures/PaintedPlaster017_1K-JPG_Color.jpg",
+      "originalBytes": 378542,
+      "originalSHA256": "ed8a69a6437de9d41d2cf380f7e6a216232fc4754f256c3405985c857547ffef",
+      "deliveredBytes": 66372,
+      "deliveredSHA256": "f293a6332bf792109f80389737e38b31aad718b8bfadb7d9584006c23381ddbc",
+      "dimensions": [
+        1024,
+        512
+      ]
+    },
+    {
+      "file": "public/assets/textures/PaintedPlaster017_1K-JPG_NormalGL.jpg",
+      "originalBytes": 1115299,
+      "originalSHA256": "1bef1887c10e1ce104be1a557e4dbd7634ef6d5ece6e3b4237dab2d0962f57fa",
+      "deliveredBytes": 369203,
+      "deliveredSHA256": "38d22aa3277ed42d7fa8f193bab99a52ad3f36c06ac7d4dbec95f9423925898f",
+      "dimensions": [
+        1024,
+        512
+      ]
+    },
+    {
+      "file": "public/assets/textures/PaintedPlaster017_1K-JPG_Roughness.jpg",
+      "originalBytes": 193304,
+      "originalSHA256": "a83ecc2ba5b9d80bb9a27381f3389ccdb20c77ef6358b92f3d11455403d651d8",
+      "deliveredBytes": 41073,
+      "deliveredSHA256": "e7e882cb37a3065acc836189f29bc46f24cec2f8c50e550326dd8ae9ced66567",
+      "dimensions": [
+        1024,
+        512
+      ]
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { sharedAlbum, photoSequence } from './SharedMedia.js';
 import { WORLD_SPAWNS } from '../world/shared/WorldRoutes.js';
 import { soundManager } from '../audio/SoundManager.js';
 import { persistentMemory } from '../core/PersistentMemory.js';
+import { M1_FLAGS, M1_TASKS, captureM1Checkpoint, restoreM1Checkpoint, firstPendingM1Beat } from '../core/M1HandoffCheckpoint.js';
 
 const PHOTO_FILES = {
   history_group_1998: 'history-group.png',
@@ -85,6 +86,14 @@ export class IdentityRouteDirector {
     this.archivePressureDeadline = 0;
     this.archivePressureLastCue = 0;
     this.archivePressureLight = null;
+    this.m1CheckpointReady = false;
+    this.gameState.addListener?.((event, data) => {
+      if (!this.m1CheckpointReady || this.step !== 'M1' || this.manager.currentRouteStep !== 'M1') return;
+      if ((event === 'task_completed' && M1_TASKS.includes(data)) ||
+          (event === 'flag_changed' && M1_FLAGS.includes(data?.flag))) {
+        this.manager.saveM1HandoffCheckpoint(captureM1Checkpoint(this.gameState, this.manager.runSave));
+      }
+    });
   }
 
   get currentRouteStep() { return this.step; }
@@ -237,6 +246,7 @@ export class IdentityRouteDirector {
   }
 
   async loadCurrentStep({ forceLoad = true } = {}) {
+    this.m1CheckpointReady = false;
     this.removeInteractionTarget();
     this.step = this.manager.currentRouteStep;
     const route = ROUTE_STEPS[this.step];
@@ -245,6 +255,10 @@ export class IdentityRouteDirector {
     this.revision += 1;
     this.awaitingZone = null;
     this.m1EntryTriggered = false;
+    if (this.step === 'M1' && restoreM1Checkpoint(this.gameState, this.manager.runSave.m1HandoffCheckpoint, this.manager.runSave)) {
+      this.beatIndex = firstPendingM1Beat(this.gameState, this.manager.runSave, this.beats.length);
+      this.m1EntryTriggered = this.beatIndex > 0;
+    }
     if(this.step==='M3'&&this.manager.currentIdentity==='ZHOU'&&this.manager.runSave.evidence['route:M3:1']){
       this.gameState.setFlag('ER0033_SLIP_COLLECTED',true);
       this.beatIndex=2;
@@ -308,6 +322,7 @@ export class IdentityRouteDirector {
       this.awaitingZone = targetZone;
       this.renderObjective();
     }
+    this.m1CheckpointReady = this.step === 'M1';
   }
 
   ensureIdentityDutyAccess() {

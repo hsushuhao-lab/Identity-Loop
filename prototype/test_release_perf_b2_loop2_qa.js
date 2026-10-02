@@ -27,10 +27,10 @@ assert(ui.includes("if(el===this.loopCutscene)return;"),'loop reset overlay clea
 assert(assets.includes("outdoorAssets = new Set(['shrub', 'fern', 'campusTree'])"),'outdoor GLTF split missing');
 assert(materials.includes("outdoorSurfaces = new Set(['ground', 'asphalt'])"),'outdoor PBR split missing');
 assert(!materials.includes("if (surface === 'plaster') material.map = null"),'plaster albedo must never be discarded; walls must render real texture maps');
-assert(materials.includes("surface === 'plaster' ? .11")&&materials.includes("surface === 'vinyl' ? .12"),'indoor normal detail must remain visibly scaled');
+assert(materials.includes("surface === 'plaster' ? .065")&&materials.includes("surface === 'vinyl' ? .12"),'painted plaster and vinyl must retain their calibrated nonzero normal detail');
 const geometryFactory=readFileSync('./src/world/shared/GeometryFactory.js','utf8');
 const level3=readFileSync('./src/world/Level3FBlockout.js','utf8');
-assert(geometryFactory.includes('this.surface(material, width, height)'),'shared architectural walls must use dimension-aware repeated PBR materials');
+assert(geometryFactory.includes('this.surface(material, Math.max(width, depth), height)'),'shared architectural walls must use dimension-aware repeated PBR materials');
 assert(level3.includes('materialForSurface(materialName,width,height)'),'3F walls must use dimension-aware repeated PBR materials');
 assert(campus.includes('preloadCampusBackdropAssets'),'campus backdrop preload hook missing');
 for (const zone of ['first_campus_3f','first_campus_2f','first_campus_1f','first_campus_8f','skybridge']) {
