@@ -1,0 +1,1122 @@
+{
+  "base": "539eb70",
+  "bundleSHA256": "252896346a00b9301f65c3b0945cdabf08eb45437e8b4caa302a7f563c2f10e1",
+  "baseline": false,
+  "method": "Actual production-built 5F scene, identical fixed cameras/time/lights with optional QA import. Existing Annie practical stays enabled in both views; only its geometry is hidden. Headless Chromium SwiftShader, DPR 1. Pose/animation renders are QA fixtures; they do not change encounter triggers. Localhost load times, no handset FPS claim.",
+  "errors": [],
+  "views": [
+    {
+      "name": "game-seated",
+      "before": {
+        "mode": "performance",
+        "pixelRatio": 1,
+        "targetFPS": 30,
+        "drawCalls": 88,
+        "triangles": 29145,
+        "budgets": {
+          "drawCalls": 900,
+          "triangles": 700000
+        },
+        "withinSceneBudget": true,
+        "actor": {
+          "meshes": 22,
+          "triangles": 24994
+        },
+        "state": "STORAGE_STATIC",
+        "lights": [
+          {
+            "name": "",
+            "type": "HemisphereLight",
+            "intensity": 0.42,
+            "color": 15132126,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              76,
+              3.05,
+              -2,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -9,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -15,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              81,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              65,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              83,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "Annie_Local_CoolWhite_Practical",
+            "type": "SpotLight",
+            "intensity": 3.6,
+            "color": 14543080,
+            "matrix": [
+              2.220446049250313e-16,
+              0,
+              -1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              2.220446049250313e-16,
+              0,
+              61.68,
+              2.32,
+              0.8800000000000001,
+              1
+            ]
+          }
+        ]
+      },
+      "after": {
+        "mode": "performance",
+        "pixelRatio": 1,
+        "targetFPS": 30,
+        "drawCalls": 75,
+        "triangles": 37039,
+        "budgets": {
+          "drawCalls": 900,
+          "triangles": 700000
+        },
+        "withinSceneBudget": true,
+        "actor": {
+          "meshes": 9,
+          "triangles": 32888
+        },
+        "state": "STORAGE_STATIC",
+        "lights": [
+          {
+            "name": "",
+            "type": "HemisphereLight",
+            "intensity": 0.42,
+            "color": 15132126,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              76,
+              3.05,
+              -2,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -9,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -15,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              81,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              65,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              83,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "Annie_Local_CoolWhite_Practical",
+            "type": "SpotLight",
+            "intensity": 3.6,
+            "color": 14543080,
+            "matrix": [
+              2.220446049250313e-16,
+              0,
+              -1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              2.220446049250313e-16,
+              0,
+              61.68,
+              2.32,
+              0.8800000000000001,
+              1
+            ]
+          }
+        ]
+      },
+      "load": {
+        "readyMs": 24.599999994039536,
+        "actor": {
+          "meshes": 9,
+          "triangles": 32888,
+          "geometryBytes": 1222576,
+          "lights": 0,
+          "bones": 53,
+          "textures": 10,
+          "textureBytes": 12932437.333333336
+        },
+        "resources": [
+          {
+            "durationMs": 4.799999997019768,
+            "transferSize": 1709800,
+            "encodedBodySize": 1709500,
+            "decodedBodySize": 1709500
+          }
+        ]
+      }
+    },
+    {
+      "name": "game-face",
+      "before": {
+        "mode": "performance",
+        "pixelRatio": 1,
+        "targetFPS": 30,
+        "drawCalls": 63,
+        "triangles": 22581,
+        "budgets": {
+          "drawCalls": 900,
+          "triangles": 700000
+        },
+        "withinSceneBudget": true,
+        "actor": {
+          "meshes": 22,
+          "triangles": 24994
+        },
+        "state": "STORAGE_STATIC",
+        "lights": [
+          {
+            "name": "",
+            "type": "HemisphereLight",
+            "intensity": 0.42,
+            "color": 15132126,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              76,
+              3.05,
+              -2,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -9,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -15,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              81,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              65,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              83,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "Annie_Local_CoolWhite_Practical",
+            "type": "SpotLight",
+            "intensity": 3.6,
+            "color": 14543080,
+            "matrix": [
+              2.220446049250313e-16,
+              0,
+              -1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              2.220446049250313e-16,
+              0,
+              61.68,
+              2.32,
+              0.8800000000000001,
+              1
+            ]
+          }
+        ]
+      },
+      "after": {
+        "mode": "performance",
+        "pixelRatio": 1,
+        "targetFPS": 30,
+        "drawCalls": 57,
+        "triangles": 35659,
+        "budgets": {
+          "drawCalls": 900,
+          "triangles": 700000
+        },
+        "withinSceneBudget": true,
+        "actor": {
+          "meshes": 9,
+          "triangles": 32888
+        },
+        "state": "STORAGE_STATIC",
+        "lights": [
+          {
+            "name": "",
+            "type": "HemisphereLight",
+            "intensity": 0.42,
+            "color": 15132126,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              76,
+              3.05,
+              -2,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -9,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              72,
+              3.05,
+              -15,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              81,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              65,
+              3.05,
+              -8,
+              1
+            ]
+          },
+          {
+            "name": "",
+            "type": "RectAreaLight",
+            "intensity": 3.8,
+            "color": 16773337,
+            "matrix": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0.00009999999949994454,
+              -0.999999995,
+              0,
+              0,
+              0.999999995,
+              0.00009999999949994454,
+              0,
+              83,
+              3.05,
+              6,
+              1
+            ]
+          },
+          {
+            "name": "Annie_Local_CoolWhite_Practical",
+            "type": "SpotLight",
+            "intensity": 3.6,
+            "color": 14543080,
+            "matrix": [
+              2.220446049250313e-16,
+              0,
+              -1,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              2.220446049250313e-16,
+              0,
+              61.68,
+              2.32,
+              0.8800000000000001,
+              1
+            ]
+          }
+        ]
+      },
+      "load": {
+        "readyMs": 1,
+        "actor": {
+          "meshes": 9,
+          "triangles": 32888,
+          "geometryBytes": 1222576,
+          "lights": 0,
+          "bones": 53,
+          "textures": 10,
+          "textureBytes": 12932437.333333336
+        },
+        "resources": [
+          {
+            "durationMs": 4.799999997019768,
+            "transferSize": 1709800,
+            "encodedBodySize": 1709500,
+            "decodedBodySize": 1709500
+          }
+        ]
+      }
+    }
+  ],
+  "animations": [
+    {
+      "state": "BRIDGE_MANIFEST",
+      "setup": {
+        "meshes": 8,
+        "triangles": 32696,
+        "geometryBytes": 1211696,
+        "lights": 0,
+        "bones": 53,
+        "textures": 10,
+        "textureBytes": 12932437.333333336
+      },
+      "images": [
+        {
+          "name": "bridge_manifest-rest.png",
+          "compression": 0,
+          "head": [
+            0,
+            0,
+            0,
+            "XYZ"
+          ],
+          "upperY": -0.0011517047252184928
+        },
+        {
+          "name": "bridge_manifest-motion.png",
+          "compression": 0,
+          "head": [
+            0,
+            0.03524971093323675,
+            0,
+            "XYZ"
+          ],
+          "upperY": -0.0011517047252184928
+        }
+      ]
+    },
+    {
+      "state": "FLOOR6_CPR",
+      "setup": {
+        "meshes": 8,
+        "triangles": 32696,
+        "geometryBytes": 1211696,
+        "lights": 0,
+        "bones": 53,
+        "textures": 10,
+        "textureBytes": 12932437.333333336
+      },
+      "images": [
+        {
+          "name": "floor6_cpr-rest.png",
+          "compression": 0,
+          "head": [
+            0.08,
+            0,
+            0,
+            "XYZ"
+          ],
+          "upperY": -0.0011517047252184928
+        },
+        {
+          "name": "floor6_cpr-motion.png",
+          "compression": 0.9999736813243072,
+          "head": [
+            0.08,
+            0,
+            0,
+            "XYZ"
+          ],
+          "upperY": -0.0011517047252184928
+        }
+      ]
+    }
+  ],
+  "lifecycle": [
+    "prefetched factory has synchronous rig",
+    "independent cloned skeletons",
+    "shared cached geometry and textures",
+    "independent instance materials",
+    "storage mannequin has no breathing or blink motion",
+    "active instance protects shared cache",
+    "owner cloned blue cuff is disposed exactly once",
+    "disposing one actor preserves other actor",
+    "all disposed roots detach",
+    "early disposal does not attach a late model",
+    "cart posture has no visible stool",
+    "zone teardown owns each instance resource exactly once",
+    "cache teardown succeeds after final instance"
+  ],
+  "mobile": {
+    "mode": "performance",
+    "pixelRatio": 1,
+    "targetFPS": 30,
+    "drawCalls": 47,
+    "triangles": 34493,
+    "budgets": {
+      "drawCalls": 900,
+      "triangles": 700000
+    },
+    "withinSceneBudget": true,
+    "cssViewport": [
+      390,
+      844
+    ],
+    "actor": {
+      "meshes": 9,
+      "triangles": 32888,
+      "geometryBytes": 1222576,
+      "lights": 0,
+      "bones": 53,
+      "textures": 10,
+      "textureBytes": 12932437.333333336
+    },
+    "load": {
+      "readyMs": 10368,
+      "firstRenderedMs": 11283.199999988079,
+      "network": "Browser emulation 5 Mbit/s downstream, 100 ms latency, no CPU throttle; not handset timing",
+      "resources": [
+        {
+          "durationMs": 10346,
+          "transferSize": 1709800,
+          "encodedBodySize": 1709500
+        }
+      ]
+    }
+  },
+  "verdict": "PASS"
+}
