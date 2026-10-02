@@ -14,6 +14,11 @@ import { preloadArtPass2 } from './art/ArtPass2Assets.js';
 import { IdentityRouteDirector } from './story/IdentityRouteDirector.js';
 import { ROUTE_STEPS } from './story/IdentityRoutes.js';
 import { anonymousNarrative } from './story/IdentityPrivacy.js';
+import { HospitalSimulation } from './core/HospitalSimulation.js';
+import { HospitalPanel } from './ui/HospitalPanel.js';
+import { TouchControls, installEvidenceZoom } from './player/TouchControls.js';
+import { QualitySettings } from './art/QualitySettings.js';
+import { withLoadDeadline } from './art/LoadDeadline.js';
 
 const identityLoopMode=new URLSearchParams(location.search).get('mode')!=='linear';
 const identityManager=new IdentityManager();
@@ -36,7 +41,7 @@ const loadingMask=document.getElementById('asset-loading-mask');
 const loadingMessage=document.getElementById('asset-loading-message');
 const loadingRetry=document.getElementById('asset-loading-retry');
 while(true){
-  try{await preloadZoneEssential(openingZoneId);break;}
+  try{await withLoadDeadline(async()=>await preloadZoneEssential(openingZoneId));break;}
   catch(error){
     console.error('[art] opening essential load failed',error);
     loadingMessage.textContent='必要資料載入失敗，請重試。';
@@ -51,7 +56,8 @@ while(true){
 void preloadArtPass2().catch(error=>console.warn('[artpass2] background preload failed',error));
 const prefetchDestinationAssets = async destination => {
   const zoneId=destination?.zoneId;
-  await prepareZoneWithRetry(zoneId);
+  if (destination.allowCancel) await prepareZoneWithRetry(zoneId, {allowCancel:true});
+  else await prepareZoneWithRetry(zoneId);
   void preloadZoneOptional(zoneId).catch(error => console.warn('[art] optional zone asset preload failed', error));
 };
 let fastPathWorldPreload=Promise.resolve();
@@ -91,7 +97,13 @@ const camera = new THREE.PerspectiveCamera(
   220
 );
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ antialias: true }); }
+catch {
+  loadingMessage.textContent='此瀏覽器目前無法啟動 3D 畫面。請啟用硬體加速，或改用支援 WebGL2 的瀏覽器。';
+  loadingRetry.hidden=false; loadingRetry.onclick=()=>location.reload();
+  await new Promise(()=>{});
+}
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
@@ -108,6 +120,7 @@ reflectionGenerator.dispose();
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 composer.addPass(new OutputPass());
+const qualitySettings = new QualitySettings(renderer, composer);
 
 import { WorldRouter } from './world/WorldRouter.js';
 
@@ -123,6 +136,9 @@ const cinematicDirector = new CinematicDirector({ camera, controller, gameState 
 
 // Instantiate World Router
 const worldRouter = new WorldRouter(scene, camera, controller);
+let hospitalStorage; try { hospitalStorage = localStorage; } catch {}
+const hospitalSimulation = new HospitalSimulation({ storage: hospitalStorage, runKey: identityLoopMode ? identityManager.runSave.runSeed : 'linear-session' });
+worldRouter.hospitalSimulation = hospitalSimulation;
 window.worldRouter = worldRouter;
 window.__materialAudit = () => ({
   zoneId: worldRouter.activeZoneId,
@@ -149,18 +165,29 @@ uiManager = new UIManager(
         !overlayActive &&
         document.pointerLockElement !== renderer.domElement
       ) {
-        renderer.domElement.requestPointerLock()?.catch(error=>{if(error.name!=='NotAllowedError')console.warn('[input] Pointer lock unavailable',error);});
+        controller.requestPointerLock();
       }
     }, 100);
   },
   () => {
     // Elevator cutscene finish callback
     controller.enabled = true;
-    renderer.domElement.requestPointerLock()?.catch(error=>{if(error.name!=='NotAllowedError')console.warn('[input] Pointer lock unavailable',error);});
+    controller.requestPointerLock();
   }
 );
 
 uiManager.identityMediaContext=()=>identityLoopMode?{identity:identityManager.currentIdentity,step:identityManager.currentRouteStep}:null;
+const hospitalPanel = new HospitalPanel({ simulation: hospitalSimulation, controller, worldRouter,
+  context: () => ({ identity: identityManager.currentIdentity, seed: identityManager.runSave.runSeed, time: gameState.gameTime }),
+  onClose: () => controller.requestPointerLock() });
+const touchControls = new TouchControls(controller, {
+  blocked: () => Boolean(document.querySelector('.modal-overlay.active, .cutscene-overlay.active, #asset-loading-mask, .identity-ending-playing, details#quality-settings[open]')),
+  inspect: item => { if (item) uiManager.showSubtitle('觀察', identityLoopMode ? anonymousNarrative(item.label) : item.label, 3000); },
+  journal: () => document.body.classList.toggle('touch-objective-open'),
+  hasDialogue: () => Boolean(uiManager.dialogueSequence),
+  continueDialogue: () => { if (uiManager.dialogueSequence) document.dispatchEvent(new KeyboardEvent('keydown', { code:'KeyE', key:'e', bubbles:true })); }
+});
+installEvidenceZoom();
 
 const identityLoopPanel=new IdentityLoopPanel(identityManager,{debug:new URLSearchParams(location.search).get('qa')==='story'||new URLSearchParams(location.search).get('debug')==='1',onNewRun:restartFreshExperience});
 let identityGoodEndingDirector=null;
@@ -649,7 +676,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
     });
   };
   window.__storyQA={
-    gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,identityRouteDirector,
+    gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,identityRouteDirector,hospitalSimulation,hospitalPanel,touchControls,qualitySettings,
     get identityGoodEndingDirector(){return identityGoodEndingDirector;},
     prefetch:prefetchDestinationAssets,
     load:(zone,spawn)=>{worldRouter.loadZone(zone,spawn);worldRouter.activeZoneInstance?.syncStoryState?.();},
@@ -716,7 +743,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
 // Setup Raycast Hover & Interaction
 controller.onHoverChange = (interactable) => {
   if (interactable) {
-    uiManager.showPrompt(`[E] ${identityLoopMode?anonymousNarrative(interactable.label):interactable.label}  ·  雙擊走近`);
+    uiManager.showPrompt(`${controller.touchMode ? '●' : '[E]'} ${identityLoopMode?anonymousNarrative(interactable.label):interactable.label}${controller.touchMode ? ' · 長按觀察' : '  ·  雙擊走近'}`);
   } else {
     uiManager.showPrompt(null);
   }
@@ -776,6 +803,7 @@ function completeSecondCampus5FWardReport(){
 }
 
 controller.onInteract = async (interactable) => {
+  if (interactable.type === 'hospital_system') { hospitalPanel.open(interactable.id); return; }
   if(identityLoopMode){
     if(identityRouteDirector.handleInteract(interactable)) return;
     if(!identityRouteDirector.allowWorldInteraction(interactable)){
@@ -1620,7 +1648,7 @@ controller.onInteract = async (interactable) => {
         uiManager.showSubtitle(dutyLine.speaker,dutyLine.text);
       }
       controller.enabled = true;
-    }, interactable.kind, prefetchDestinationAssets);
+    }, interactable.kind, destination => prefetchDestinationAssets({...destination,allowCancel:true}));
   } else if (interactable.type === 'second_campus_nursing_report') {
     // Legacy QA compatibility only; production UI no longer exposes this hotspot.
     completeSecondCampus5FWardReport();
@@ -1960,7 +1988,7 @@ function animate() {
 
   controller.update(delta);
   worldRouter.update(delta);
-  if(identityLoopMode){identityRouteDirector.update();if(!identityGoodEndingDirector?.active)composer.render();return;}
+  if(identityLoopMode){identityRouteDirector.update();if(!identityGoodEndingDirector?.active)qualitySettings.render(performance.now());return;}
   if(worldRouter.activeZoneId==='first_campus_2f' && controller.enabled && !cinematicDirector.activeId &&
     gameState.getFlag('GHOST_REGISTRATION_AVAILABLE') && !gameState.getFlag('LEGEND_ER0033_RESOLVED') && !gameState.getFlag('CG_00_33_GHOST_REGISTRATION_PLAYED') &&
     controller.position.x>10.5 && controller.position.x<15.5 && controller.position.z>-9.7 && controller.position.z<-4.5){
@@ -2010,7 +2038,7 @@ function animate() {
     }
   }
 
-  composer.render();
+  qualitySettings.render(performance.now());
 }
 
 // URL parameters for QA and visual capture

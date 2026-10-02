@@ -339,7 +339,7 @@ export class UIManager {
   }
 
   openWorkstation() {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     soundManager.playComputerBeep();
     if(this.gameState.getFlag('HIS_CREDENTIALS')){
       const a=document.getElementById('his-account'),p=document.getElementById('his-password');
@@ -379,7 +379,7 @@ export class UIManager {
   }
 
   openDutyLog() {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     soundManager.playClick();
     this.dutyLogModal.classList.add('active');
   }
@@ -390,7 +390,7 @@ export class UIManager {
   }
 
   openLocker() {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     const opened=this.gameState.getFlag('LOCKER_OPENED');
     const contents=document.getElementById('locker-contents');
     contents?.classList.toggle('revealed',opened);
@@ -514,7 +514,7 @@ export class UIManager {
   }
 
   showAnomalyMessage() {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.gameState.setFlag('ARCHIVE_OBJECTIVE',true);
     this.gameState.setFlag('HIS_ANOMALY_SEEN',true);
     this.gameState.setFlag('ANNE_STAGE',1);
@@ -551,7 +551,7 @@ export class UIManager {
   }
 
   open302Inspect() {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.inspect302Modal?.classList.add('active');
     if(this.inspect302Clue){
       this.inspect302Clue.classList.toggle('found',this.gameState.getFlag('FOUND_302_CODE'));
@@ -592,7 +592,7 @@ export class UIManager {
   }
 
   open302Keypad() {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     const input=document.getElementById('office302-code');
     if(input&&persistentMemory.data.knownCodes.pass_3082)input.value='3082';
     this.office302Modal?.classList.add('active');
@@ -604,7 +604,7 @@ export class UIManager {
   }
 
   openArchiveDocument(documentData) {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     const context=this.identityMediaContext?.();
     const personnel=documentData.pages?.some(page=>page?.kind==='personnel');
     const rosterReady=['LI_3F_EVIDENCE','ZHANG_3F_ARCHIVE','M8','CHEN_M8_DISPATCH','M9'].includes(context?.step);
@@ -688,7 +688,7 @@ export class UIManager {
 
   openPoster(posterData) {
     if(!posterData||!this.posterModal)return;
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     if(this.posterTitleEl)this.posterTitleEl.textContent=posterData.title||'院內年代海報';
     if(this.posterCategoryEl){
       const label={TRUE_CLUE:'院內年代資料｜可能是真線索',AMBIGUOUS:'院內年代資料｜內容待判讀',FALSE_CLUE:'院內年代資料｜可能是體制性誤導'}[posterData.category]||'院內年代資料';
@@ -716,7 +716,7 @@ export class UIManager {
   setBed33Handlers(handlers){this.bed33Handlers=handlers;}
 
   openJournal(){
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     const notes=document.getElementById('journal-notes');
     const count=document.getElementById('journal-loop-count');
     if(count)count.textContent=persistentMemory.data.loopCount===0?'這是第一次值班。':`已經回到這個夜班 ${persistentMemory.data.loopCount} 次。`;
@@ -739,7 +739,7 @@ export class UIManager {
   }
 
   openBed33Assignment({canReject=false,rememberedRule=false}={}){
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     const reject=document.getElementById('btn-bed33-reject');
     if(reject)reject.hidden=false;
     const defer=document.getElementById('btn-bed33-defer');
@@ -757,7 +757,7 @@ export class UIManager {
   }
 
   playLegendOverride({legend='409 PATIENTIZATION',reason='你重演了當年的錯誤。'}={},onComplete){
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.patientizationScene?.dispose();
     this.patientizationScene=new PatientizationScene(this.loopCutscene);
     this.loopOverrideComplete=onComplete;
@@ -800,7 +800,7 @@ export class UIManager {
   }
 
   openStoryChoice({title,body,primaryText='確認',secondaryText='暫緩',onPrimary,onSecondary,systemTrap=null}){
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     const primary=document.getElementById('btn-story-primary');
     const secondary=document.getElementById('btn-story-secondary');
     document.getElementById('story-choice-title').textContent=title;
@@ -858,7 +858,7 @@ export class UIManager {
 
   openMemorySequence(sequence,onClose=null,onRead=null){
     if(!sequence)return;
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.memorySequence=sequence;this.memoryFrameIndex=0;this.memoryCloseHandler=onClose;
     const context=this.identityMediaContext?.();
     this.memoryPresentation=(context||isIdentityRouteMode())?mediaPresentation(sequence,context?.identity):null;
@@ -958,7 +958,7 @@ export class UIManager {
   }
 
   openIdentityMatrix({candidates=[],onSelect,onAttemptComplete=null}={}){
-    document.exitPointerLock();this.identityMatrixHandler=onSelect;let attemptUsed=false;
+    document.exitPointerLock?.();this.identityMatrixHandler=onSelect;let attemptUsed=false;
     const grid=document.getElementById('identity-candidate-grid');grid.replaceChildren();
     for(const candidate of candidates){
       const button=document.createElement('button');button.className='identity-candidate';button.id='identity-candidate-'+candidate.id;
@@ -994,7 +994,7 @@ export class UIManager {
   closeIdentityMatrix(resume=true){this.identityMatrixModal?.classList.remove('active');this.identityMatrixHandler=null;if(resume)this.onTerminalClose?.();}
 
   openFinalHandoff(handler){
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.finalHandoffHandler=handler;
     const employeeId=document.getElementById('final-employee-id');if(employeeId)employeeId.value='';
     document.getElementById('final-handoff-status').textContent='IDENTITY VERIFICATION REQUIRED';
@@ -1070,7 +1070,7 @@ export class UIManager {
   }
 
   openTravelSelector(destinations, currentZone, onSelect, kind = 'elevator', onPrefetch = null) {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.elevatorCutscene.dataset.selecting = 'true';
     this.elevatorCutscene.dataset.travelling = 'false';
     this.elevatorCutscene.querySelector('.floor-arrow').textContent = '↕';
@@ -1181,6 +1181,7 @@ export class UIManager {
     statusEl.textContent=`${kind==='stairs'?'安全梯':'電梯'} ${fromFloor}F → ${destination.floorNum}F`;
     if(kind==='stairs')soundManager.playClick();else soundManager.playElevatorMotor();
     const preloadPromise=Promise.resolve(onPrefetch?.(destination));
+    preloadPromise.catch(()=>{});
     const glitch=kind!=='stairs'&&fromFloor===3&&destination.floorNum===4&&this.gameState.isTaskComplete('ARCHIVE_CLUE_FOUND');
     if(glitch){
       const digit=this.elevatorCutscene.querySelector('.floor-digit');
@@ -1198,6 +1199,9 @@ export class UIManager {
         }else await preloadPromise;
         await onSelect(destination);
         soundManager.playElevatorChime();
+      } catch(error) {
+        console.warn('[travel] arrival cancelled; source zone retained',error);
+        this.showSubtitle('電梯','必要資料尚未就緒，已取消移動。請重新選擇樓層。',4000);
       } finally {
         this.elevatorCutscene.dataset.travelling='false';
         this.closeTravelSelector();
@@ -1206,7 +1210,7 @@ export class UIManager {
   }
 
   runDoorTransition(onArrival) {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     this.elevatorCutscene.dataset.selecting='false';
     this.elevatorCutscene.dataset.travelling='true';
     this.elevatorCutscene.classList.add('active');
@@ -1228,7 +1232,7 @@ export class UIManager {
   }
 
   triggerElevatorTransition(onComplete) {
-    document.exitPointerLock();
+    document.exitPointerLock?.();
     soundManager.playElevatorChime();
     this.elevatorCutscene.classList.add('active');
 

@@ -11,6 +11,7 @@ import { addTravelFixtures } from './shared/TravelFixtures.js';
 import { CollisionFactory } from './shared/CollisionFactory.js';
 import { floorStateManager } from '../core/FloorStateManager.js';
 import { gameState } from '../core/GameState.js';
+import { installHospitalSystems } from './shared/HospitalSystems.js';
 
 import { FirstCampus3F } from './zones/FirstCampus3F.js';
 import { FirstCampus4F } from './zones/FirstCampus4F.js';
@@ -139,6 +140,7 @@ export class WorldRouter {
     const floorMatch = zoneId.match(/_([0-9])f(?:_|$)/);
     this.activeZoneInstance = new ZoneClass(this.scene, this.gf, { floor: Number(floorMatch?.[1] || 5) });
     this.activeZoneInstance.build();
+    if (this.hospitalSimulation) installHospitalSystems(this.activeZoneInstance, zoneId, this.hospitalSimulation);
     applyExteriorTime(this.activeZoneInstance.zoneGroup,gameState.gameTime);
     installEraPosters(this.activeZoneInstance, zoneId);
     installMemoryEvidence(this.activeZoneInstance, zoneId);

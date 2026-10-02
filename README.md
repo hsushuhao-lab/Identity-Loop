@@ -279,6 +279,7 @@ Vite 的大型 JavaScript 區塊警告仍存在，不能宣稱本輪已改善載
 | Chen 路線擴充 | [15 步修正紀錄](docs/v2_identity_loop/CHEN_15_STEPS_20260929.md) |
 | Zhang 路線擴充 | [16 步修正紀錄](docs/v2_identity_loop/ZHANG_16_STEPS_20260929.md) |
 | Zhou 路線擴充 | [16 步修正紀錄](docs/v2_identity_loop/ZHOU_16_STEPS_20260929.md) |
+| 手機操作與 4F 器材互動（本機第一階段，尚未發布） | [產品規格、操作、樓層映射與後續驗收](docs/MOBILE_HOSPITAL_PHASE1.md) |
 
 </details>
 

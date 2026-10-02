@@ -3,9 +3,13 @@
 <head>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#14251e" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/identity-192.png" />
   <title>《夜班迴廊》Version 2: Identy Loop</title>
   <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./mobile.css" />
 </head>
 <body>
   <div id="asset-loading-mask" role="status" style="position:fixed;inset:0;z-index:50000;background:#101813;color:#e0e6df;display:grid;place-content:center;text-align:center">
@@ -15,6 +19,7 @@
   </div>
   <!-- 3D Canvas Viewport -->
   <div id="canvas-container"></div>
+  <noscript>Identity Loop 需要啟用 JavaScript 才能遊玩。</noscript>
 
   <!-- Crosshair & Interaction Prompt -->
   <div id="crosshair"></div>

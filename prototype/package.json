@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:identity": "node scripts/run-identity-qa.mjs",
-    "test:distant-landscape": "node scripts/test-distant-landscape.mjs"
+    "test:distant-landscape": "node scripts/test-distant-landscape.mjs",
+    "test:hospital": "node scripts/test-hospital-simulation.mjs",
+    "test:mobile": "node scripts/test-mobile-hospital-browser.mjs"
   },
   "dependencies": {
     "three": "^0.170.0"

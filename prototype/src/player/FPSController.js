@@ -12,6 +12,9 @@ export class FPSController {
 
     this.isLocked = false;
     this.enabled = true;
+    this.touchMove = { x: 0, z: 0 };
+    this.touchRun = false;
+    this.touchMode = globalThis.matchMedia?.('(pointer: coarse)').matches ?? false;
 
     // Movement state
     this.keys = { forward: false, backward: false, left: false, right: false, shift: false };
@@ -58,13 +61,14 @@ export class FPSController {
     this.domElement.addEventListener('click', () => {
       void soundManager.ensureRunning();
       if (this.enabled && !this.isLocked) {
-        this.domElement.requestPointerLock();
+        this.requestPointerLock();
       }
     });
 
     this.domElement.addEventListener('dblclick', (e) => {
       void soundManager.ensureRunning();
       if (!this.enabled) return;
+      if (this.touchMode) return;
       this.handleDoubleClick(e);
     });
 
@@ -75,11 +79,7 @@ export class FPSController {
     document.addEventListener('mousemove', (e) => {
       if (!this.isLocked || !this.enabled) return;
 
-      this.yaw -= e.movementX * this.mouseSensitivity;
-      this.pitch -= e.movementY * this.mouseSensitivity;
-      this.pitch = Math.max(-Math.PI / 2.35, Math.min(Math.PI / 2.35, this.pitch));
-
-      this.updateCameraRotation();
+      this.lookBy(e.movementX, e.movementY);
     });
 
     document.addEventListener('keydown', (e) => {
@@ -109,9 +109,7 @@ export class FPSController {
           this.keys.shift = true;
           break;
         case 'KeyE':
-          if (this.currentInteractable && this.onInteract) {
-            this.onInteract(this.currentInteractable);
-          }
+          if (!e.repeat) this.interact();
           break;
       }
     }, { passive: false });
@@ -125,6 +123,27 @@ export class FPSController {
         case 'ShiftLeft': case 'ShiftRight': this.keys.shift = false; break;
       }
     });
+    globalThis.window?.addEventListener?.('blur', () => this.resetInput());
+  }
+
+  requestPointerLock() {
+    if (this.touchMode || !this.domElement.requestPointerLock) return;
+    try { this.domElement.requestPointerLock()?.catch?.(() => {}); } catch {}
+  }
+
+  resetInput() {
+    for (const key of Object.keys(this.keys)) this.keys[key] = false;
+    this.touchMove.x = this.touchMove.z = 0; this.touchRun = false;
+    this.velocity.set(0, 0, 0); this.cancelAutoMove();
+  }
+
+  interact() { if (this.enabled && this.currentInteractable) this.onInteract?.(this.currentInteractable); }
+
+  lookBy(x, y, sensitivity = this.mouseSensitivity) {
+    if (!this.enabled) return;
+    this.yaw -= x * sensitivity; this.pitch -= y * sensitivity;
+    this.pitch = Math.max(-Math.PI / 2.35, Math.min(Math.PI / 2.35, this.pitch));
+    this.updateCameraRotation();
   }
 
   updateCameraRotation() {
@@ -182,24 +201,24 @@ export class FPSController {
   update(delta) {
     if (!this.enabled) return;
 
-    const manualInput = this.keys.forward || this.keys.backward || this.keys.left || this.keys.right;
+    const manualInput = this.keys.forward || this.keys.backward || this.keys.left || this.keys.right || this.touchMove.x || this.touchMove.z;
     if (manualInput) this.cancelAutoMove();
 
     // Movement calculation
-    const moveSpeed = this.keys.shift ? 3.35 : 2.15;
+    const moveSpeed = this.keys.shift || this.touchRun ? 3.35 : 2.15;
     const damping = 12.0;
 
     this.velocity.x -= this.velocity.x * damping * delta;
     this.velocity.z -= this.velocity.z * damping * delta;
 
-    this.direction.z = Number(this.keys.forward) - Number(this.keys.backward);
-    this.direction.x = Number(this.keys.right) - Number(this.keys.left);
-    this.direction.normalize();
+    this.direction.z = Number(this.keys.forward) - Number(this.keys.backward) + this.touchMove.z;
+    this.direction.x = Number(this.keys.right) - Number(this.keys.left) + this.touchMove.x;
+    if (this.direction.length() > 1) this.direction.normalize();
 
-    if (this.keys.forward || this.keys.backward) {
+    if (this.direction.z) {
       this.velocity.z += this.direction.z * moveSpeed * 34.0 * delta;
     }
-    if (this.keys.left || this.keys.right) {
+    if (this.direction.x) {
       this.velocity.x += this.direction.x * moveSpeed * 34.0 * delta;
     }
 
@@ -376,7 +395,7 @@ export class FPSController {
   }
 
   teleport(x, y, z, yaw = 0) {
-    this.cancelAutoMove();
+    this.resetInput();
     this.position.set(x, y, z);
     this.velocity.set(0, 0, 0);
     for (const key of Object.keys(this.keys)) this.keys[key] = false;
