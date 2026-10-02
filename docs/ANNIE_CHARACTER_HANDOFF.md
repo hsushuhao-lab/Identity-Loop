@@ -76,3 +76,14 @@ Evidence directory: `C:/Users/Asher/Documents/game/2026-10-02/task-3/qa-evidence
 - `result.json`: production QA bundle SHA256, exact counters, mobile viewport and compression/head transforms
 
 Files in this commit: the character module, `scripts/test-annie-character.mjs`, `scripts/capture-annie-character.mjs`, this handoff. No original Annie file, main/world/story file or owner worktree was edited. No push, merge or deploy was performed.
+
+
+## Owner integration and refinement
+
+The owner connected the production AnnieArt factory/update and kept the prior practical with its exact lighting settings. Named head/torso/face/nose and overlapped-hand cues remain available; 3F cart uses straight face-up presentation above the supported bed, and resetting stage 0 restores the same pose. The stethoscope factory, inscription privacy and clue interactions remain separate.
+
+Actual near-view inspection prompted a softer nose bridge/tip, curved folded lapels, a closed collar transition, scrub waistband and subtle cloth/synthetic bump maps. Final seated topology is 22 meshes / 24,994 triangles / 779,776 geometry-buffer bytes; bridge/CPR 20 / 24,624 / 765,852. The existing one-light practical is retained by the owner wrapper; standalone module still adds zero lights. The wrapper releases its existing shadow map before the module's exactly-once teardown.
+
+Legacy nose-only / >45-mesh visual assertions are superseded by the user's requested redesign. Tests now assert fixed painted features, no airway mechanism, no breathing, real mobile mesh/triangle budgets, supported face-up cart placement, overlapping hands and unchanged CPR contact. Story/identity assertions remain.
+
+Integrated evidence: `../../qa-evidence/character-refinement/annie-final/` (relative repo). Independent module screenshots above are historical; use integrated final captures to assess the shipped asset.

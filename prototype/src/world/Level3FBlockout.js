@@ -346,8 +346,8 @@ export class Level3FBlockout {
     const cart=new THREE.Group();cart.position.set(13.5,0,5.15);this.scene.add(cart);
     const bed=new THREE.Mesh(new THREE.BoxGeometry(1.70,.12,.72),this.materials.wall);bed.position.y=.76;cart.add(bed);
     for(const x of [-.72,.72])for(const z of [-.25,.25]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.62,8),cartMat);leg.position.set(x,.42,z);cart.add(leg);}
-    const anne=createAnnieArt(this.scene,{materials:this.materials,state:'STORAGE_STATIC',position:[14.2,.84,5.15],rotationY:0});
-    anne.rotation.z=Math.PI/2;
+    const anne=createAnnieArt(this.scene,{materials:this.materials,state:'STORAGE_STATIC',position:[14.29,.96,5.15],rotationY:0,posture:'standing',contactShadow:false});
+    anne.rotation.set(-Math.PI/2,0,Math.PI/2);
     this.anneGroup=anne;this.anneHead=anne.getObjectByName('Annie_Head');this.anneStage=0;
     this.anneStool=anne.getObjectByName('Annie_Stool');
     if(this.anneStool)this.anneStool.visible=false;
@@ -364,7 +364,7 @@ export class Level3FBlockout {
     this.anneGroup.visible=stage<3;this.anneHit.visible=stage<3;
     this.anneHit.userData.interactable=stage<3;
     if(stage===0){
-      this.anneGroup.position.set(14.2,.84,5.15);this.anneGroup.rotation.set(0,0,Math.PI/2);
+      this.anneGroup.position.set(14.29,.96,5.15);this.anneGroup.rotation.set(-Math.PI/2,0,Math.PI/2);
       this.anneStool.visible=false;this.anneHit.position.set(13.48,1.0,5.15);
     }
     if(stage===1){

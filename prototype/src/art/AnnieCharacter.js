@@ -11,8 +11,8 @@ function faceDepth(x,y) {
   const s=Math.max(0,1-(x/.094)**2-(y/.127)**2);
   return .083*Math.sqrt(s)
     +.009*gauss(x,y,0,-.075,.058,.033)
-    +.018*gauss(x,y,0,-.010,.014,.049)
-    +.012*gauss(x,y,0,-.035,.022,.014)
+    +.012*gauss(x,y,0,-.010,.019,.046)
+    +.010*gauss(x,y,0,-.035,.028,.017)
     -.010*(gauss(x,y,-.035,.024,.020,.016)+gauss(x,y,.035,.024,.020,.016))
     +.007*(gauss(x,y,-.050,-.015,.023,.022)+gauss(x,y,.050,-.015,.023,.022))
     +.004*gauss(x,y,0,-.064,.030,.010);
@@ -68,6 +68,15 @@ function patch(points) {
   const g=new THREE.BufferGeometry();
   const p=[],uv=[],c=[];for(const index of [0,1,2,0,2,3]){p.push(...points[index]);uv.push(index===1||index===2?1:0,index>=2?0:1);c.push(1,1,1);}
   g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));g.computeVertexNormals();return g;
+}
+
+function foldedLapel(points) {
+  // A gently folded fabric surface rather than a two-triangle paper polygon.
+  return surface(8,12,(u,v)=>{
+    const top=vec(points[0]).lerp(vec(points[1]),u),bottom=vec(points[3]).lerp(vec(points[2]),u),p=top.lerp(bottom,v);
+    p.z+=.007*Math.sin(u*Math.PI)*Math.sin(v*Math.PI);
+    return {position:p.toArray()};
+  });
 }
 
 function originalTexture(kind,size) {
@@ -151,8 +160,8 @@ export function createAnnieCharacter(parent,{state='STORAGE_STATIC',position=[0,
   const cloth=originalTexture('cloth',128),grain=originalTexture('skin',128),shadow=originalTexture('shadow',128);
   [cloth,grain,shadow].forEach(t=>{t.userData.sharedAsset=true;owned.textures.add(t);});
   const mat=(name,parameters)=>{const material=new THREE.MeshStandardMaterial({name,vertexColors:true,...parameters});material.userData={sharedAsset:true,annieCharacterOwned:true};owned.materials.add(material);return material;};
-  const m={skin:mat('Annie_Mat_Skin',{color:0xbdb7a7,map:grain,roughness:.87}),coat:mat('Annie_Mat_Coat',{color:0xd9ddd1,map:cloth,roughness:.96,side:THREE.DoubleSide}),
-    scrubs:mat('Annie_Mat_Scrubs',{color:0x697e78,map:cloth,roughness:.98}),edge:mat('Annie_Mat_CoatEdge',{color:0xc7cfc2,map:cloth,roughness:.94,side:THREE.DoubleSide}),
+  const m={skin:mat('Annie_Mat_Skin',{color:0xbdb7a7,map:grain,bumpMap:grain,bumpScale:.0005,roughness:.72}),coat:mat('Annie_Mat_Coat',{color:0xd9ddd1,map:cloth,bumpMap:cloth,bumpScale:.0013,roughness:.94,side:THREE.DoubleSide}),
+    scrubs:mat('Annie_Mat_Scrubs',{color:0x697e78,map:cloth,bumpMap:cloth,bumpScale:.0012,roughness:.96}),edge:mat('Annie_Mat_CoatEdge',{color:0xc7cfc2,map:cloth,bumpMap:cloth,bumpScale:.0012,roughness:.94,side:THREE.DoubleSide}),
     hair:mat('Annie_Mat_Hair',{color:0x282621,roughness:.93,side:THREE.DoubleSide}),detail:mat('Annie_Mat_Features',{color:0x544f43,roughness:.94,side:THREE.DoubleSide}),
     lip:mat('Annie_Mat_Mouth',{color:0x9a9282,roughness:.92,side:THREE.DoubleSide}),eye:mat('Annie_Mat_Eye',{color:0x9a9d8c,roughness:.77,side:THREE.DoubleSide}),
     iris:mat('Annie_Mat_Iris',{color:0x353c32,roughness:.86}),nail:mat('Annie_Mat_Nail',{color:0xb7b0a0,roughness:.75}),
@@ -172,11 +181,13 @@ export function createAnnieCharacter(parent,{state='STORAGE_STATIC',position=[0,
     if(y>localShoulder-.08&&z>lean)shirtPosition.setY(i,y-.08*Math.max(0,1-Math.abs(x)/.09)*THREE.MathUtils.clamp((y-localShoulder+.08)/.10,0,1));
   }
   shirt.computeVertexNormals();torso.add(m.scrubs,shirt);
+  torso.add(m.coat,loft([[0,localShoulder+.012,lean],[0,localShoulder+.046,lean]],[[.135,.087],[.050,.043]],{segments:28,rings:6,open:.33,fold:.001}));
+  lower.add(m.scrubs,loft([[0,hip+.040,0],[0,hip-.065,.005]],[[.165,.101],[.161,.096]],{segments:24,rings:8,fold:.001}));
   torso.add(m.skin,loft([[0,localShoulder-.010,lean],[0,headY-hip-.105,lean+.004]],[[.046,.042],[.039,.035]],{segments:20,rings:6,fold:0}));
   for(const side of [-1,1]){
     // Flat folded lapels rather than capsule-shaped tubes.
     const z=lean+.101;
-    torso.add(m.edge,patch([[side*.075,localShoulder+.006,z],[side*.142,localShoulder-.10,z+.015],[side*.040,localShoulder-.29,z+.022],[side*.024,localShoulder-.08,z+.015]]));
+    torso.add(m.edge,foldedLapel([[side*.075,localShoulder+.006,z],[side*.142,localShoulder-.10,z+.015],[side*.040,localShoulder-.29,z+.022],[side*.024,localShoulder-.08,z+.015]]));
     const py=localShoulder-.34,pz=lean*.5+.12;
     torso.add(m.edge,patch([[side*.067,py+.015,pz],[side*.153,py+.013,pz-.01],[side*.143,py-.091,pz-.005],[side*.066,py-.087,pz+.008]]));
     const elbow=seated?[side*.24,.265,.115]:cpr?[side*.12,localShoulder-.02,.56]:resting?[side*.235,.19,.015]:[side*.24,localShoulder-.20,.10];

@@ -14,16 +14,16 @@ function assertAnnie(group,state){
   assert(group.getObjectByName('Annie_Head'),'shared mannequin head missing');
   assert(group.getObjectByName('Annie_Torso'),'shared mannequin torso missing');
   assert(!group.getObjectByName('Annie_Stethoscope'),'stethoscope must remain off Annie');
-  assert(!group.getObjectByName('Annie_MouthAirway'),'Annie must have no mouth or airway feature');
-  assert(group.getObjectByName('Annie_MoldedNose'),'nose is Annie’s only facial feature');
+  assert(!group.getObjectByName('Annie_MouthAirway'),'trainer must not gain an airway mechanism');
+  assert(group.getObjectByName('Annie_MoldedNose'),'anatomical nose inspection anchor missing');
   assert(group.getObjectByName('Annie_SmoothVinylFace'),'face must read as molded vinyl');
   assert(group.getObjectByName('Annie_WhiteCoat'),'yellowed white coat missing');
   assert(group.getObjectByName('Annie_Scrubs'),'gray-green scrub layer missing');
-  assert(group.getObjectByName('Annie_WorkShoe_-1'),'rounded work shoes missing');
-  assert(group.getObjectByName('Annie_NeckMoldSeam'),'neck mold seam missing');
-  assert(group.getObjectByName('Annie_WristMoldSeam_-1'),'wrist mold seam missing');
-  const names=[];group.traverse(object=>names.push(object.name));
-  assert(!names.some(name=>/^Annie_(FixedEye|UnfocusedIris|FixedPupil|Mouth|BlowTrainingMouth|CoatPocket|CoatButton|CompressionPlate|ScrubNeckline)/.test(name)),'face must be nose-only and chest must have no attached items');
+  assert.equal(group.userData.assetVersion,'ANNIE_CHARACTER_V1');
+  const shoe=group.getObjectByName('AnnieCharacter_Annie_Mat_Shoe');assert(shoe?.isMesh,'merged work shoes missing');
+  assert(group.getObjectByName('AnnieCharacter_Annie_Mat_Eye'),'fixed painted eyes missing');
+  assert(group.getObjectByName('AnnieCharacter_Annie_Mat_Mouth'),'painted closed lips missing');
+  assert(group.getObjectByName('Annie_Local_CoolWhite_Practical')?.castShadow,'existing practical must remain');
   assert(!Object.hasOwn(group.userData,'inscription'),'the mannequin does not own the stethoscope clue');
   assert.equal(group.userData.modelHeight,1.65,'standing reference height remains 165 cm');
   let meshCount=0;
@@ -32,13 +32,20 @@ function assertAnnie(group,state){
     meshCount++;
     assert.notEqual(object.geometry.type,'BoxGeometry',`${object.name} must use rounded mannequin geometry`);
   });
-  assert(meshCount>45,'Annie should use smoothly segmented body and clothing geometry');
+  assert(meshCount>=18&&meshCount<=24,'merged anatomy and clothing must remain within the mobile character draw budget');
+  let triangles=0;group.traverse(o=>{if(o.isMesh){triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;for(const v of o.geometry.attributes.position.array)assert(Number.isFinite(v));}});assert(triangles<=28000,'character triangle budget exceeded');
 }
 
 const threeF=router.loadZone('first_campus_3f');
 const storage=threeF.levelInstance.anneGroup;
 assertAnnie(storage,ANNIE_STATES.STORAGE_STATIC);
 assert(storage.getObjectByName('Annie_Stool'),'M1 Annie must sit on the storage stool');
+storage.updateMatrixWorld(true);
+const cartBounds=new THREE.Box3().setFromObject(storage);
+assert(cartBounds.min.y>=.82,'supine trainer must not penetrate cart');
+assert(cartBounds.min.y<.87,'supine trainer must rest on cart, not float');
+assert(cartBounds.min.x>=12.62&&cartBounds.max.x<=14.35,'trainer must fit the existing teaching bed');
+assert(new THREE.Vector3(0,0,1).applyQuaternion(storage.getWorldQuaternion(new THREE.Quaternion())).y>.99,'teaching trainer must lie face-up');
 assert.equal(threeF.levelInstance.anneStethoscopeProp,undefined,'the stethoscope clue belongs to the 6F investigation');
 const storageElapsed=storage.userData.rig.elapsed;
 updateAnnieArt(storage,1);
@@ -51,13 +58,9 @@ assert.notEqual(bridge.userData.rig.head.rotation.z,0,'bridge idle keeps a tiny 
 assert(bridge.getObjectByName('Annie_OverlappedHands'),'bridge pose must hold both hands together');
 bridge.updateMatrixWorld(true);
 assert(bridge.getObjectByName('Annie_HandStack_Top').getWorldPosition(new THREE.Vector3()).y>1.05,'bridge hands remain lifted and extended');
-for(const side of [-1,1]){
-  const upper=bridge.getObjectByName(`Annie_CoatSleeveUpper_${side}`);
-  const forearm=bridge.getObjectByName(`Annie_CoatSleeveForearm_${side}`);
-  const upperAxis=new THREE.Vector3(0,1,0).applyQuaternion(upper.getWorldQuaternion(new THREE.Quaternion()));
-  const forearmAxis=new THREE.Vector3(0,1,0).applyQuaternion(forearm.getWorldQuaternion(new THREE.Quaternion()));
-  assert(upperAxis.dot(forearmAxis)>.995,'bridge arms remain straight from shoulder through wrists');
-}
+const bottomHand=bridge.getObjectByName('Annie_HandStack_Bottom').getWorldPosition(new THREE.Vector3());
+const topHand=bridge.getObjectByName('Annie_HandStack_Top').getWorldPosition(new THREE.Vector3());
+assert(bottomHand.distanceTo(topHand)<.065,'bridge hands must remain overlapped');
 
 gameState.setFlag('FLOOR6_STETHOSCOPE_FOUND',false);
 gameState.setFlag('FLOOR6_STETHOSCOPE_INSPECTED',false);

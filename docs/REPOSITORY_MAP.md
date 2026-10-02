@@ -1,6 +1,6 @@
 # Repository Map — Current Source Only
 
-**Authoritative branch:** `master` (repository default/mainline)
+**Authoritative branch:** `main` (repository default/mainline)
 
 ## Active runtime
 
