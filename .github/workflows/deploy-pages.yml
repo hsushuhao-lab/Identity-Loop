@@ -78,6 +78,8 @@ jobs:
           node scripts/test-annie-load-fallback.mjs
           node scripts/test-annie-integrated-poses.mjs
           node scripts/test-touch-control-recovery.mjs
+          node scripts/test-touch-click-fallback.mjs
+          node scripts/test-m9-defer-recovery.mjs
           node scripts/test-duty-log-status.mjs
           node scripts/test-equipment-attendant.mjs
           node scripts/test-hospital-simulation.mjs

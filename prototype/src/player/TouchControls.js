@@ -37,8 +37,28 @@ export class TouchControls {
       });
     }
     const interact = this.root.querySelector('#touch-interact');
+    const activateInteraction = () => {
+      clearTimeout(this.pendingInteractionTimer); this.pendingInteractionTimer = null;
+      const pending = this.pendingClick, gesture = this.releasedInteraction;
+      this.pendingClick = false;
+      if (pending && gesture?.target && !this.blocked() && controller.enabled) {
+        gesture.applied = true;
+        if (controller.onInteract) controller.onInteract(gesture.target);
+        else controller.interact();
+      }
+    };
+    this.clearReleasedInteraction = () => { this.releasedInteraction = null; };
+    this.guardReleasedClick = e => {
+      const gesture = this.releasedInteraction;
+      if (gesture?.applied && e.pointerId === gesture.pointerId && e.target !== interact) {
+        e.preventDefault(); e.stopImmediatePropagation();
+      }
+    };
+    document.addEventListener('pointerdown', this.clearReleasedInteraction, true);
+    document.addEventListener('click', this.guardReleasedClick, true);
     interact.addEventListener('pointerdown', e => {
       if (this.blocked() || !controller.enabled) return;
+      clearTimeout(this.pendingInteractionTimer); this.pendingInteractionTimer = null;
       e.preventDefault(); interact.setPointerCapture(e.pointerId); this.held = false; this.pendingClick = false;
       this.holdTimer = setTimeout(() => {
         this.holdTimer = null; this.held = true;
@@ -49,14 +69,17 @@ export class TouchControls {
       e.preventDefault(); const pending = this.holdTimer;
       clearTimeout(this.holdTimer); this.holdTimer = null;
       this.pendingClick = Boolean(pending && !this.held);
+      this.releasedInteraction = { pointerId: e.pointerId, target: controller.currentInteractable, applied: false };
+      // Some touch browsers omit click after a drag. Give the normal click first
+      // chance, then recover the short press using its original target.
+      if (this.pendingClick) this.pendingInteractionTimer = setTimeout(activateInteraction, 60);
     });
     // Open the modal after the browser has selected the click target. Opening it
     // during pointerup can send the synthesized touch click to a new answer button.
     interact.addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation(); const pending = this.pendingClick; this.pendingClick = false;
-      if (pending && !this.blocked() && controller.enabled) controller.interact();
+      e.preventDefault(); e.stopPropagation(); activateInteraction();
     });
-    for (const type of ['pointercancel', 'lostpointercapture']) interact.addEventListener(type, e => { clearTimeout(this.holdTimer); this.holdTimer = null; if(type==='pointercancel')this.pendingClick=false; });
+    for (const type of ['pointercancel', 'lostpointercapture']) interact.addEventListener(type, e => { clearTimeout(this.holdTimer); this.holdTimer = null; if(type==='pointercancel'){this.pendingClick=false;clearTimeout(this.pendingInteractionTimer);this.pendingInteractionTimer=null;} });
     const run = this.root.querySelector('#touch-run');
     run.addEventListener('pointerdown', e => { e.preventDefault(); if (!this.blocked()) { run.setPointerCapture(e.pointerId); controller.touchRun = true; } });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) run.addEventListener(type, () => { controller.touchRun = false; });
@@ -82,12 +105,15 @@ export class TouchControls {
     this.controller.touchRun = false; this.controller.resetInput();
     clearTimeout(this.holdTimer); this.holdTimer = null;
     this.pendingClick = false;
+    clearTimeout(this.pendingInteractionTimer); this.pendingInteractionTimer = null;
   }
   refresh() {
     this.root.classList.toggle('input-blocked', this.blocked() || !this.controller.enabled);
     this.root.querySelector('#touch-continue').hidden = !this.hasDialogue();
   }
   dispose() {
+    document.removeEventListener?.('pointerdown', this.clearReleasedInteraction, true);
+    document.removeEventListener?.('click', this.guardReleasedClick, true);
     clearInterval(this.refreshTimer);
     this.observer.disconnect();
     this.reset();

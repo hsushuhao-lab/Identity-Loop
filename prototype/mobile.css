@@ -1,5 +1,5 @@
 #canvas-container canvas { touch-action: none; }
-#quality-settings { position: fixed; z-index: 190; top: max(12px,env(safe-area-inset-top)); right: max(12px,env(safe-area-inset-right)); color: #e6e5d5; background: #13241eee; border: 1px solid #647a68; padding: 6px 12px; font: 14px/1.7 sans-serif; max-width: 260px; }
+#quality-settings { position: fixed; z-index: 90; top: max(12px,env(safe-area-inset-top)); right: max(12px,env(safe-area-inset-right)); color: #e6e5d5; background: #13241eee; border: 1px solid #647a68; padding: 6px 12px; font: 14px/1.7 sans-serif; max-width: 260px; }
 #quality-settings summary { cursor: pointer; min-height: 28px; }
 #quality-settings label { display: block; margin: 10px 0; }
 #quality-settings select { max-width: 225px; min-height: 44px; }

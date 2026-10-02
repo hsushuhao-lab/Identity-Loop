@@ -71,7 +71,10 @@ same-camera/light sample are retained under `qa-evidence/annie-comparisons`; the
 are marked as art fixtures, separately from production integration screenshots.
 
 Touch-dialogue recovery and truthful duty-log display were cherry-picked from
-independent QA. The separately reported M9 deferral movement lock is still a release
-gate until its owner delivers the fix and affected checks pass. This candidate has
+independent QA. M9 deferral callbacks are integrated. Real desktop E and native touch now defer,
+walk through the archive door to the roster, return, reopen and submit once. A missing
+synthesized touch click after joystick movement is recovered after 60 ms; a guard
+prevents the released gesture from selecting a newly opened modal answer. The
+settings layer stays beneath document modals so close buttons remain reachable. This candidate has
 not been pushed or published. Physical-phone FPS, thermal behavior/PWA lifecycle,
 uninterrupted four-Seed ending navigation and full photorealism remain open.
