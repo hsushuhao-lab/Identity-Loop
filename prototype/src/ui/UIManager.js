@@ -10,6 +10,7 @@ import { persistentMemory, TRUE_NAME_CANON } from '../core/PersistentMemory.js';
 import { drawCharacterStrip } from '../art/CharacterPortraitArt.js';
 import { getCharacterProfile } from '../story/CharacterBible.js';
 import {drawMemoryFragment,drawPersonnelRosterBackdrop,preloadArtPass2Image} from '../art/ArtPass2Assets.js';
+import { renderDutyLogStatus } from './DutyLogStatus.js';
 
 export class UIManager {
   constructor(gameState, onTerminalClose, onElevatorTransitionComplete) {
@@ -381,6 +382,10 @@ export class UIManager {
   openDutyLog() {
     document.exitPointerLock?.();
     soundManager.playClick();
+    renderDutyLogStatus(this.dutyLogModal, {
+      signed: this.gameState.isTaskComplete('DUTY_LOG'),
+      itemsCollected: this.gameState.isTaskComplete('KEY_PICKUP')
+    });
     this.dutyLogModal.classList.add('active');
   }
 
