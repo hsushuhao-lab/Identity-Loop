@@ -48,3 +48,20 @@ The full photorealistic target remains open: characters, some devices/furniture,
 - `node scripts/verify-art-assets.mjs` to verify/hash retained assets; `node scripts/check-asset-budget.mjs` for the transfer budget.
 
 Do not rebuild while production browser checks run against the same dist. Publish only after a new approval in the parent workflow.
+
+## Completed local validation
+
+Runtime implementation/build SHA: `43aafde80eae6c1774128290f89199d9d63f862b`. All following checks passed on that production bundle; the subsequent QA-only commit strengthens the physical restoration assertions and accounts for the added contact draw without changing runtime code.
+
+| Check | Result |
+| --- | --- |
+| Identity/storage/B2/M9 scripts | 36 PASS |
+| Fast deployment structural scripts | 35 PASS |
+| M1 actual E/UI/touch + reload | 33 checkpoints PASS; all four Seeds; out-of-order HIS, pending call, earned journal, real door/collider/locker/key states |
+| Desktop/mobile hospital controls | 17 PASS |
+| Hospital annex and independent ledger | 15 PASS |
+| Fixed-camera PBR/channel/budget views | 4 PASS |
+| Asset parsing/hash and transfer budget | PASS; 72,113,051 runtime asset bytes |
+| Production build | PASS; existing large-chunk warning remains (main 1,034.14kB / 372.37kB gzip) |
+
+Browser reports contain no page errors or failed runtime resource responses. Screenshots use actual production-world rendering. The ordinary mobile gestures and story panels were tested in browser emulation; physical phones remain an external gate.
