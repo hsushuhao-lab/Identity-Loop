@@ -69,6 +69,12 @@ try{
       }
       assert.equal(settled,3,'ordinary opening must finish through native dialogue controls');
       await page.locator('#touch-objective').tap();await page.locator('#touch-objective').tap();
+      // Opening cameras differ by route. Look down through the real touch gesture
+      // so the tap sees nearby floor rather than a closed door across the corridor.
+      const touch=await context.newCDPSession(page);
+      await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:330,y:360}]});
+      await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:330,y:500}]});
+      await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
       const before=await page.evaluate(()=>window.worldRouter.controller.position.toArray());
       let selected=false;
       for(const [x,y]of [[270,640],[220,650],[140,640],[290,560],[100,600]]){
