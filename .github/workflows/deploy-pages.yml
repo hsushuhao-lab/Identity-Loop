@@ -90,6 +90,7 @@ jobs:
           node scripts/test-hospital-surface-kit.mjs
           node scripts/test-metric-surface.mjs
           node scripts/test-asset-recovery.mjs
+          node scripts/test-opening-load-deadline.mjs
           node test_world_traversal_qa.js
           node test_screenshot_access_qa.js
           node test_second_campus_environment_qa.js

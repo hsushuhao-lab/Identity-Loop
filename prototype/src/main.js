@@ -22,7 +22,7 @@ import {SignalLedgerQuest} from './optional/SignalLedgerQuest.js';
 import {SignalLedgerPanel} from './ui/SignalLedgerPanel.js';
 import { TouchControls, installEvidenceZoom } from './player/TouchControls.js';
 import { QualitySettings } from './art/QualitySettings.js';
-import { withLoadDeadline } from './art/LoadDeadline.js';
+import { withLoadDeadline, OPENING_LOAD_TIMEOUT_MS } from './art/LoadDeadline.js';
 
 const identityLoopMode=new URLSearchParams(location.search).get('mode')!=='linear';
 const identityManager=new IdentityManager();
@@ -45,7 +45,7 @@ const loadingMask=document.getElementById('asset-loading-mask');
 const loadingMessage=document.getElementById('asset-loading-message');
 const loadingRetry=document.getElementById('asset-loading-retry');
 while(true){
-  try{await withLoadDeadline(async()=>await preloadZoneEssential(openingZoneId));break;}
+  try{await withLoadDeadline(async()=>await preloadZoneEssential(openingZoneId),OPENING_LOAD_TIMEOUT_MS);break;}
   catch(error){
     console.error('[art] opening essential load failed',error);
     loadingMessage.textContent='必要資料載入失敗，請重試。';

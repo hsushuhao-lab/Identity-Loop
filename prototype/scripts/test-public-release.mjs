@@ -9,6 +9,8 @@ const expected=process.env.GITHUB_SHA;
 assert(expected,'GITHUB_SHA must identify the release being verified');
 await mkdir(out,{recursive:true});
 const report={base,expected,method:'Public HTTPS production entry in fresh desktop and touch browser contexts; no QA query, chapter fixtures or world writes. Asset hashes are compared to this checkout.',assets:[],visits:[],errors:[]};
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const normalizeText=bytes=>Buffer.from(bytes.toString('utf8').replace(/\r\n/g,'\n'));
 let browser;
 try{
   const fingerprint=await fetch(new URL('build-info.json?verify='+expected,base),{signal:AbortSignal.timeout(30000)});
@@ -18,11 +20,27 @@ try{
   await Promise.all(Array.from({length:4},async()=>{
     while(pending.length){
       const record=pending.shift(),url=new URL('assets/'+record.file,base);
-      const response=await fetch(url,{signal:AbortSignal.timeout(60000)});assert(response.ok,url.href);
-      const bytes=Buffer.from(await response.arrayBuffer());
-      assert.equal(bytes.length,record.bytes,record.file+' bytes');
-      const sha256=createHash('sha256').update(bytes).digest('hex');assert.equal(sha256,record.sha256,record.file+' hash');
-      report.assets.push({file:record.file,bytes:bytes.length,sha256});
+      let bytes;
+      for(let attempt=1;attempt<=3;attempt++){
+        try{
+          const response=await fetch(url,{signal:AbortSignal.timeout(120000)});assert(response.ok,url.href);
+          bytes=Buffer.from(await response.arrayBuffer());break;
+        }catch(error){if(attempt===3)throw error;}
+      }
+      let compared=bytes,expectedBytes=record.bytes,expectedHash=record.sha256,comparison='exact-bytes';
+      // Git's Windows checkout can use CRLF for JSON/glTF/license text, while
+      // Pages builds on Linux use LF. Verify the manifest against either Git
+      // line-ending representation, then compare canonical content. Binary
+      // models, buffers and images must always match byte for byte.
+      if(/\.(gltf|json|txt|md)$/.test(record.file)){
+        const local=await readFile('public/assets/'+record.file),canonical=normalizeText(local);
+        const variants=[local,canonical,Buffer.from(canonical.toString('utf8').replace(/\n/g,'\r\n'))];
+        assert(variants.some(value=>value.length===record.bytes&&hash(value)===record.sha256),record.file+' source manifest');
+        compared=normalizeText(bytes);expectedBytes=canonical.length;expectedHash=hash(canonical);comparison='utf8-lf';
+      }
+      assert.equal(compared.length,expectedBytes,record.file+' bytes');
+      const sha256=hash(compared);assert.equal(sha256,expectedHash,record.file+' hash');
+      report.assets.push({file:record.file,bytes:bytes.length,comparison,comparedBytes:compared.length,sha256});
     }
   }));
   browser=await chromium.launch({channel:process.env.RELEASE_BROWSER||'chrome',headless:true});

@@ -19,7 +19,9 @@ const report={url:base,sha:process.env.GITHUB_SHA||'local',method:'Production br
 await mkdir(out,{recursive:true});
 
 const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'chromium',args:['--use-angle=d3d11']}:{})});
-const context=await browser.newContext({viewport:{width:1440,height:900}});
+// CI uses software graphics. Keep CSS layout and real scene rendering, with
+// smaller raster frames so the bounded route check fits its runner budget.
+const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:process.env.CI ? 0.5 : 1});
 const forbidden=/張守恆|李承禮|周啟文|陳柏勳|林婉真|王世榮|謝玉琴|劉志遠|陳怡君|守恆|蔡護理督導|[\u4e00-\u9fff]○+|[張李周陳林王謝劉許江方](?:住院|主治)?醫師|姓氏[：:]|ZHANG|ZHOU|CHEN/;
 
 await context.addInitScript(()=>{
