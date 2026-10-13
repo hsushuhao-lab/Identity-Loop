@@ -17,11 +17,11 @@ const server=supplied?null:await preview({root:fileURLToPath(new URL('..',import
 const base=supplied||'http://127.0.0.1:4175/';
 const report={url:base,sha:process.env.GITHUB_SHA||'local',method:'Production browser route progression from opening to ending. QA hooks trigger bound interactions and simulate zone arrivals; dialogue, albums and M9 submission use real DOM/keyboard handlers. This is an assisted integration test, not an unassisted first-person walkthrough.',routes:[],errors:[],screenshots:[],startedAt:new Date().toISOString()};
 const sampledRendering=process.env.CI==='true';
-report.rendering={mode:sampledRendering?'CI sampled at 1 FPS plus forced screenshots':'continuous',rasterScale:process.env.CI?0.5:1,gameUpdateLoop:'unchanged'};
-if(sampledRendering)report.method+=' CI limits only the QualitySettings render cadence; controller, world and story updates retain the original animation loop. Screenshots force a real render.';
+report.rendering={mode:sampledRendering?'CI on-demand real renders at screenshots':'continuous',rasterScale:process.env.CI?0.5:1,gameUpdateLoop:'unchanged'};
+if(sampledRendering)report.method+=' CI disables only background QualitySettings draws; controller, world and story updates retain the original animation loop. Screenshots require a confirmed real render.';
 await mkdir(out,{recursive:true});
 
-const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'chromium',args:['--use-angle=d3d11']}:{})});
+const browser=await chromium.launch({headless:true,...(sampledRendering?{args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']}:(process.platform==='win32'?{channel:'chromium',args:['--use-angle=d3d11']}:{}))});
 // CI uses software graphics. Keep CSS layout and real scene rendering, with
 // smaller raster frames so the bounded route check fits its runner budget.
 const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:process.env.CI ? 0.5 : 1});
@@ -42,20 +42,31 @@ if(sampledRendering)await context.addInitScript(()=>{
   const timer=setInterval(()=>{
     const quality=window.__storyQA?.qualitySettings;
     if(!quality)return;
-    quality.preset={...quality.preset,targetFPS:1};
+    const render=quality.render.bind(quality);
+    quality.render=()=>false;
+    window.__identityQAForceRender=()=>{
+      const now=performance.now();
+      quality.lastRender=now-1000/quality.preset.targetFPS-1;
+      return render(now);
+    };
     clearInterval(timer);
   },16);
 });
 
 let page;
 async function shot(name){
-  if(sampledRendering)await page.evaluate(()=>{
+  if(sampledRendering){
+    await page.bringToFront();
+    const frame=await page.evaluate(()=>{
     const q=window.__storyQA;
     // Endings own their renderer while active; do not overwrite their view.
     if(q?.qualitySettings&&!q.identityManager.runSave.runEnded){
-      q.qualitySettings.lastRender=0;q.qualitySettings.render(performance.now());
+      return {requested:true,rendered:window.__identityQAForceRender?.()===true};
     }
+    return {requested:false};
   });
+    if(frame.requested)assert.equal(frame.rendered,true,'CI screenshot must follow an actual WebGL render');
+  }
   await page.screenshot({path:`${out}/${name}.png`,timeout:60000});
   report.screenshots.push(`${name}.png`);
 }
