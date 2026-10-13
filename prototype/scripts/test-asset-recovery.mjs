@@ -21,7 +21,10 @@ try{
  assert.equal(getAssetReadiness(['officeChair'])[0].pending,false);
  const chair=instantiateAsset('officeChair');chair.position.set(2,3,4);chair.rotation.y=.5;chair.scale.set(2,2,2);
  const detached=instantiateAsset('officeChair');unregisterPendingAssetInstances(detached);
- await new Promise(resolve=>setImmediate(resolve));releaseModel();await preloadAssetNames(['officeChair']);
+ // Node structural QA deliberately does not auto-fetch on instantiateAsset.
+ // Explicitly start the retry before releasing the mocked loader.
+ const retry=preloadAssetNames(['officeChair']);
+ await new Promise(resolve=>setImmediate(resolve));releaseModel();await retry;
  assert.equal(modelCalls,2);assert.equal(chair.children.length,1);assert.equal(detached.children.length,0);
  assert.deepEqual(chair.position.toArray(),[2,3,4]);assert.deepEqual(chair.scale.toArray(),[2,2,2]);assert.equal(chair.rotation.y,.5);
  assert.equal(chair.userData.pendingAsset,undefined);

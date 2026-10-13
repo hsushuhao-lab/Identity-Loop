@@ -6,6 +6,7 @@ dist/
 
 # Generated QA evidence belongs in Actions artifacts, not branch heads.
 prototype/qa-results/
+prototype/public/build-info.json
 
 # Local reproducible visual QA working files
 .visual-work/

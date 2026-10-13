@@ -35,11 +35,11 @@ jobs:
         working-directory: prototype
       - name: Verify published main SHA
         if: matrix.target == 'public'
-        run: node scripts/verify-live-build.mjs https://hsushuhao-lab.github.io/Identy-Loop/
+        run: node scripts/verify-live-build.mjs https://hsushuhao-lab.github.io/Identity-Loop/
         working-directory: prototype
-      - name: Public four routes and mobile wrong ending
+      - name: Public four routes and wrong ending
         if: matrix.target == 'public'
-        run: node scripts/test-identity-routes-browser.mjs qa-results/identity-v03-public https://hsushuhao-lab.github.io/Identy-Loop/
+        run: node scripts/test-identity-routes-browser.mjs qa-results/identity-v03-public https://hsushuhao-lab.github.io/Identity-Loop/
         working-directory: prototype
       - uses: actions/upload-artifact@v4
         if: always()

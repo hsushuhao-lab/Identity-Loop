@@ -104,7 +104,10 @@ export function workstation(zone,{x,z,yaw=0,id}){
   const desk=asset(zone.zoneGroup,'workDesk',[x,0,z],[1.3,1,1],yaw);
   if(desk)desk.name=`WorkstationDesk_${id}`;
   CollisionFactory.addBox(zone.colliders,x,.4,z,1.85,.8,.85);
-  const deskSurfaceY=desk?new THREE.Box3().setFromObject(desk).max.y:.76;
+  const deskTop=desk?new THREE.Box3().setFromObject(desk).max.y:NaN;
+  // A pending model has an empty bounding box. Keep the workstation usable
+  // while it loads, or when its asset request fails.
+  const deskSurfaceY=Number.isFinite(deskTop)?deskTop:.76;
   const face=monitor(zone.zoneGroup,zone.gf.materials,x,deskSurfaceY,z,yaw);
   const cx=x+Math.sin(yaw)*.95,cz=z+Math.cos(yaw)*.95;
   const chairObject=asset(zone.zoneGroup,'officeChair',[cx,0,cz],[1,1,1],yaw+Math.PI);

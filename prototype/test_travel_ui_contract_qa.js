@@ -7,7 +7,7 @@ for(const cls of ['floor-arrow','floor-digit']){
  assert(ui.includes(`querySelector('.${cls}')`));
 }
 assert(html.includes('總床數：32｜病房：401–408｜408A–D 各一床'));
-assert(ui.includes('19:30 查看 408C 反映的敲牆聲'));
+assert(ui.includes('19:30 前往 408C，評估敲牆聲是否可能為幻聽／知覺異常'));
 assert(!ui.includes('18:00 完成 401–408 晚間巡房'));
 assert(!ui.includes('18:00 完成 401–409 晚間巡房'));
 assert(html.includes('位於電梯旁、病房大門外側'));

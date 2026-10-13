@@ -15,7 +15,7 @@ const onlyIdentity=process.env.IDENTITY_QA_ROUTE;
 const stopAfter=process.env.IDENTITY_QA_STOP_AFTER;
 const server=supplied?null:await preview({root:fileURLToPath(new URL('..',import.meta.url)),preview:{host:'127.0.0.1',port:4175,strictPort:true}});
 const base=supplied||'http://127.0.0.1:4175/';
-const report={url:base,sha:process.env.GITHUB_SHA||'local',routes:[],errors:[],screenshots:[],startedAt:new Date().toISOString()};
+const report={url:base,sha:process.env.GITHUB_SHA||'local',method:'Production browser route progression from opening to ending. QA hooks trigger bound interactions and simulate zone arrivals; dialogue, albums and M9 submission use real DOM/keyboard handlers. This is an assisted integration test, not an unassisted first-person walkthrough.',routes:[],errors:[],screenshots:[],startedAt:new Date().toISOString()};
 await mkdir(out,{recursive:true});
 
 const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'chromium',args:['--use-angle=d3d11']}:{})});
@@ -91,6 +91,8 @@ async function walk(identity,{wrong=false,mobile=false}={}){
   for(let action=0;action<1000;action++){
     await ready();
     const state=await runtimeState();
+    if(run.seed===undefined)run.seed=state.run.runSave.runSeed;
+    assert.equal(state.run.runSave.runSeed,run.seed,'the same run seed must survive the entire route');
     assert.equal(state.body,state.width,'no horizontal overflow');
 
     const choiceVisible=await page.locator('[data-identity-choices] .identity-choice').count();
@@ -248,6 +250,7 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       await page.reload({waitUntil:'load'});
       await ready();
       assert.equal(await page.evaluate(()=>window.__storyQA.identityManager.currentIdentity),seed);
+      assert.equal(await page.evaluate(()=>window.__storyQA.identityManager.runSave.runSeed),run.seed);
     }
   }
   throw Error(`Route exceeded action bound: ${identity}`);

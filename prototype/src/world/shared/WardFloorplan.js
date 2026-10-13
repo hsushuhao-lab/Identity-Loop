@@ -217,7 +217,8 @@ export class WardFloorplan {
     solid(this.zoneGroup,this.gf.materials.lightWarm,[-11.25,.76,8.1],[.19,.24,.19]);
     workstation(this,{x:-10.0,z:3.1,id:'duty_desk'});
     const dutyDesk=this.workstations.find(w=>w.id==='duty_desk');
-    const deskSurfaceY=dutyDesk?.desk?new THREE.Box3().setFromObject(dutyDesk.desk).max.y:.76;
+      const deskTop=dutyDesk?.desk?new THREE.Box3().setFromObject(dutyDesk.desk).max.y:NaN;
+      const deskSurfaceY=Number.isFinite(deskTop)?deskTop:.76;
     if(dutyDesk?.screen){
       dutyDesk.screen.userData={interactable:true,id:'4F_DUTY_COMPUTER',type:'p1_action',action:'END_SHIFT',label:'使用值班室電腦稍作休息'};
       this.interactables.push(dutyDesk.screen);

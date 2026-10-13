@@ -48,7 +48,7 @@ for(const id of Object.keys(CORE_ORIGINS).filter(s=>s!=='second_campus_std')){
   check(id+' patient room doors are knob doors',()=>{for(const room of z.roomAreas.filter(room=>room.kind==='ward')){assert.equal(room.doorType,'knob');assert(z.keyedDoors[room.accessDoorId]);}});
   for(const w of z.workstations)check(id+' screen faces chair '+w.id,()=>{const p=w.screen.getWorldPosition(new THREE.Vector3()),n=new THREE.Vector3(0,0,1).transformDirection(w.screen.matrixWorld),dir=new THREE.Vector3(...w.chair).sub(p);dir.y=0;assert(n.dot(dir.normalize())>.98);});
   if(!second)check('Duty room near lift outside ward gate',()=>{z.setDutyDoorClosed(false);walk([0,1.7,6],z.dutyRoom.outside);walk(z.dutyRoom.outside,z.dutyRoom.inside);assert(Math.hypot(-8,6-9.8)<10);});
-  if(second)check('Second-campus external room is duty room',()=>{assert(z.roomAreas.some(room=>room.id==='SECOND_DUTY'&&room.label==='值班室'));assert(z.accessDoors.second_duty_room);});
+  if(second)check('Second-campus external room is duty room',()=>{assert(z.roomAreas.some(room=>room.id==='SECOND_DUTY'&&room.label==='值班室'));const door=z.keyedDoors.second_duty_room;assert(door);assert.equal(door.keepOpen,true);assert.equal(door.closed,false);});
   check(id+' both gate states survive round-trip',()=>{z.setWardGateClosed(true);z.setInnerWardGateClosed(true);r.loadZone('first_campus_3f');const reloaded=r.loadZone(id);assert(reloaded.wardDoor.closed);assert(reloaded.innerWardDoor.closed);});
  }
 }

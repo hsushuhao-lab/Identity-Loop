@@ -89,6 +89,11 @@ jobs:
           node scripts/test-signal-ledger-quest.mjs
           node scripts/test-hospital-surface-kit.mjs
           node scripts/test-metric-surface.mjs
+          node scripts/test-asset-recovery.mjs
+          node test_world_traversal_qa.js
+          node test_screenshot_access_qa.js
+          node test_second_campus_environment_qa.js
+          node test_travel_ui_contract_qa.js
           node test_m1_handoff_checkpoint_qa.js
       - name: Report runtime asset budget
         if: steps.freshness.outputs.current == 'true'

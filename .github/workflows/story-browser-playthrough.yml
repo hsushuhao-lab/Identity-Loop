@@ -38,23 +38,23 @@ jobs:
         working-directory: prototype
         env:
           GITHUB_SHA: ${{ github.sha }}
-        run: node scripts/verify-live-build.mjs 'https://hsushuhao-lab.github.io/Identy-Loop/'
+        run: node scripts/verify-live-build.mjs 'https://hsushuhao-lab.github.io/Identity-Loop/'
       - name: Public Pages M2-M9 browser playthrough
         timeout-minutes: 30
         working-directory: prototype
-        run: node scripts/test-story-playthrough.mjs qa-results/story-v2-public 'https://hsushuhao-lab.github.io/Identy-Loop/'
+        run: node scripts/test-story-playthrough.mjs qa-results/story-v2-public 'https://hsushuhao-lab.github.io/Identity-Loop/'
       - name: Public material runtime audit
         timeout-minutes: 15
         working-directory: prototype
-        run: node scripts/test-material-runtime.mjs qa-results/material-runtime-public.json 'https://hsushuhao-lab.github.io/Identy-Loop/'
+        run: node scripts/test-material-runtime.mjs qa-results/material-runtime-public.json 'https://hsushuhao-lab.github.io/Identity-Loop/'
       - name: Public cold/warm loading audit
         timeout-minutes: 30
         working-directory: prototype
-        run: node scripts/measure-loading-performance.mjs qa-results/loading-public.csv 'https://hsushuhao-lab.github.io/Identy-Loop/'
+        run: node scripts/measure-loading-performance.mjs qa-results/loading-public.csv 'https://hsushuhao-lab.github.io/Identity-Loop/'
       - name: Public visual capture
         timeout-minutes: 30
         working-directory: prototype
-        run: node scripts/capture-visual-qa.mjs qa-results/visual-public '' 'https://hsushuhao-lab.github.io/Identy-Loop/'
+        run: node scripts/capture-visual-qa.mjs qa-results/visual-public '' 'https://hsushuhao-lab.github.io/Identity-Loop/'
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v4
