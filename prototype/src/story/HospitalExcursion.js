@@ -12,6 +12,7 @@ export class HospitalExcursion {
     const entering=action==='enter',d=this.director;
     if(entering && (this.worldRouter.activeZoneId!=='first_campus_4f' || d?.busy || d?.step==='M8' || d?.bindingFor()?.auto || d?.manager.runSave.runEnded || this.gameState.getFlag('M8_IDENTITY_BATTLE_ACTIVE'))){this.uiManager.showSubtitle('值班醫師','先完成眼前的對話或緊急事件，再進行器材調查。',2500);return false;}
     if(!entering && !this.active)return false;
+    this.beforeTravel?.();
     if(this.casePanel.root.classList.contains('active'))this.casePanel.close();
     this.transitioning=true;const source=this.worldRouter.activeZoneId,previousEnabled=this.controller.enabled;this.controller.enabled=false;this.controller.resetInput();let mutated=false;
     const mask=document.createElement('div');mask.id='hospital-excursion-transition';mask.className='hospital-zone-transition';mask.textContent=entering?'開啟封存檢修廊…':'返回4F儲藏室…';document.body.append(mask);

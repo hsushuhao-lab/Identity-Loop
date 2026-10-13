@@ -16,6 +16,7 @@ import { batchStaticWardBeds } from '../art/StaticWardBeds.js';
 import {installHospitalSurfaceKit,finishHospitalLighting} from '../art/HospitalSurfaceKit.js';
 import {isMaterialSurfaceReady} from '../art/MaterialRegistry.js';
 import {installSignalLedgerProps} from '../art/SignalLedgerProps.js';
+import {installEchoSurveyProps} from '../art/EchoSurveyProps.js';
 
 import { FirstCampus3F } from './zones/FirstCampus3F.js';
 import { FirstCampus4F } from './zones/FirstCampus4F.js';
@@ -155,6 +156,7 @@ export class WorldRouter {
     if(zoneId==='first_campus_4f')annexDoor(this.activeZoneInstance,[-11.82,0,1],Math.PI/2,'HOSPITAL_ANNEX_ENTRY','enter');
     if (zoneId === 'first_campus_4f') batchStaticWardBeds(this.activeZoneInstance);
     if(zoneId==='first_campus_4f'&&this.hospitalSimulation)installSignalLedgerProps(this.activeZoneInstance);
+    installEchoSurveyProps(this.activeZoneInstance,this.echoSurvey,zoneId,this.camera);
     this.installReadySurfaceKit(zoneId,this.activeZoneInstance);
     applyExteriorTime(this.activeZoneInstance.zoneGroup,gameState.gameTime);
     installEraPosters(this.activeZoneInstance, zoneId);
@@ -251,6 +253,7 @@ export class WorldRouter {
   update(delta) {
     this.activeZoneInstance?.update?.(this.camera,delta);
     const zone=this.activeZoneInstance;
+    zone?.echoSurveyVisual?.update(delta,this.camera,{blocked:!this.controller?.enabled||this.controller?.tapNavigationBlocked?.(),hidden:globalThis.document?.hidden});
     if(this.activeZoneId==='first_campus_4f' && !zone.staticBedBatchComplete){
       zone.bedBatchWait=(zone.bedBatchWait||0)+delta;
       if(zone.bedBatchWait>=1){zone.bedBatchWait=0;batchStaticWardBeds(zone);}

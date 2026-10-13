@@ -14,6 +14,8 @@
     "test:hospital": "node scripts/test-hospital-simulation.mjs",
     "test:mobile": "node scripts/test-mobile-hospital-browser.mjs",
     "test:mobile:navigation": "node scripts/test-mobile-navigation-browser.mjs",
+    "test:echo": "node scripts/test-echo-survey.mjs && node scripts/test-echo-acoustics.mjs",
+    "test:echo:browser": "node scripts/test-echo-survey-browser.mjs",
     "test:exploration": "node scripts/test-hospital-side-case.mjs && node scripts/test-signal-ledger-quest.mjs && node scripts/test-hospital-surface-kit.mjs && node scripts/test-metric-surface.mjs",
     "test:checkpoint:browser": "node scripts/test-m1-recovery-browser.mjs",
     "test:exploration:browser": "node scripts/test-hospital-annex-browser.mjs",

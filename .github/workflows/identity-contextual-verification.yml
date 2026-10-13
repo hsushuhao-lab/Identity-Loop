@@ -37,6 +37,9 @@ jobs:
       - name: Mobile tap movement and fullscreen browser QA
         working-directory: prototype
         run: node scripts/test-mobile-navigation-browser.mjs qa-results/mobile-navigation
+      - name: Echo survey exploration, persistence and mobile QA
+        working-directory: prototype
+        run: node scripts/test-echo-survey-browser.mjs qa-results/echo-survey
       - uses: actions/upload-artifact@v4
         if: always()
         with:

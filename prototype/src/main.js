@@ -20,6 +20,8 @@ import {HospitalCasePanel} from './ui/HospitalCasePanel.js';
 import {HospitalExcursion} from './story/HospitalExcursion.js';
 import {SignalLedgerQuest} from './optional/SignalLedgerQuest.js';
 import {SignalLedgerPanel} from './ui/SignalLedgerPanel.js';
+import {EchoSurvey} from './optional/EchoSurvey.js';
+import {EchoSurveyPanel} from './ui/EchoSurveyPanel.js';
 import { TouchControls, installEvidenceZoom } from './player/TouchControls.js';
 import { QualitySettings } from './art/QualitySettings.js';
 import { withLoadDeadline, OPENING_LOAD_TIMEOUT_MS } from './art/LoadDeadline.js';
@@ -254,7 +256,15 @@ const signalLedgerQuest=new SignalLedgerQuest({storage:hospitalStorage,runKey:id
 const signalLedgerPanel=new SignalLedgerPanel({quest:signalLedgerQuest,controller,worldRouter,uiManager,
   mainline:()=>identityLoopMode?(identityRouteDirector.bindingFor()?.prompt||'依任務面板繼續目前章節'):'依任務面板繼續值班流程',
   canOptIn:()=>controller.enabled&&!uiManager.dialogueSequence&&!cinematicDirector.activeId&&!document.querySelector('.modal-overlay.active, .cutscene-overlay.active')&&!hospitalExcursion.transitioning&&(!identityLoopMode||(!identityRouteDirector.busy&&!identityRouteDirector.bindingFor()?.auto&&!identityManager.runSave.runEnded&&identityRouteDirector.step!=='M8'))&&!gameState.getFlag('M8_IDENTITY_BATTLE_ACTIVE')});
-worldRouter.beforeZoneChange=()=>signalLedgerPanel.close();
+const echoSurvey=new EchoSurvey({storage:hospitalStorage,runKey:identityLoopMode?identityManager.runSave.runSeed:'linear-session'});
+worldRouter.echoSurvey=echoSurvey;
+const echoSurveyPanel=new EchoSurveyPanel({quest:echoSurvey,controller,worldRouter,uiManager,
+  returnToMainline:()=>hospitalExcursion.travel('return'),
+  mainline:()=>identityLoopMode?(identityRouteDirector.bindingFor()?.prompt||'依任務面板繼續目前章節'):'依任務面板繼續值班流程',
+  canOptIn:()=>controller.enabled&&!uiManager.dialogueSequence&&!cinematicDirector.activeId&&!document.querySelector('.modal-overlay.active,.cutscene-overlay.active')&&!hospitalExcursion.transitioning&&!gameState.getFlag('M8_IDENTITY_BATTLE_ACTIVE')&&(!identityLoopMode||(!identityRouteDirector.busy&&!identityRouteDirector.bindingFor()?.auto&&!identityManager.runSave.runEnded&&identityRouteDirector.step!=='M8'))});
+hospitalExcursion.beforeTravel=()=>echoSurveyPanel.close();
+worldRouter.beforeZoneChange=()=>{signalLedgerPanel.close();echoSurveyPanel.close({restore:false});};
+gameState.addListener((event,data)=>{if(event==='flag_changed'&&data?.flag==='M8_IDENTITY_BATTLE_ACTIVE'&&gameState.getFlag(data.flag))echoSurveyPanel.close({restore:false});});
 gameState.addListener((event,data)=>{if(event==='flag_changed'&&data?.flag==='M8_IDENTITY_BATTLE_ACTIVE'&&gameState.getFlag(data.flag))signalLedgerPanel.close();});
 
 const actPresentationDirector=new ActPresentationDirector({
@@ -694,7 +704,7 @@ if(new URLSearchParams(location.search).get('qa')==='story'){
   };
   window.__storyQA={
     gameState,persistentMemory,legendState,worldRouter,uiManager,loopManager,dutyEvents,GamePhase,floorStateManager,controller,cinematicDirector,actPresentationDirector,soundManager,finalPatientizationDirector,b2FireRecapDirector,identityManager,identityLoopPanel,identityRouteDirector,hospitalSimulation,hospitalPanel,touchControls,qualitySettings,
-    hospitalCasePanel,hospitalExcursion,signalLedgerQuest,signalLedgerPanel,
+    hospitalCasePanel,hospitalExcursion,signalLedgerQuest,signalLedgerPanel,echoSurvey,echoSurveyPanel,
     get identityGoodEndingDirector(){return identityGoodEndingDirector;},
     prefetch:prefetchDestinationAssets,
     load:(zone,spawn)=>{worldRouter.loadZone(zone,spawn);worldRouter.activeZoneInstance?.syncStoryState?.();},
@@ -821,6 +831,7 @@ function completeSecondCampus5FWardReport(){
 }
 
 controller.onInteract = async (interactable) => {
+  if(interactable.type==='echo_survey'){echoSurveyPanel.open(interactable.target);return;}
   if(interactable.type==='hospital_ledger'){signalLedgerPanel.open(interactable.point);return;}
   if(interactable.type==='hospital_annex'){await hospitalExcursion.travel(interactable.action);return;}
   if(interactable.type==='hospital_case'){hospitalCasePanel.open(interactable.id);return;}
@@ -2009,7 +2020,7 @@ function animate() {
 
   controller.update(delta);
   worldRouter.update(delta);
-  if(identityLoopMode){if(!hospitalExcursion.active&&!hospitalExcursion.transitioning&&!signalLedgerPanel.active)identityRouteDirector.update();if(!identityGoodEndingDirector?.active)qualitySettings.render(performance.now());return;}
+  if(identityLoopMode){if(!hospitalExcursion.active&&!hospitalExcursion.transitioning&&!signalLedgerPanel.active&&!echoSurveyPanel.active)identityRouteDirector.update();if(!identityGoodEndingDirector?.active)qualitySettings.render(performance.now());return;}
   if(worldRouter.activeZoneId==='first_campus_2f' && controller.enabled && !cinematicDirector.activeId &&
     gameState.getFlag('GHOST_REGISTRATION_AVAILABLE') && !gameState.getFlag('LEGEND_ER0033_RESOLVED') && !gameState.getFlag('CG_00_33_GHOST_REGISTRATION_PLAYED') &&
     controller.position.x>10.5 && controller.position.x<15.5 && controller.position.z>-9.7 && controller.position.z<-4.5){

@@ -29,7 +29,8 @@ export class WardServiceAnnex {
     const anchor=(id,label,position)=>{const object=new THREE.Group();object.position.set(...position);object.userData={interactable:true,id,type:'hospital_case',label};g.add(object);this.interactables.push(object);return object;};
     const desk=asset(g,'workDesk',[-4.15,0,-3.5],[1,1,1]);
     CollisionFactory.addBox(this.colliders,-4.15,.4,-3.5,1.45,.8,.80);g.updateMatrixWorld(true);
-    const top=desk?new THREE.Box3().setFromObject(desk).max.y:.76;
+    const measured=desk?new THREE.Box3().setFromObject(desk).max.y:.76;
+    const top=Number.isFinite(measured)?measured:.76;
     const paper=anchor('CASE_PAPER','查看 1998 年驗收原件',[-4.1,top+.012,-3.28]);
     attachLabel(paper,['1998 / 風道驗收','指示燈亮起。','紙條沒有動。','完成章：時間缺角。'],[0,0,0],[.45,.30],[-Math.PI/2,0,0]);
     asset(g,'storageCabinet',[-4.9,0,-7.7],[1.1,1,1]);CollisionFactory.addBox(this.colliders,-4.9,.8,-7.7,1.1,1.6,.7);

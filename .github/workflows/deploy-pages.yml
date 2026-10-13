@@ -82,6 +82,8 @@ jobs:
           node scripts/test-tap-navigation.mjs
           node scripts/test-touch-tap-gestures.mjs
           node scripts/test-fullscreen-toggle.mjs
+          node scripts/test-echo-survey.mjs
+          node scripts/test-echo-acoustics.mjs
           node scripts/test-m9-defer-recovery.mjs
           node scripts/test-archive-access-recovery.mjs
           node scripts/test-duty-log-status.mjs

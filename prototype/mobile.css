@@ -66,3 +66,9 @@
   .touch-mode #task-panel, .touch-mode.touch-objective-open .identity-loop-panel { max-height: calc(100dvh - 160px); }
 }
 .touch-mode #quality-settings[open] { z-index: 200; }
+#echo-survey-panel { z-index: 420; }
+.echo-tools { border-left: 2px solid #b99e70; padding: 10px 14px; color: #cbd7bf; background: #21372b; font-size: .92em; }
+.echo-shell [data-echo-actions] { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.echo-shell [data-echo-status] { min-height: 1.6em; white-space: pre-wrap; color: #e5c28a; }
+.echo-shell [data-echo-notes] { padding: 10px 0; border-top: 1px solid #526654; }
+.echo-shell button:disabled { opacity: .45; }
