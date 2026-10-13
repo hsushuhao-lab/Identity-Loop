@@ -14,11 +14,15 @@
 #touch-journal { right: max(24px,env(safe-area-inset-right)); bottom: 92px; }
 #touch-controls #touch-objective { right: max(12px,env(safe-area-inset-right)); top: max(65px,calc(env(safe-area-inset-top) + 60px)); border-radius: 4px; }
 #touch-controls #touch-continue { right: max(24px,env(safe-area-inset-right)); bottom: 160px; z-index: 310; border-radius: 4px; }
+#touch-controls #touch-fullscreen { right: max(90px,calc(env(safe-area-inset-right) + 90px)); top: max(12px,env(safe-area-inset-top)); width: 84px; min-height:44px; border-radius:4px; font-size:12px; }
+#touch-controls #touch-cancel-move { right:max(24px,env(safe-area-inset-right)); bottom:152px; border-radius:4px; padding:8px; }
+#touch-control-status { position:fixed; top:max(122px,calc(env(safe-area-inset-top) + 112px)); left:16px; right:16px; z-index:460; padding:10px; background:#13241eee; border:1px solid #8b9880; color:#eef1df; font:14px/1.6 sans-serif; pointer-events:none; }
+#touch-control-status[hidden] { display:none; }
 #touch-controls button[hidden] { display: none; }
 #touch-controls.input-blocked #touch-move, #touch-controls.input-blocked #touch-interact, #touch-controls.input-blocked #touch-run, #touch-controls.input-blocked #touch-journal { visibility: hidden; }
 .touch-mode #control-hint, .touch-mode #crosshair { display: none; }
 .touch-mode #interaction-prompt { top: calc(50% + 33px); max-width: 65vw; left: 50%; transform: translateX(-50%); font-size: 12px; }
-.touch-mode #hospital-hud-bar { max-width: calc(100vw - 88px); padding: 8px; left: max(8px,env(safe-area-inset-left)); top: max(8px,env(safe-area-inset-top)); font-size: 12px; }
+.touch-mode #hospital-hud-bar { max-width: calc(100vw - 194px); box-sizing:border-box; padding: 8px; left: max(8px,env(safe-area-inset-left)); top: max(8px,env(safe-area-inset-top)); font-size: 12px; }
 .touch-mode .hud-tag { display: none; }
 .touch-mode #task-panel { display: none; }
 .touch-mode.touch-objective-open #task-panel { display: block; top: 110px; max-height: calc(100dvh - 290px); overflow: auto; z-index: 184; }
@@ -61,3 +65,4 @@
   .touch-mode #touch-continue { bottom: 135px; }
   .touch-mode #task-panel, .touch-mode.touch-objective-open .identity-loop-panel { max-height: calc(100dvh - 160px); }
 }
+.touch-mode #quality-settings[open] { z-index: 200; }

@@ -79,6 +79,9 @@ jobs:
           node scripts/test-annie-integrated-poses.mjs
           node scripts/test-touch-control-recovery.mjs
           node scripts/test-touch-click-fallback.mjs
+          node scripts/test-tap-navigation.mjs
+          node scripts/test-touch-tap-gestures.mjs
+          node scripts/test-fullscreen-toggle.mjs
           node scripts/test-m9-defer-recovery.mjs
           node scripts/test-archive-access-recovery.mjs
           node scripts/test-duty-log-status.mjs

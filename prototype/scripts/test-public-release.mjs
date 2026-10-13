@@ -57,11 +57,40 @@ try{
     assert.equal(await page.evaluate(()=>typeof window.__storyQA),'undefined');
     assert.equal(await page.locator('#debug-zone-selector,[data-route-action]').count(),0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    if(mobile)await page.locator('#touch-objective').tap();
+    let mobileControls;
+    if(mobile){
+      // The ordinary opening starts asynchronously after globals become visible.
+      // Read its dialogue through the real button and wait for stable control in its randomly selected opening.
+      let settled=0;
+      for(let tick=0;tick<180&&settled<3;tick++){
+        if(await page.locator('#touch-continue').isVisible())await page.locator('#touch-continue').tap();
+        const ready=await page.evaluate(()=>window.worldRouter.controller.enabled&&!window.worldRouter.controller.tapNavigationBlocked?.());
+        settled=ready?settled+1:0;await page.waitForTimeout(500);
+      }
+      assert.equal(settled,3,'ordinary opening must finish through native dialogue controls');
+      await page.locator('#touch-objective').tap();await page.locator('#touch-objective').tap();
+      const before=await page.evaluate(()=>window.worldRouter.controller.position.toArray());
+      let selected=false;
+      for(const [x,y]of [[270,640],[220,650],[140,640],[290,560],[100,600]]){
+        await page.touchscreen.tap(x,y);await page.waitForTimeout(100);
+        selected=await page.evaluate(()=>window.worldRouter.controller.autoMoveOrigin==='touch');
+        if(selected)break;
+      }
+      if(!selected){await page.screenshot({path:out+'/ordinary-tap-failure.png'});report.tapDiagnostic=await page.evaluate(()=>{const c=window.worldRouter.controller;return{zone:window.worldRouter.activeZoneId,enabled:c.enabled,blocked:c.tapNavigationBlocked?.(),position:c.position.toArray(),touch:c.touchMode,root:c.navigationRoot?.name,walkables:c.walkables.length,hits:c.clickRaycaster.intersectObjects(c.navigationRoot?[c.navigationRoot]:c.walkables,true).slice(0,5).map(h=>({name:h.object.name,id:h.object.userData.id,p:h.point.toArray(),walkable:c.walkables.includes(h.object),opacity:h.object.material?.opacity})),elements:[[270,640],[220,650],[140,640],[290,560],[100,600]].map(([x,y])=>document.elementFromPoint(x,y)?.id)}});}
+      assert(selected,'ordinary opening must accept a native floor tap: '+JSON.stringify(report.tapDiagnostic));
+      await page.waitForFunction(before=>{const p=window.worldRouter.controller.position;return Math.hypot(p.x-before[0],p.z-before[2])>.1;},before,{timeout:15000});
+      await page.locator('#touch-objective').tap();await page.locator('#touch-objective').tap();
+      assert.equal(await page.evaluate(()=>window.worldRouter.controller.autoMoveTarget),null);
+      await page.locator('#touch-fullscreen').tap();await page.waitForFunction(()=>!!document.fullscreenElement);
+      assert.equal(await page.locator('#touch-fullscreen').getAttribute('aria-pressed'),'true');
+      await page.locator('#touch-fullscreen').tap();await page.waitForFunction(()=>!document.fullscreenElement);
+      assert.equal(await page.locator('#touch-fullscreen').getAttribute('aria-pressed'),'false');
+      mobileControls={nativeFloorTap:true,realTimeMovement:true,uiCancel:true,nativeFullscreenEnterExit:true};
+    }
     const visit=await page.evaluate(()=>({zone:window.worldRouter.activeZoneId,enabled:window.worldRouter.controller.enabled,position:window.worldRouter.controller.position.toArray(),resources:performance.getEntriesByType('resource').map(r=>r.name).filter(n=>n.includes('/assets/'))}));
     assert(visit.position.every(Number.isFinite));
     await page.screenshot({path:`${out}/${mobile?'touch':'desktop'}-opening.png`});
-    report.visits.push({mobile,...visit});await context.close();
+    report.visits.push({mobile,mobileControls,...visit});await context.close();
   }
   assert.deepEqual(report.errors,[]);report.verdict='PASS';
 }catch(error){report.verdict='FAIL';report.failure=error.stack;process.exitCode=1;console.error(error);}

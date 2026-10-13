@@ -1,6 +1,8 @@
+import {FullscreenToggle} from './FullscreenToggle.js';
+
 export class TouchControls {
-  constructor(controller, { blocked, inspect, journal, continueDialogue, hasDialogue }) {
-    Object.assign(this, { controller, blocked, inspect, journal, continueDialogue, hasDialogue });
+  constructor(controller, { blocked, inspect, journal, continueDialogue, hasDialogue,notify=()=>{} }) {
+    Object.assign(this, { controller, blocked, inspect, journal, continueDialogue, hasDialogue,notify });
     this.active = matchMedia('(pointer: coarse)').matches;
     this.points = new Map();
     this.root = document.createElement('div');
@@ -8,32 +10,47 @@ export class TouchControls {
     this.root.innerHTML = `<div id="touch-move" aria-label="左側拖曳移動"><span></span></div>
       <button id="touch-interact" aria-label="互動；長按觀察">●</button>
       <button id="touch-run">快走</button><button id="touch-journal">紀錄</button>
-      <button id="touch-continue">繼續</button><button id="touch-objective">任務</button>`;
+      <button id="touch-continue">繼續</button><button id="touch-objective">任務</button>
+      <button id="touch-fullscreen">全螢幕</button><button id="touch-cancel-move" hidden>停止前進</button>
+      <div id="touch-control-status" role="status" hidden></div>`;
     document.body.append(this.root);
     this.setActive(this.active);
     const canvas = controller.domElement, move = this.root.querySelector('#touch-move');
     const reset = () => this.reset();
+    this.navigationBlocked=()=>this.blocked()||this.hasDialogue();
+    controller.tapNavigationBlocked=this.navigationBlocked;
+    this.fullscreen=new FullscreenToggle(this.root.querySelector('#touch-fullscreen'),this.root.querySelector('#touch-control-status'),{onChange:reset});
+    this.root.querySelector('#touch-cancel-move').onclick=()=>{controller.cancelAutoMove?.();this.refresh();};
     for (const target of [move, canvas]) {
       target.addEventListener('pointerdown', e => {
         if (e.pointerType !== 'touch' || this.blocked() || !controller.enabled) return;
+        controller.cancelAutoMove?.();
         this.setActive(true); e.preventDefault(); target.setPointerCapture(e.pointerId);
         const mode = target === move || e.clientX < innerWidth * .42 ? 'move' : 'look';
-        this.points.set(e.pointerId, { x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, mode });
+        const multi=this.points.size>0;
+        if(multi)for(const point of this.points.values())point.multi=true;
+        this.points.set(e.pointerId, { x: e.clientX, y: e.clientY, startX: e.clientX, startY: e.clientY, mode,target,multi,started:performance.now(),dragged:false });
       });
       target.addEventListener('pointermove', e => {
         const point = this.points.get(e.pointerId);
         if (!point) return;
         if (this.blocked() || !controller.enabled) { this.reset(); return; }
         e.preventDefault();
-        if (point.mode === 'move') {
+        if(Math.hypot(e.clientX-point.startX,e.clientY-point.startY)>10)point.dragged=true;
+        if (point.dragged&&point.mode === 'move') {
           controller.touchMove.x = Math.max(-1, Math.min(1, (e.clientX - point.startX) / 48));
           controller.touchMove.z = Math.max(-1, Math.min(1, (point.startY - e.clientY) / 48));
-        } else controller.lookBy(e.clientX - point.x, e.clientY - point.y, .003);
+        } else if(point.dragged)controller.lookBy(e.clientX - point.x, e.clientY - point.y, .003);
         point.x = e.clientX; point.y = e.clientY;
       });
       for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) target.addEventListener(type, e => {
-        if (this.points.get(e.pointerId)?.mode === 'move') controller.touchMove.x = controller.touchMove.z = 0;
+        const point=this.points.get(e.pointerId);
+        if (point?.mode === 'move') controller.touchMove.x = controller.touchMove.z = 0;
         this.points.delete(e.pointerId);
+        if(type==='pointerup'&&point?.target===canvas&&!point.dragged&&!point.multi&&performance.now()-point.started<400&&!this.navigationBlocked()&&controller.enabled){
+          if(!controller.handleTap?.(e))this.notify('請點選可到達的地面或物件。遇到障礙會停止；門與選擇需自行互動。');
+          this.refresh();
+        }
       });
     }
     const interact = this.root.querySelector('#touch-interact');
@@ -47,7 +64,7 @@ export class TouchControls {
         else controller.interact();
       }
     };
-    this.clearReleasedInteraction = () => { this.releasedInteraction = null; };
+    this.clearReleasedInteraction = e => { this.releasedInteraction = null;if(e?.target!==canvas&&e?.target!==move)controller.cancelAutoMove?.(); };
     this.guardReleasedClick = e => {
       const gesture = this.releasedInteraction;
       if (gesture?.applied && e.pointerId === gesture.pointerId && e.target !== interact) {
@@ -86,7 +103,10 @@ export class TouchControls {
     this.root.querySelector('#touch-journal').onclick = () => { if (!this.blocked()) this.journal(); };
     this.root.querySelector('#touch-continue').onclick = () => this.continueDialogue();
     this.root.querySelector('#touch-objective').onclick = () => document.body.classList.toggle('touch-objective-open');
+    this.resetHandler=reset;
     window.addEventListener('blur', reset);
+    window.addEventListener('resize',reset);
+    window.addEventListener('orientationchange',reset);
     document.addEventListener('visibilitychange', reset);
     // Cover a modal opening while a finger is held down.
     this.observer = new MutationObserver(() => { if (this.blocked() || !controller.enabled) this.reset(); this.refresh(); });
@@ -108,14 +128,22 @@ export class TouchControls {
     clearTimeout(this.pendingInteractionTimer); this.pendingInteractionTimer = null;
   }
   refresh() {
+    if(this.controller.autoMoveOrigin==='touch'&&(this.navigationBlocked()||!this.controller.enabled))this.controller.cancelAutoMove?.();
     this.root.classList.toggle('input-blocked', this.blocked() || !this.controller.enabled);
     this.root.querySelector('#touch-continue').hidden = !this.hasDialogue();
+    this.root.querySelector('#touch-cancel-move').hidden=!(this.controller.autoMoveTarget&&this.controller.autoMoveOrigin==='touch');
   }
   dispose() {
     document.removeEventListener?.('pointerdown', this.clearReleasedInteraction, true);
     document.removeEventListener?.('click', this.guardReleasedClick, true);
     clearInterval(this.refreshTimer);
     this.observer.disconnect();
+    this.fullscreen.dispose();
+    window.removeEventListener?.('blur',this.resetHandler);
+    window.removeEventListener?.('resize',this.resetHandler);
+    window.removeEventListener?.('orientationchange',this.resetHandler);
+    document.removeEventListener?.('visibilitychange',this.resetHandler);
+    if(this.controller.tapNavigationBlocked===this.navigationBlocked)this.controller.tapNavigationBlocked=null;
     this.reset();
     this.root.remove();
   }

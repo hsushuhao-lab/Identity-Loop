@@ -191,6 +191,7 @@ const touchControls = new TouchControls(controller, {
   inspect: item => { if (item) uiManager.showSubtitle('觀察', identityLoopMode ? anonymousNarrative(item.label) : item.label, 3000); },
   journal: () => document.body.classList.toggle('touch-objective-open'),
   hasDialogue: () => Boolean(uiManager.dialogueSequence),
+  notify:text=>uiManager.showSubtitle('操作',text,2600),
   continueDialogue: () => { if (uiManager.dialogueSequence) document.dispatchEvent(new KeyboardEvent('keydown', { code:'KeyE', key:'e', bubbles:true })); }
 });
 installEvidenceZoom();

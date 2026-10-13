@@ -37,7 +37,7 @@ assert(!fpsController.includes('let cur = hits[0].object;'),'inactive nearest hi
 const retiredSensor={isObject3D:true,userData:{interactable:false,id:'316_SPARE_KEY'},parent:null};
 const patrol2117Sensor={isObject3D:true,userData:{interactable:true,id:'GUARD_SIGN_2117'},parent:null};
 const controller=Object.create(FPSController.prototype);
-controller.camera={};
+controller.camera={updateMatrixWorld(){}};
 controller.interactables=[retiredSensor,patrol2117Sensor];
 controller.raycaster={
   setFromCamera(){},

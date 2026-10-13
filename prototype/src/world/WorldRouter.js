@@ -190,6 +190,8 @@ export class WorldRouter {
       this.controller.colliders = this.activeZoneInstance.colliders || [];
       this.controller.walkables = this.activeZoneInstance.walkables || [];
       this.controller.interactables = this.activeZoneInstance.interactables || [];
+      this.controller.navigationRoot=this.activeZoneInstance.zoneGroup;
+      this.controller.tapTravelBoundaries=ROUTE_PORTALS.filter(p=>p.from===zoneId).map(p=>p.bounds);
     }
 
     // Handle spawn point

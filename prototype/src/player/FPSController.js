@@ -1,6 +1,7 @@
 // FPSController.js - Comfortable first-person controller with collision, raycast interaction and double-click auto-walk
 import * as THREE from 'three';
 import { soundManager } from '../audio/SoundManager.js';
+import {pickTapDestination,tapBoundaryAt,tapFocusPoint} from './TapDestination.js';
 
 export class FPSController {
   constructor(camera, domElement, colliders, interactables, walkables = []) {
@@ -137,7 +138,7 @@ export class FPSController {
     this.velocity.set(0, 0, 0); this.cancelAutoMove();
   }
 
-  interact() { if (this.enabled && this.currentInteractable) this.onInteract?.(this.currentInteractable); }
+  interact() { if (this.enabled && this.currentInteractable) { this.cancelAutoMove();this.onInteract?.(this.currentInteractable); } }
 
   lookBy(x, y, sensitivity = this.mouseSensitivity) {
     if (!this.enabled) return;
@@ -154,6 +155,7 @@ export class FPSController {
   }
 
   handleDoubleClick(event) {
+    this.cancelAutoMove();
     // Pointer lock has no meaningful cursor position, so use the crosshair/centre.
     const ndc = new THREE.Vector2(0, 0);
     if (!this.isLocked) {
@@ -196,10 +198,28 @@ export class FPSController {
 
   cancelAutoMove() {
     this.autoMoveTarget = null;
+    this.autoMoveFocus=null;this.autoMoveOrigin=null;this.autoMoveElapsed=0;
+  }
+
+  handleTap(event){
+    this.cancelAutoMove();
+    if(!this.enabled||this.tapNavigationBlocked?.())return false;
+    const picked=pickTapDestination(this,event);
+    if(!picked||tapBoundaryAt(this,picked.point.x,picked.point.z))return false;
+    this.velocity.set(0,0,0);this.autoMoveOrigin='touch';this.autoMoveFocus=picked.focus;
+    this.autoMoveTarget=picked.point;this.autoMoveTarget.y=this.position.y;
+    this.autoMoveStopDistance=picked.stopDistance;return true;
   }
 
   update(delta) {
-    if (!this.enabled) return;
+    if (!this.enabled) { this.cancelAutoMove();return; }
+
+    if(this.autoMoveOrigin==='touch'){
+      this.autoMoveElapsed=(this.autoMoveElapsed||0)+delta;
+      const focus=tapFocusPoint(this);
+      if(focus===false||this.autoMoveElapsed>20||this.tapNavigationBlocked?.())this.cancelAutoMove();
+      else if(focus){this.autoMoveTarget.x=focus.x;this.autoMoveTarget.z=focus.z;}
+    }
 
     const manualInput = this.keys.forward || this.keys.backward || this.keys.left || this.keys.right || this.touchMove.x || this.touchMove.z;
     if (manualInput) this.cancelAutoMove();
@@ -238,6 +258,12 @@ export class FPSController {
       );
       const distance = toTarget.length();
       if (distance <= this.autoMoveStopDistance) {
+        const focus=this.autoMoveOrigin==='touch'&&tapFocusPoint(this);
+        if(focus){
+          const aim=focus.clone().sub(this.camera.position);
+          this.yaw=Math.atan2(-aim.x,-aim.z);this.pitch=Math.atan2(aim.y,Math.hypot(aim.x,aim.z));
+          this.updateCameraRotation();
+        }
         this.cancelAutoMove();
       } else {
         toTarget.normalize();
@@ -294,18 +320,20 @@ export class FPSController {
   }
 
   moveWithCollision(deltaX, deltaZ) {
+    const guardTapTravel=this.autoMoveOrigin==='touch';
     const steps = Math.max(1, Math.ceil(Math.max(Math.abs(deltaX), Math.abs(deltaZ)) / .10));
     for (let i = 0; i < steps; i++) {
       for (const [axis, delta] of [['x',deltaX / steps],['z',deltaZ / steps]]) {
         const x = this.position.x + (axis === 'x' ? delta : 0);
         const z = this.position.z + (axis === 'z' ? delta : 0);
         const ground = this.supportedHeight(x, z);
-        if (ground !== null && !this.checkCollision(x, z)) {
+        if (ground !== null && !this.checkCollision(x, z)&&!(guardTapTravel&&tapBoundaryAt(this,x,z))) {
           this.position[axis] += delta;
           this.position.y = ground + this.eyeHeight;
         } else {
           this.velocity[axis] = 0;
           if (this.autoMoveTarget) this.cancelAutoMove();
+          if(guardTapTravel)return;
         }
       }
     }
@@ -327,6 +355,7 @@ export class FPSController {
   }
 
   updateRaycast() {
+    this.camera.updateMatrixWorld(true);
     this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
 
     // THREE.Raycaster accepts Object3D only.
