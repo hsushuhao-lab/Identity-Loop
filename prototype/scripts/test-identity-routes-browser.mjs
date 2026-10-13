@@ -8,7 +8,7 @@ import {IDENTITY_ROUTES,ROUTE_STEPS} from '../src/story/IdentityRoutes.js';
 import {IDENTITY_PROFILES} from '../src/core/IdentityManager.js';
 
 const out=process.argv[2]||'qa-results/identity-contextual';
-const closure=spawnSync(process.execPath,['scripts/test-clinical-interactions-browser.mjs',out+'/clinical-closure',...(process.argv[3]?[process.argv[3]]:[])],{stdio:'inherit'});
+const closure=spawnSync(process.execPath,['scripts/test-clinical-interactions-browser.mjs',out+'/clinical-closure',...(process.argv[3]?[process.argv[3]]:[])],{stdio:'inherit',timeout:600000});
 if(closure.status!==0)process.exit(closure.status||1);
 const supplied=process.argv[3];
 const onlyIdentity=process.env.IDENTITY_QA_ROUTE;
@@ -16,6 +16,9 @@ const stopAfter=process.env.IDENTITY_QA_STOP_AFTER;
 const server=supplied?null:await preview({root:fileURLToPath(new URL('..',import.meta.url)),preview:{host:'127.0.0.1',port:4175,strictPort:true}});
 const base=supplied||'http://127.0.0.1:4175/';
 const report={url:base,sha:process.env.GITHUB_SHA||'local',method:'Production browser route progression from opening to ending. QA hooks trigger bound interactions and simulate zone arrivals; dialogue, albums and M9 submission use real DOM/keyboard handlers. This is an assisted integration test, not an unassisted first-person walkthrough.',routes:[],errors:[],screenshots:[],startedAt:new Date().toISOString()};
+const sampledRendering=process.env.CI==='true';
+report.rendering={mode:sampledRendering?'CI sampled at 1 FPS plus forced screenshots':'continuous',rasterScale:process.env.CI?0.5:1,gameUpdateLoop:'unchanged'};
+if(sampledRendering)report.method+=' CI limits only the QualitySettings render cadence; controller, world and story updates retain the original animation loop. Screenshots force a real render.';
 await mkdir(out,{recursive:true});
 
 const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'chromium',args:['--use-angle=d3d11']}:{})});
@@ -33,8 +36,26 @@ await context.addInitScript(()=>{
   };
 });
 
+if(sampledRendering)await context.addInitScript(()=>{
+  // Keep the real game update loop, input, timers, dialogue and route director.
+  // Only the expensive WebGL draw cadence is reduced on software CI runners.
+  const timer=setInterval(()=>{
+    const quality=window.__storyQA?.qualitySettings;
+    if(!quality)return;
+    quality.preset={...quality.preset,targetFPS:1};
+    clearInterval(timer);
+  },16);
+});
+
 let page;
 async function shot(name){
+  if(sampledRendering)await page.evaluate(()=>{
+    const q=window.__storyQA;
+    // Endings own their renderer while active; do not overwrite their view.
+    if(q?.qualitySettings&&!q.identityManager.runSave.runEnded){
+      q.qualitySettings.lastRender=0;q.qualitySettings.render(performance.now());
+    }
+  });
   await page.screenshot({path:`${out}/${name}.png`,timeout:60000});
   report.screenshots.push(`${name}.png`);
 }
@@ -95,6 +116,11 @@ async function walk(identity,{wrong=false,mobile=false}={}){
     const state=await runtimeState();
     if(run.seed===undefined)run.seed=state.run.runSave.runSeed;
     assert.equal(state.run.runSave.runSeed,run.seed,'the same run seed must survive the entire route');
+    if(action%20===0){
+      report.inProgress={identity,seed:run.seed,step:state.step,actions:run.actions,updatedAt:new Date().toISOString()};
+      await writeFile(`${out}/progress.json`,JSON.stringify({...report,currentRun:run},null,2));
+      console.log(`ROUTE_PROGRESS ${identity} ${state.step} actions=${run.actions}`);
+    }
     assert.equal(state.body,state.width,'no horizontal overflow');
 
     const choiceVisible=await page.locator('[data-identity-choices] .identity-choice').count();
@@ -189,6 +215,7 @@ async function walk(identity,{wrong=false,mobile=false}={}){
       run.verdict='PASS';
       run.ending=wrong?'WRONG_MEMORY_PATIENTIZATION':'GOOD_END';
       report.routes.push(run);
+      await writeFile(`${out}/progress.json`,JSON.stringify(report,null,2));
       return;
     }
 
@@ -290,6 +317,7 @@ try{
   await browser.close();
   if(server)await new Promise(r=>server.httpServer.close(r));
   report.finishedAt=new Date().toISOString();
+  delete report.inProgress;
   await writeFile(`${out}/result.json`,JSON.stringify(report,null,2));
   console.log(JSON.stringify(report));
 }
